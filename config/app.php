@@ -15,6 +15,12 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'initial_admin' => [
+        'name' => env('LOOMFLOW_INITIAL_ADMIN_NAME'),
+        'email' => env('LOOMFLOW_INITIAL_ADMIN_EMAIL'),
+        'password' => env('LOOMFLOW_INITIAL_ADMIN_PASSWORD'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
