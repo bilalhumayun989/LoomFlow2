@@ -25,38 +25,36 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Sample data with known credentials must NEVER be seeded into production.
-        if (! app()->environment(['local', 'testing'])) {
-            throw new \RuntimeException('Demo database seed is restricted to local/testing environments.');
+        // Keep known demo credentials out of production while allowing sample
+        // operational data to be seeded into an explicitly prepared database.
+        if (app()->environment(['local', 'testing'])) {
+            User::firstOrCreate(
+                ['email' => 'admin@loomflow.com'],
+                [
+                    'name' => 'Factory Admin',
+                    'role' => 'admin',
+                    'password' => Hash::make('password'),
+                ]
+            );
+
+            User::firstOrCreate(
+                ['email' => 'store@loomflow.com'],
+                [
+                    'name' => 'Store Incharge',
+                    'role' => 'store_incharge',
+                    'password' => Hash::make('password'),
+                ]
+            );
+
+            User::firstOrCreate(
+                ['email' => 'master@loomflow.com'],
+                [
+                    'name' => 'Loom Master (Production)',
+                    'role' => 'loom_master',
+                    'password' => Hash::make('password'),
+                ]
+            );
         }
-
-        // 1. Users
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@loomflow.com'],
-            [
-                'name' => 'Factory Admin',
-                'role' => 'admin',
-                'password' => Hash::make('password'),
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'store@loomflow.com'],
-            [
-                'name' => 'Store Incharge',
-                'role' => 'store_incharge',
-                'password' => Hash::make('password'),
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'master@loomflow.com'],
-            [
-                'name' => 'Loom Master (Production)',
-                'role' => 'loom_master',
-                'password' => Hash::make('password'),
-            ]
-        );
 
         // 2. Bags Purchases (with split between sizing & factory stock)
         $p1 = BagPurchase::create([
