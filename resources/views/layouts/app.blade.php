@@ -117,7 +117,6 @@
                 width: 5rem;
             }
 
-            #appSidebar.sidebar-collapsed .sidebar-brand-copy,
             #appSidebar.sidebar-collapsed .sidebar-section-label,
             #appSidebar.sidebar-collapsed .sidebar-link-label,
             #appSidebar.sidebar-collapsed .sidebar-operator-copy {
@@ -138,30 +137,8 @@
                 padding-bottom: 0.75rem;
             }
 
-            #appSidebar.sidebar-collapsed .sidebar-brand-link {
-                position: relative;
-                gap: 0;
-            }
-
-            #appSidebar.sidebar-collapsed .sidebar-brand-mark {
-                position: relative;
-                cursor: pointer;
-            }
-
-            #appSidebar.sidebar-collapsed .sidebar-brand-mark:hover,
-            #appSidebar.sidebar-collapsed .sidebar-brand-mark:focus-visible {
-                background: #b5e759;
-                transform: scale(1.06);
-            }
-
-            #appSidebar.sidebar-collapsed .sidebar-brand-mark:hover .sidebar-expand-indicator,
-            #appSidebar.sidebar-collapsed .sidebar-brand-mark:focus-visible .sidebar-expand-indicator {
-                opacity: 1;
-                transform: scale(1);
-            }
-
             #appSidebar.sidebar-collapsed .sidebar-collapse-toggle {
-                display: none;
+                display: flex;
             }
 
             #appSidebar.sidebar-collapsed .sidebar-nav {
@@ -176,7 +153,6 @@
                 padding-right: 0.5rem;
             }
 
-            #appSidebar.sidebar-collapsed .sidebar-brand-link,
             #appSidebar.sidebar-collapsed .sidebar-logout-button {
                 position: relative;
             }
@@ -261,10 +237,445 @@
             }
 
         }
+
+        /* Traditional operator-console theme based on the supplied prototype. */
+        body.operator-console {
+            --operator-deep: #153e43;
+            --operator-deep-soft: #24575a;
+            --operator-edge: #b7c1c7;
+            --operator-canvas: #e8ecee;
+            --operator-muted: #627079;
+            --operator-accent: #0f625d;
+            --operator-highlight: #fff5c8;
+            background: var(--operator-canvas) !important;
+            color: #24333b !important;
+            font-family: 'Segoe UI', Tahoma, sans-serif !important;
+            font-size: 13px;
+        }
+
+        body.operator-console #appSidebar {
+            background: #edf1f3 !important;
+            color: #24333b !important;
+            border-color: var(--operator-edge) !important;
+            box-shadow: none !important;
+        }
+
+        body.operator-console .sidebar-brand-header,
+        body.operator-console .sidebar-operator-panel {
+            background: var(--operator-deep) !important;
+            border-color: #38676b !important;
+        }
+
+        body.operator-console .sidebar-brand-header {
+            min-height: 56px;
+            justify-content: flex-end !important;
+            padding: 8px 12px !important;
+            border-bottom: 3px solid var(--operator-deep-soft) !important;
+        }
+
+        body.operator-console .sidebar-section-label {
+            color: var(--operator-muted) !important;
+            border-bottom: 1px solid var(--operator-edge);
+            padding-bottom: 6px;
+            letter-spacing: .08em !important;
+        }
+
+        body.operator-console .sidebar-nav {
+            gap: 14px;
+        }
+
+        body.operator-console .sidebar-nav a {
+            min-height: 34px;
+            border-width: 1px !important;
+            border-radius: 2px !important;
+            color: #34434a !important;
+            font-size: 12px !important;
+            box-shadow: none !important;
+        }
+
+        body.operator-console .sidebar-nav a:hover {
+            background: #fff !important;
+            border-color: var(--operator-edge) !important;
+            color: var(--operator-deep) !important;
+        }
+
+        body.operator-console .sidebar-nav a.shadow-md {
+            background: #dce9e8 !important;
+            border-color: #8eaaa9 !important;
+            color: var(--operator-deep) !important;
+            font-weight: 700 !important;
+        }
+
+        body.operator-console .sidebar-nav a svg {
+            color: var(--operator-accent) !important;
+        }
+
+        body.operator-console .sidebar-operator-card {
+            border-radius: 2px !important;
+            border-color: #38676b !important;
+            background: #1d4b50 !important;
+            box-shadow: none !important;
+        }
+
+        body.operator-console .sidebar-user-row {
+            border-color: #38676b !important;
+        }
+
+        body.operator-console .sidebar-logout-button,
+        body.operator-console .sidebar-collapse-toggle,
+        body.operator-console #appSidebar button {
+            border-radius: 2px !important;
+        }
+
+        body.operator-console > div > div.flex-1 > header {
+            min-height: 56px;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            background: #fff !important;
+            border-color: var(--operator-edge) !important;
+            box-shadow: 0 1px 2px rgb(36 51 59 / 5%);
+        }
+
+        body.operator-console > div > div.flex-1 > header [class*="text-stone-400"] {
+            color: var(--operator-muted) !important;
+        }
+
+        body.operator-console > div > div.flex-1 > header [class*="text-[#133e2b]"] {
+            color: var(--operator-deep) !important;
+        }
+
+        body.operator-console > div > div.flex-1 > header [title] {
+            border-radius: 2px !important;
+            border-color: var(--operator-edge) !important;
+            box-shadow: none !important;
+        }
+
+        body.operator-console > div > div.flex-1 > header [title] > div:first-child {
+            border-radius: 2px !important;
+            background: var(--operator-deep) !important;
+            box-shadow: none !important;
+        }
+
+        body.operator-console main {
+            padding: 18px 20px 24px !important;
+            background: var(--operator-canvas);
+        }
+
+        body.operator-console main h1,
+        body.operator-console main h2,
+        body.operator-console main h3 {
+            color: #24333b;
+            letter-spacing: -.015em;
+        }
+
+        body.operator-console main .rounded-3xl,
+        body.operator-console main .rounded-2xl,
+        body.operator-console main .rounded-xl,
+        body.operator-console main .rounded-lg,
+        body.operator-console main .rounded-md {
+            border-radius: 2px !important;
+        }
+
+        body.operator-console main .shadow-sm,
+        body.operator-console main .shadow-md,
+        body.operator-console main .shadow-lg,
+        body.operator-console main .shadow-xl,
+        body.operator-console main .shadow-2xl {
+            box-shadow: 0 1px 2px rgb(36 51 59 / 6%) !important;
+        }
+
+        body.operator-console main input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        body.operator-console main select,
+        body.operator-console main textarea {
+            min-height: 32px;
+            border: 1px solid #aab9bd !important;
+            border-radius: 1px !important;
+            background-color: #fff;
+            color: #24333b;
+            padding: 6px 8px !important;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-size: 12px !important;
+            box-shadow: inset 0 1px 1px rgb(36 51 59 / 4%) !important;
+        }
+
+        body.operator-console main textarea {
+            min-height: 76px;
+        }
+
+        body.operator-console main input:focus,
+        body.operator-console main select:focus,
+        body.operator-console main textarea:focus {
+            border-color: #bd8500 !important;
+            outline: 2px solid rgb(255 215 102 / 38%);
+            outline-offset: 0;
+            box-shadow: none !important;
+        }
+
+        body.operator-console main label {
+            color: #46565e;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        body.operator-console main table {
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        body.operator-console main thead th {
+            background: #edf1f3 !important;
+            color: #45565d !important;
+            border: 1px solid var(--operator-edge) !important;
+            font-size: 10px;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        body.operator-console main tbody td {
+            border: 1px solid #d7dfe2 !important;
+        }
+
+        body.operator-console main tbody tr:nth-child(even) {
+            background: #f4f7f9;
+        }
+
+        body.operator-console main button,
+        body.operator-console main a[class*="bg-[#133e2b]"],
+        body.operator-console main a[class*="bg-[#0f625d]"] {
+            border-radius: 2px !important;
+        }
+
+        body.operator-console footer {
+            background: #edf1f3;
+            border-color: var(--operator-edge) !important;
+        }
+
+        @media (max-width: 640px) {
+            body.operator-console main {
+                padding: 14px 12px 20px !important;
+            }
+        }
+
+        body.operator-console > .operator-app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .operator-titlebar {
+            min-height: 43px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 15px;
+            color: #f8ffff;
+            background: #153e43;
+            border-bottom: 3px solid #74a49f;
+        }
+
+        .operator-titlebar-mark {
+            width: 27px;
+            height: 27px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #6c9b9d;
+            color: #d6ff3a;
+            font-size: 18px;
+            font-weight: 800;
+            border-radius: 2px;
+        }
+
+        .operator-titlebar-brand {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+
+        .operator-titlebar-subtitle {
+            margin-left: 8px;
+            opacity: .72;
+            font-size: 11px;
+        }
+
+        .operator-titlebar-spacer { flex: 1; }
+
+        .operator-user-meta {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .operator-user-initials {
+            width: 27px;
+            height: 27px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #153e43;
+            background: #e5f6e7;
+            border: 1px solid #b7d3c1;
+            border-radius: 2px;
+            font-weight: 800;
+        }
+
+        .operator-menubar {
+            min-height: 31px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 2px 11px;
+            background: #f1f3f4;
+            border-bottom: 1px solid #b7c1c7;
+        }
+
+        .operator-menubar a {
+            flex: 0 0 auto;
+            padding: 5px 11px;
+            border: 1px solid transparent;
+            border-radius: 2px;
+            color: #34434a;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .operator-menubar a:hover,
+        .operator-menubar a[aria-current="page"] {
+            border-color: #9ca9af;
+            background: #fff;
+            color: #153e43;
+        }
+
+        .operator-toolbar {
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 8px 13px;
+            background: #e3e8ea;
+            border-bottom: 1px solid #b7c1c7;
+        }
+
+        .operator-toolbar-title {
+            margin-right: auto;
+            color: #334c53;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .operator-toolbar-menu {
+            display: none;
+            min-width: 32px;
+            height: 31px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #9daaaf;
+            border-radius: 2px;
+            background: #fff;
+            color: #153e43;
+        }
+
+        .operator-bottom-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 20px;
+            background: #f5f7f8;
+            border-top: 1px solid #d4dee1;
+        }
+
+        .operator-bottom-actions-label {
+            margin-right: 4px;
+            color: #627079;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .operator-tool-link {
+            min-height: 31px;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 11px;
+            border: 1px solid #9daaaf;
+            border-radius: 2px;
+            background: linear-gradient(#fff, #eff2f3);
+            color: #2a383e;
+            font-size: 11px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .operator-tool-link:hover {
+            background: #fff;
+            border-color: #71878d;
+        }
+
+        .operator-tool-link.primary {
+            background: #0f6560;
+            border-color: #0b5550;
+            color: #fff;
+        }
+
+        .operator-workspace {
+            min-height: 0;
+            flex: 1 1 auto;
+        }
+
+        body.operator-console #appSidebar {
+            top: 74px !important;
+            bottom: auto !important;
+            height: calc(100vh - 74px) !important;
+            max-height: calc(100vh - 74px) !important;
+            align-self: flex-start;
+        }
+
+        body.operator-console > .operator-app > .operator-workspace > div.flex-1 {
+            min-height: calc(100vh - 74px);
+        }
+
+        @media (max-width: 1023px) {
+            .operator-toolbar-menu { display: inline-flex; }
+            body.operator-console #appSidebar {
+                top: 0 !important;
+                bottom: 0 !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .operator-titlebar-subtitle,
+            .operator-user-role { display: none; }
+            .operator-user-meta { gap: 6px; }
+            .operator-menubar { min-height: 31px; }
+            .operator-toolbar { min-height: 46px; }
+            .operator-toolbar-title { font-size: 12px; }
+            .operator-tool-link { padding-right: 8px; padding-left: 8px; }
+        }
     </style>
 </head>
-<body class="h-full antialiased bg-[#f4f6f4] text-[#131e18]">
-    <div class="min-h-screen flex">
+<body class="operator-console h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+    <div class="operator-app">
+        <div class="operator-titlebar">
+            <span class="operator-titlebar-mark" aria-hidden="true">L</span>
+            <div><span class="operator-titlebar-brand">LoomFlow</span><span class="operator-titlebar-subtitle">Grey Fabric Weaving Management System</span></div>
+            <span class="operator-titlebar-spacer"></span>
+            @auth
+                <div class="operator-user-meta" title="{{ Auth::user()->name }}">
+                    <span class="operator-user-role">Factory Console &nbsp; | &nbsp; {{ Auth::user()->name }} &nbsp; | &nbsp; {{ ucfirst(str_replace('_', ' ', Auth::user()->role)) }}</span>
+                    <span class="operator-user-initials">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
+                </div>
+            @else
+                <a class="operator-tool-link primary" href="{{ route('login') }}">Sign in</a>
+            @endauth
+        </div>
         
         @php
             $currentRoute = Route::currentRouteName() ?? '';
@@ -301,26 +712,29 @@
             $pageHeading = preg_replace('/^\d+\.\s*/', '', $pageTitle);
         @endphp
 
+        <nav class="operator-menubar" aria-label="Primary navigation">
+            <button class="operator-toolbar-menu" type="button" onclick="toggleSidebar()" aria-label="Open navigation menu">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <a href="{{ route('dashboard') }}" @if(in_array($currentRoute, ['dashboard', 'home'])) aria-current="page" @endif>Home</a>
+            <a href="{{ route('factory.orders') }}" @if(str_starts_with($currentRoute, 'factory.')) aria-current="page" @endif>Factory</a>
+            <a href="{{ route('production.index') }}" @if(str_starts_with($currentRoute, 'production')) aria-current="page" @endif>Production</a>
+            <a href="{{ route('bags.index') }}" @if(in_array($currentRoute, ['bags.index', 'sizing.index', 'parts.index', 'fabric.index'])) aria-current="page" @endif>Store &amp; Stock</a>
+            <a href="{{ route('sales.index') }}" @if(str_starts_with($currentRoute, 'sales')) aria-current="page" @endif>Sales</a>
+            <a href="{{ route('invoices.index') }}" @if(str_starts_with($currentRoute, 'invoices') || str_starts_with($currentRoute, 'accounts') || str_starts_with($currentRoute, 'ledgers') || str_starts_with($currentRoute, 'expenses')) aria-current="page" @endif>Accounts</a>
+            <a href="{{ route('factory.reports') }}" @if(str_starts_with($currentRoute, 'factory.reports')) aria-current="page" @endif>Reports</a>
+        </nav>
+
         <!-- BACKDROP FOR MOBILE SIDEBAR -->
         <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm hidden lg:hidden transition-opacity"></div>
         <div id="sidebarTooltip" class="pointer-events-none fixed z-[100] hidden max-w-[16rem] rounded-xl border border-[#205c41] bg-[#0f3323] px-3 py-2 text-xs font-bold text-white shadow-xl" role="tooltip"></div>
 
         <!-- LEFT SIDEBAR: FIXED HEIGHT (lg:sticky lg:top-0 lg:h-screen lg:max-h-screen), SLIGHTLY DARKER GREEN (#0f3323) -->
+        <div class="operator-workspace flex min-h-0 flex-1">
         <aside id="appSidebar" class="fixed inset-y-0 left-0 z-50 w-64 lg:sticky lg:top-0 lg:h-screen lg:max-h-screen bg-[#0f3323] text-white flex flex-col justify-between transition-all duration-300 ease-in-out -translate-x-full lg:translate-x-0 shrink-0 select-none border-r border-[#1a4d36] shadow-xl">
             
             <!-- Top Brand Header (Fixed at top of sidebar) -->
             <div class="sidebar-brand-header px-5 py-4 flex items-center justify-between border-b border-[#1a4d36] shrink-0 bg-[#0f3323]">
-                <a href="{{ route('dashboard') }}" onclick="if (window.matchMedia('(min-width: 1024px)').matches && document.getElementById('appSidebar').classList.contains('sidebar-collapsed')) { toggleDesktopSidebar(event); }" class="sidebar-brand-link flex items-center gap-3 group" aria-label="Go to dashboard">
-                    <span class="sidebar-brand-mark relative w-10 h-10 shrink-0 rounded-xl bg-[#c6f16d] text-[#0f3323] flex items-center justify-center font-black text-sm tracking-tight shadow-md transition-all">
-                        LF
-                        <span class="sidebar-expand-indicator absolute inset-0 flex items-center justify-center rounded-xl bg-[#c6f16d] opacity-0 scale-75 transition-all" aria-hidden="true">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                        </span>
-                    </span>
-                    <div class="sidebar-brand-copy">
-                        <div class="text-white font-black text-lg tracking-tight leading-none">loomflow</div>
-                    </div>
-                </a>
                 <button type="button" onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg text-white hover:bg-[#1a4d36]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -508,35 +922,6 @@
 
         <!-- MAIN VIEWPORT CONTAINER (Scrolls independently) -->
         <div class="flex-1 flex flex-col min-w-0 min-h-screen">
-            
-            <!-- TOP BAR HEADER -->
-            <header class="sticky top-0 z-30 border-b border-[#dce6de] bg-gradient-to-r from-white via-white to-[#f1f7f1] px-4 py-3 sm:px-8">
-                <div class="flex min-h-12 items-center justify-between gap-4">
-                    <div class="flex min-w-0 items-center gap-3 sm:gap-4">
-                        <button type="button" onclick="toggleSidebar()" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#dce6de] bg-white text-[#133e2b] shadow-sm transition hover:border-[#b7cdbd] hover:bg-emerald-50 lg:hidden" aria-label="Open navigation menu">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                        </button>
-                        <div class="min-w-0">
-                            <div class="text-[10px] font-extrabold uppercase tracking-[0.16em] text-stone-400">Workspace</div>
-                            <div class="mt-0.5 truncate text-lg font-black leading-tight tracking-tight text-[#133e2b] sm:text-xl">{{ $pageHeading }}</div>
-                        </div>
-                    </div>
-
-                    @auth
-                        <div class="flex max-w-[45vw] shrink-0 items-center gap-2.5 rounded-xl border border-[#dce6de] bg-white px-2.5 py-2 shadow-sm sm:max-w-[250px] sm:gap-3 sm:px-3" title="{{ Auth::user()->name }}">
-                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#133e2b] text-xs font-black tracking-wide text-[#c6f16d] ring-2 ring-emerald-100">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <div class="break-words text-xs font-black leading-4 text-stone-900 sm:text-sm">{{ Auth::user()->name }}</div>
-                                <div class="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-500">Account</div>
-                            </div>
-                        </div>
-                    @else
-                        <a href="{{ route('login') }}" class="inline-flex items-center rounded-xl bg-[#133e2b] px-4 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#0f3323]">Login</a>
-                    @endauth
-                </div>
-            </header>
 
             <!-- FLASH NOTIFICATIONS -->
             <div class="px-4 sm:px-8 mt-4">
@@ -581,6 +966,14 @@
             </div>
 
             <!-- MAIN BODY CONTENT -->
+            <nav class="operator-bottom-actions" aria-label="Common destinations">
+                <span class="operator-bottom-actions-label">Quick access</span>
+                <a class="operator-tool-link" href="{{ route('factory.checking') }}">Checking Entry</a>
+                <a class="operator-tool-link" href="{{ route('factory.parchis') }}">Kachi / Pakki Parchis</a>
+                <a class="operator-tool-link primary" href="{{ route('sales.contracts') }}">Sales Contracts</a>
+                <a class="operator-tool-link" href="{{ route('accounts.index') }}">Party Accounts</a>
+            </nav>
+
             <main class="flex-1 px-4 sm:px-8 py-6">
                 @yield('content')
             </main>
@@ -597,6 +990,7 @@
                 </div>
             </footer>
 
+        </div>
         </div>
 
     </div>
@@ -652,7 +1046,6 @@
         function toggleDesktopSidebar(event) {
             const sidebar = document.getElementById('appSidebar');
             const toggle = document.querySelector('.sidebar-collapse-toggle');
-            const brandLink = document.querySelector('.sidebar-brand-link');
             const icon = document.querySelector('.sidebar-toggle-icon');
 
             if (!sidebar) {
@@ -676,10 +1069,6 @@
                 toggle.setAttribute('data-sidebar-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
             }
 
-            if (brandLink) {
-                brandLink.setAttribute('aria-label', isCollapsed ? 'Expand sidebar' : 'Go to dashboard');
-            }
-
             if (icon) {
                 icon.classList.toggle('rotate-180', isCollapsed);
             }
@@ -688,16 +1077,12 @@
         if (window.matchMedia('(min-width: 1024px)').matches && localStorage.getItem('loomflow-sidebar-collapsed') !== 'false') {
             const sidebar = document.getElementById('appSidebar');
             const toggle = document.querySelector('.sidebar-collapse-toggle');
-            const brandLink = document.querySelector('.sidebar-brand-link');
             const icon = document.querySelector('.sidebar-toggle-icon');
 
             if (sidebar) {
                 sidebar.classList.add('sidebar-collapsed');
             }
 
-            if (brandLink) {
-                brandLink.setAttribute('aria-label', 'Expand sidebar');
-            }
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'false');
                 toggle.setAttribute('aria-label', 'Expand sidebar');
@@ -709,7 +1094,6 @@
             }
         } else if (window.matchMedia('(min-width: 1024px)').matches) {
             const toggle = document.querySelector('.sidebar-collapse-toggle');
-            document.querySelector('.sidebar-brand-link')?.setAttribute('aria-label', 'Go to dashboard');
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'true');
                 toggle.setAttribute('aria-label', 'Collapse sidebar');
