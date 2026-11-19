@@ -708,6 +708,12 @@
             color: #fff;
         }
 
+        .operator-bottom-actions .operator-tool-link[aria-current="page"] {
+            background: #0f6560 !important;
+            border-color: #0b5550 !important;
+            color: #fff !important;
+        }
+
         .operator-workspace {
             min-height: 0;
             flex: 1 1 auto;
@@ -1049,12 +1055,18 @@
             </div>
 
             <!-- MAIN BODY CONTENT -->
+            @php
+                $isCheckingQuickLink = request()->routeIs('factory.checking', 'factory.checking.*');
+                $isParchiQuickLink = request()->routeIs('factory.parchis', 'factory.kachi.*', 'factory.pakki.*', 'factory.returns.*');
+                $isSalesContractsQuickLink = request()->routeIs('sales.contracts', 'sales.contracts.*');
+                $isPartyAccountsQuickLink = request()->routeIs('accounts.*');
+            @endphp
             <nav class="operator-bottom-actions" aria-label="Common destinations">
                 <span class="operator-bottom-actions-label">Quick access</span>
-                <a class="operator-tool-link" href="{{ route('factory.checking') }}">Checking Entry</a>
-                <a class="operator-tool-link" href="{{ route('factory.parchis') }}">Kachi / Pakki Parchis</a>
-                <a class="operator-tool-link primary" href="{{ route('sales.contracts') }}">Sales Contracts</a>
-                <a class="operator-tool-link" href="{{ route('accounts.index') }}">Party Accounts</a>
+                <a class="operator-tool-link {{ $isCheckingQuickLink ? 'primary' : '' }}" href="{{ route('factory.checking') }}" @if($isCheckingQuickLink) aria-current="page" @endif>Checking Entry</a>
+                <a class="operator-tool-link {{ $isParchiQuickLink ? 'primary' : '' }}" href="{{ route('factory.parchis') }}" @if($isParchiQuickLink) aria-current="page" @endif>Kachi / Pakki Parchis</a>
+                <a class="operator-tool-link {{ $isSalesContractsQuickLink ? 'primary' : '' }}" href="{{ route('sales.contracts') }}" @if($isSalesContractsQuickLink) aria-current="page" @endif>Sales Contracts</a>
+                <a class="operator-tool-link {{ $isPartyAccountsQuickLink ? 'primary' : '' }}" href="{{ route('accounts.index') }}" @if($isPartyAccountsQuickLink) aria-current="page" @endif>Party Accounts</a>
                 <button class="operator-tool-link" type="button" onclick="openOperatorKeyboardGuide()">Keyboard Guide · Shift ×3</button>
             </nav>
 
