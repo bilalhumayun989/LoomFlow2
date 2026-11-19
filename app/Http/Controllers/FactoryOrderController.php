@@ -212,11 +212,20 @@ class FactoryOrderController extends Controller
         ]);
         DB::transaction(function () use ($data): void {
             $order = WorkOrder::whereKey($data['work_order_id'])->lockForUpdate()->firstOrFail();
+            $loomBeam = SizingBeam::where('assigned_loom_no', $data['loom_no'])->lockForUpdate()->first();
             if ($order->status !== 'active') {
                 throw ValidationException::withMessages(['work_order_id' => 'Only active orders can be allocated to looms.']);
             }
             if ($data['start_date'] < $order->start_date) {
                 throw ValidationException::withMessages(['start_date' => 'Allocation cannot start before the order.']);
+            }
+            $overlappingAllocation = LoomAssignment::where('loom_no', $data['loom_no'])
+                ->where('start_date', '<=', $data['start_date'])
+                ->where(fn ($query) => $query->whereNull('end_date')->orWhere('end_date', '>=', $data['start_date']))
+                ->lockForUpdate()
+                ->get();
+            if ($overlappingAllocation->count() > 1 || ($overlappingAllocation->isNotEmpty() && (int) $overlappingAllocation->first()->work_order_id !== (int) $order->id)) {
+                throw ValidationException::withMessages(['loom_no' => 'This loom has overlapping work-order allocations. Resolve them before assigning more work.']);
             }
             $mountedBeam = SizingBeam::where('assigned_loom_no', $data['loom_no'])
                 ->where('status', 'mounted_on_loom')->lockForUpdate()->first();
@@ -240,6 +249,9 @@ class FactoryOrderController extends Controller
                 $current->end_date = Carbon::parse($data['start_date'])->subDay()->toDateString();
                 $current->change_reason = $data['change_reason'] ?? 'Order switched';
                 $current->save();
+            }
+            if ($loomBeam && (int) ($loomBeam->work_order_id ?? 0) !== (int) $order->id) {
+                throw ValidationException::withMessages(['loom_no' => 'A mounted beam can only be assigned to an order with its existing fabric quality.']);
             }
             LoomAssignment::create([
                 'work_order_id' => $order->id, 'loom_no' => $data['loom_no'],
@@ -302,10 +314,11 @@ class FactoryOrderController extends Controller
                 $allocation = LoomAssignment::where('work_order_id', $targetOrder->id)->where('loom_no', $toLoom)
                     ->where('start_date', '<=', $data['event_date'])->where(function ($q) use ($data): void {
                         $q->whereNull('end_date')->orWhere('end_date', '>=', $data['event_date']);
-                    })->first();
-                if (! $allocation) {
+                    })->lockForUpdate()->get();
+                if ($allocation->count() !== 1) {
                     throw ValidationException::withMessages(['loom_no' => 'Allocate this loom to the order for the selected date first.']);
                 }
+                $allocation = $allocation->first();
                 if ($beam->fabric_stock_id && (int) $beam->fabric_stock_id !== (int) $targetOrder->fabric_stock_id) {
                     throw ValidationException::withMessages(['work_order_id' => 'Beam and order must have the same fabric quality.']);
                 }
@@ -332,7 +345,11 @@ class FactoryOrderController extends Controller
                     }
                     $settlement = round((float) ($data['agreed_settlement'] ?? $predicted), 2);
                 }
-                $occupied = SizingBeam::where('assigned_loom_no', $toLoom)->where('status', 'mounted_on_loom')->whereKeyNot($beam->id)->exists();
+                $destinationBeam = SizingBeam::where('assigned_loom_no', $toLoom)->lockForUpdate()->first();
+                if ($destinationBeam && (int) $destinationBeam->id !== (int) $beam->id && $destinationBeam->status === 'mounted_on_loom') {
+                    throw ValidationException::withMessages(['loom_no' => 'Destination loom already has another mounted beam.']);
+                }
+                $occupied = SizingBeam::where('assigned_loom_no', $toLoom)->where('status', 'mounted_on_loom')->whereKeyNot($beam->id)->lockForUpdate()->exists();
                 if ($occupied) {
                     throw ValidationException::withMessages(['loom_no' => 'Destination loom already has another mounted beam.']);
                 }

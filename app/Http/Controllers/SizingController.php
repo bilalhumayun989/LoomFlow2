@@ -387,46 +387,49 @@ class SizingController extends Controller
             'mounted_date' => 'required|date',
         ]);
 
-        $alreadyMounted = SizingBeam::where('assigned_loom_no', $validated['assigned_loom_no'])
-            ->where('status', 'mounted_on_loom')
-            ->whereKeyNot($beam->getKey())
-            ->exists();
-
-        if ($alreadyMounted) {
-            return back()->withInput()->withErrors([
-                'assigned_loom_no' => 'This loom already has a beam mounted. Mark it finished before mounting another beam.',
-            ]);
-        }
-
         if (! in_array($beam->status, ['ready_in_store', 'mounted_on_loom'], true) || $beam->remaining_length_meters <= 0) {
             return back()->with('error', 'This beam is exhausted or is not available to mount.');
         }
 
         DB::transaction(function () use ($beam, $validated): void {
+            $lockedBeam = SizingBeam::whereKey($beam->getKey())->lockForUpdate()->firstOrFail();
+            $alreadyMounted = SizingBeam::where('assigned_loom_no', $validated['assigned_loom_no'])
+                ->where('status', 'mounted_on_loom')
+                ->whereKeyNot($lockedBeam->getKey())
+                ->lockForUpdate()
+                ->exists();
+
+            if ($alreadyMounted) {
+                throw ValidationException::withMessages([
+                    'assigned_loom_no' => 'This loom already has a beam mounted. Mark it finished before mounting another beam.',
+                ]);
+            }
+
             $assignment = LoomAssignment::where('loom_no', $validated['assigned_loom_no'])
                 ->where('start_date', '<=', $validated['mounted_date'])
                 ->where(function ($query) use ($validated): void {
                     $query->whereNull('end_date')->orWhere('end_date', '>=', $validated['mounted_date']);
-                })->first();
-            if (! $assignment) {
+                })->lockForUpdate()->get();
+            if ($assignment->count() !== 1) {
                 throw ValidationException::withMessages([
-                    'assigned_loom_no' => 'Allocate this loom to a production order for the mounting date first.',
+                    'assigned_loom_no' => 'Allocate this loom to exactly one production order for the mounting date first.',
                 ]);
             }
-            $order = WorkOrder::findOrFail($assignment->work_order_id);
-            if ($beam->work_order_id && (int) $beam->work_order_id !== (int) $order->id) {
+            $activeAssignment = $assignment->first();
+            $order = WorkOrder::whereKey($activeAssignment->work_order_id)->lockForUpdate()->firstOrFail();
+            if ($lockedBeam->work_order_id && (int) $lockedBeam->work_order_id !== (int) $order->id) {
                 throw ValidationException::withMessages([
                     'assigned_loom_no' => 'This beam belongs to its previous contract; use Settle & Reassign.',
                 ]);
             }
-            if ($beam->fabric_stock_id && (int) $beam->fabric_stock_id !== (int) $order->fabric_stock_id) {
+            if ($lockedBeam->fabric_stock_id && (int) $lockedBeam->fabric_stock_id !== (int) $order->fabric_stock_id) {
                 throw ValidationException::withMessages([
                     'assigned_loom_no' => 'This beam quality differs from the loom order.',
                 ]);
             }
-            $previousLoom = $beam->assigned_loom_no;
-            $previousOrder = $beam->work_order_id;
-            $beam->update([
+            $previousLoom = $lockedBeam->assigned_loom_no;
+            $previousOrder = $lockedBeam->work_order_id;
+            $lockedBeam->update([
                 'assigned_loom_no' => $validated['assigned_loom_no'],
                 'mounted_date' => $validated['mounted_date'],
                 'status' => 'mounted_on_loom',
@@ -436,11 +439,13 @@ class SizingController extends Controller
             BeamEvent::create([
                 'sizing_beam_id' => $beam->id, 'from_work_order_id' => $previousOrder,
                 'to_work_order_id' => $order->id, 'from_loom' => $previousLoom,
-                'to_loom' => $beam->assigned_loom_no, 'action' => 'mount',
-                'remaining_length_meters' => $beam->remaining_length_meters,
+                'to_loom' => $lockedBeam->assigned_loom_no, 'action' => 'mount',
+                'remaining_length_meters' => $lockedBeam->remaining_length_meters,
                 'event_date' => $validated['mounted_date'],
             ]);
         });
+
+        $beam->refresh();
 
         return redirect()->route('sizing.index')
             ->with('success', "Beam {$beam->beam_no} mounted onto {$beam->assigned_loom_no} successfully!");

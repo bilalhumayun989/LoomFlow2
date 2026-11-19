@@ -182,14 +182,15 @@ class ProductionController extends Controller
         $production = DB::transaction(function () use ($validated, $beamConsumed, $netMetersProduced) {
             $beam = SizingBeam::whereKey($validated['sizing_beam_id'])->lockForUpdate()->firstOrFail();
             $beam->loadMissing('sizingSlip');
-            $assignment = LoomAssignment::where('loom_no', $validated['loom_no'])
+            $assignments = LoomAssignment::where('loom_no', $validated['loom_no'])
                 ->where('start_date', '<=', $validated['production_date'])
                 ->where(function ($q) use ($validated): void {
                     $q->whereNull('end_date')->orWhere('end_date', '>=', $validated['production_date']);
-                })->first();
-            if (! $assignment) {
-                throw ValidationException::withMessages(['loom_no' => 'Allocate the loom to an active order for this date first.']);
+                })->lockForUpdate()->get();
+            if ($assignments->count() !== 1) {
+                throw ValidationException::withMessages(['loom_no' => 'Allocate the loom to exactly one active order for this date first.']);
             }
+            $assignment = $assignments->first();
             $order = WorkOrder::findOrFail($assignment->work_order_id);
             if ($beam->work_order_id && (int) $beam->work_order_id !== (int) $order->id) {
                 throw ValidationException::withMessages(['sizing_beam_id' => 'This beam belongs to a different contract. Settle or transfer the beam first.']);
@@ -207,6 +208,12 @@ class ProductionController extends Controller
 
             if ($beam->status !== 'mounted_on_loom' || $beam->assigned_loom_no !== $validated['loom_no']) {
                 return null;
+            }
+
+            if ((int) $beam->fabric_stock_id !== (int) $order->fabric_stock_id) {
+                throw ValidationException::withMessages([
+                    'sizing_beam_id' => 'The mounted beam quality must match the loom work order quality.',
+                ]);
             }
 
             if ($beamConsumed > (float) $beam->remaining_length_meters) {
@@ -306,6 +313,24 @@ class ProductionController extends Controller
 
                 if ($beam) {
                     $beam->loadMissing('sizingSlip');
+                    $assignment = LoomAssignment::where('loom_no', $roll['loom_no'])
+                        ->where('start_date', '<=', $movementDate)
+                        ->where(fn ($query) => $query->whereNull('end_date')->orWhere('end_date', '>=', $movementDate))
+                        ->lockForUpdate()
+                        ->get();
+                    if ($assignment->count() !== 1 || (int) $assignment->first()->work_order_id !== (int) $roll['work_order_id']) {
+                        throw ValidationException::withMessages([
+                            'rolls' => "Loom {$roll['loom_no']} must have exactly one matching work order for this production date.",
+                        ]);
+                    }
+
+                    $order = WorkOrder::whereKey($assignment->first()->work_order_id)->lockForUpdate()->firstOrFail();
+                    if ((int) $beam->fabric_stock_id !== (int) $order->fabric_stock_id || (int) $roll['fabric_stock_id'] !== (int) $order->fabric_stock_id) {
+                        throw ValidationException::withMessages([
+                            'rolls' => "Loom {$roll['loom_no']} production quality must match its mounted beam and assigned work order.",
+                        ]);
+                    }
+
                     $widthMultiplier = max(0.01, (float) ($beam->sizingSlip?->width_multiplier ?? 1));
                     $beamMetersConsumed = round((float) $roll['total_meters'] / $widthMultiplier, 2);
 
