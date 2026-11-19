@@ -118,6 +118,7 @@
             }
 
             #appSidebar.sidebar-collapsed .sidebar-section-label,
+            #appSidebar.sidebar-collapsed .sidebar-header-title,
             #appSidebar.sidebar-collapsed .sidebar-link-label,
             #appSidebar.sidebar-collapsed .sidebar-operator-copy {
                 display: none;
@@ -748,6 +749,231 @@
             .operator-menubar { min-height: 31px; }
             .operator-tool-link { padding-right: 8px; padding-left: 8px; }
         }
+
+        /* Refined light operator sidebar. */
+        body.operator-console #appSidebar {
+            background: #edf1f3 !important;
+            border-right: 1px solid #b7c1c7 !important;
+            box-shadow: 2px 0 8px rgb(36 51 59 / 4%) !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-brand-header {
+            min-height: 44px;
+            justify-content: flex-end !important;
+            padding: 6px 10px !important;
+            background: #edf1f3 !important;
+            border-bottom: 1px solid #c5cfd2 !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-header-title {
+            margin-right: auto;
+            color: #54646a;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .09em;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        body.operator-console #appSidebar .sidebar-collapse-toggle {
+            width: 30px !important;
+            height: 30px !important;
+            border: 1px solid #c5cfd2 !important;
+            background: #f8fafb !important;
+            color: #153e43 !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-collapse-toggle:hover,
+        body.operator-console #appSidebar .sidebar-collapse-toggle:focus-visible,
+        body.operator-console #appSidebar .sidebar-brand-header > button:hover {
+            border-color: #8eaaa9 !important;
+            background: #dce9e8 !important;
+            color: #153e43 !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-brand-header > button {
+            color: #153e43 !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav {
+            padding: 10px 9px !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav > div {
+            margin: 0 0 13px !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-section-label {
+            margin: 0 0 6px !important;
+            padding: 7px 8px 6px !important;
+            border-bottom: 1px solid #c5cfd2;
+            color: #54646a !important;
+            font-size: 10px !important;
+            letter-spacing: .09em !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav .space-y-1 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 4px !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav a {
+            min-height: 37px;
+            gap: 9px !important;
+            padding: 6px 8px !important;
+            border: 1px solid transparent !important;
+            border-left-width: 3px !important;
+            border-radius: 2px !important;
+            color: #34434a !important;
+            font-size: 12px !important;
+            line-height: 1.25;
+            box-shadow: none !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav a:hover {
+            border-color: #c5cfd2 !important;
+            background: #fff !important;
+            color: #153e43 !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav a.shadow-md {
+            border-color: #b4c9c7 !important;
+            border-left-color: #0f625d !important;
+            background: #dce9e8 !important;
+            color: #153e43 !important;
+            font-weight: 700 !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav a svg {
+            width: 19px !important;
+            height: 19px !important;
+            flex: 0 0 19px;
+            padding: 2px;
+            border: 1px solid #d2dcdf;
+            border-radius: 2px;
+            background: #f8fafb;
+            color: #0f625d !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-nav a.shadow-md svg {
+            border-color: #9dbab6;
+            background: #0f625d;
+            color: #fff !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-link-label {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        body.operator-console #appSidebar .sidebar-shortcut-badge {
+            margin-left: 0;
+            padding: 2px 5px;
+            border-color: #d3dcdf;
+            background: #fff;
+            color: #596a70;
+            font-size: 9px;
+            line-height: 1.2;
+        }
+
+        body.operator-console #appSidebar .sidebar-operator-panel {
+            padding: 10px !important;
+            background: #edf1f3 !important;
+            border-top: 1px solid #c5cfd2 !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-operator-card {
+            padding: 10px !important;
+            border: 1px solid #c5cfd2 !important;
+            border-radius: 2px !important;
+            background: #f8fafb !important;
+            color: #34434a !important;
+            box-shadow: none !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-user-row {
+            border-color: #d1dadd !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-user-info > div:first-child {
+            color: #24333b !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-user-info > div:last-child {
+            color: #0f625d !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-logout-button {
+            border: 1px solid #c5cfd2 !important;
+            border-radius: 2px !important;
+            background: #fff !important;
+            color: #34434a !important;
+        }
+
+        body.operator-console #appSidebar .sidebar-logout-button:hover,
+        body.operator-console #appSidebar .sidebar-logout-button:focus-visible {
+            border-color: #8eaaa9 !important;
+            background: #e4efee !important;
+            color: #153e43 !important;
+        }
+
+        body.operator-console #appSidebar .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e5eaed;
+        }
+
+        body.operator-console #appSidebar .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #b6c2c7;
+            border-radius: 2px;
+        }
+
+        @media (min-width: 1024px) {
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-brand-header {
+                justify-content: center !important;
+                padding: 6px 8px !important;
+            }
+
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-header-title {
+                display: none;
+            }
+
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-nav {
+                padding-right: 7px !important;
+                padding-left: 7px !important;
+            }
+
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-nav a {
+                justify-content: center;
+                padding-right: 5px !important;
+                padding-left: 5px !important;
+                border-left-width: 1px !important;
+            }
+
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-operator-panel {
+                justify-content: center;
+                padding: 8px 6px !important;
+            }
+
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-operator-card {
+                padding: 4px 0 !important;
+                border: 0 !important;
+                background: transparent !important;
+            }
+
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-logout-button {
+                width: 48px !important;
+                min-width: 48px !important;
+                max-width: 48px !important;
+                height: 46px !important;
+                border: 1px solid #c5cfd2 !important;
+                border-radius: 2px !important;
+                background: #fff !important;
+                color: #34434a !important;
+            }
+
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-logout-icon,
+            body.operator-console #appSidebar.sidebar-collapsed .sidebar-logout-label {
+                color: #34434a !important;
+            }
+        }
     </style>
 </head>
 <body class="operator-console h-full antialiased bg-[#f4f6f4] text-[#131e18]">
@@ -824,6 +1050,7 @@
             
             <!-- Top Brand Header (Fixed at top of sidebar) -->
             <div class="sidebar-brand-header px-5 py-4 flex items-center justify-between border-b border-[#1a4d36] shrink-0 bg-[#0f3323]">
+                <span class="sidebar-header-title">Factory Operations</span>
                 <button type="button" onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg text-white hover:bg-[#1a4d36]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -835,11 +1062,8 @@
             <!-- Navigation List (Scrolls independently within fixed sidebar height - NO DROPDOWNS) -->
             <nav class="sidebar-nav px-3 py-3 space-y-5 overflow-y-auto custom-scrollbar flex-1">
                 
-                <!-- Section 1: FACTORY OPERATIONS -->
+                <!-- Section 1: Factory operations -->
                 <div>
-                    <div class="sidebar-section-label px-3 mb-2 text-[11px] font-black uppercase tracking-wider text-white">
-                        Factory Operations
-                    </div>
                     <div class="space-y-1">
                         <!-- Main Hub / Boxes -->
                         <a href="{{ route('dashboard') }}" data-sidebar-label="Main Hub / Boxes" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ in_array($currentRoute, ['dashboard', 'home']) ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
@@ -975,16 +1199,7 @@
             <!-- Bottom Operator & User Panel (Fixed at bottom of sidebar) -->
             <div class="sidebar-operator-panel p-3 shrink-0 border-t border-[#1a4d36] bg-[#0f3323]">
                 <div class="sidebar-operator-card p-3 rounded-2xl bg-[#143d2b] border border-[#20583e] text-xs">
-                    <div class="sidebar-operator-copy">
-                    <div class="flex items-center gap-2 font-bold text-white">
-                        <span class="relative flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-[#c6f16d]"></span>
-                        </span>
-                        <span>Single operator</span>
-                    </div>
-                    <p class="text-[10px] text-white/80 mt-0.5">Grey fabric weaving only</p>
-                    </div>
+                    <div class="sidebar-operator-copy text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#627079]">Signed in</div>
 
                     @auth
                         <div class="sidebar-user-row flex items-center justify-between mt-2.5 pt-2.5 border-t border-[#20583e]">
