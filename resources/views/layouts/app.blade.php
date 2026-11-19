@@ -1096,21 +1096,22 @@
                         <tr><td><kbd>Alt</kbd> + <kbd>5</kbd></td><td>Open Bags and Yarn</td></tr>
                         <tr><td><kbd>Alt</kbd> + <kbd>6</kbd></td><td>Open Receipts and Payments</td></tr>
                         <tr><th colspan="2">Sidebar destinations — in sidebar order</th></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>1</kbd></td><td>Main Hub / Boxes</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>2</kbd></td><td>Factory Orders &amp; Parta</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>3</kbd></td><td>Checking / Thaan Stock</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>4</kbd></td><td>Sales Contracts</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>5</kbd></td><td>Production</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>6</kbd></td><td>Factory Reports &amp; Wages</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd></td><td>Bags (Yarn)</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>8</kbd></td><td>Sizing &amp; Beams</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>9</kbd></td><td>Parts Store</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>0</kbd></td><td>Fabric Stock</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Q</kbd></td><td>Sales &amp; Slips</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>W</kbd></td><td>Invoices &amp; Accounts</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd></td><td>Accounts Overview</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd></td><td>Expenses</td></tr>
-                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd></td><td>Party Ledgers</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>1</kbd></td><td>Main Hub / Boxes</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>2</kbd></td><td>Factory Orders &amp; Parta</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>3</kbd></td><td>Checking / Thaan Stock</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>4</kbd></td><td>Sales Contracts</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>5</kbd></td><td>Production</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>6</kbd></td><td>Factory Reports &amp; Wages</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>7</kbd></td><td>Bags (Yarn)</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>8</kbd></td><td>Sizing &amp; Beams</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>9</kbd></td><td>Parts Store</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>0</kbd></td><td>Fabric Stock</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>Q</kbd></td><td>Sales &amp; Slips</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>W</kbd></td><td>Invoices &amp; Accounts</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>E</kbd></td><td>Accounts Overview</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>R</kbd></td><td>Expenses</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>T</kbd></td><td>Party Ledgers</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>Y</kbd></td><td>Collapse or expand the sidebar</td></tr>
                         <tr><td><kbd>F2</kbd></td><td>Focus the first editable field; opens Checking if the page has no entry fields</td></tr>
                         <tr><td><kbd>F8</kbd></td><td>Submit the current form when focus is in one of its fields</td></tr>
                         <tr><td><kbd>Enter</kbd></td><td>Move to the next editable cell in a table</td></tr>
@@ -1151,8 +1152,9 @@
             }
 
             const shortcut = link.getAttribute('data-sidebar-shortcut');
+            const shortcutHint = `Shift+${shortcut?.toUpperCase()}`;
             sidebarTooltip.textContent = shortcut
-                ? `${label} · Ctrl+Shift+${shortcut.toUpperCase()}`
+                ? `${label} · ${shortcutHint}`
                 : label;
             sidebarTooltip.classList.remove('hidden');
 
@@ -1175,7 +1177,7 @@
                     link.setAttribute('data-sidebar-shortcut', shortcut);
                     const badge = document.createElement('span');
                     badge.className = 'sidebar-shortcut-badge';
-                    badge.textContent = `Ctrl+⇧${shortcut.toUpperCase()}`;
+                    badge.textContent = `Shift+${shortcut.toUpperCase()}`;
                     badge.setAttribute('aria-hidden', 'true');
                     link.appendChild(badge);
                 }
@@ -1209,7 +1211,7 @@
             if (toggle) {
                 toggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
                 toggle.setAttribute('aria-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
-                toggle.setAttribute('title', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+                toggle.setAttribute('title', isCollapsed ? 'Expand sidebar · Shift+Y' : 'Collapse sidebar · Shift+Y');
                 toggle.setAttribute('data-sidebar-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
             }
 
@@ -1236,7 +1238,7 @@
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'false');
                 toggle.setAttribute('aria-label', 'Expand sidebar');
-                toggle.setAttribute('title', 'Expand sidebar');
+                toggle.setAttribute('title', 'Expand sidebar · Shift+Y');
                 toggle.setAttribute('data-sidebar-label', 'Expand sidebar');
             }
             if (icon) {
@@ -1247,7 +1249,7 @@
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'true');
                 toggle.setAttribute('aria-label', 'Collapse sidebar');
-                toggle.setAttribute('title', 'Collapse sidebar');
+                toggle.setAttribute('title', 'Collapse sidebar · Shift+Y');
                 toggle.setAttribute('data-sidebar-label', 'Collapse sidebar');
             }
         }
@@ -1310,9 +1312,22 @@
                 return;
             }
 
-            if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && !isEditingField) {
+            const pressedSidebarShortcut = event.code.replace(/^(Digit|Numpad|Key)/, '').toLowerCase()
+                || (event.key === ')' ? '0' : event.key.toLowerCase());
+            const isSidebarShortcut = event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey;
+            if (isSidebarShortcut && pressedSidebarShortcut === 'y' && !isEditingField) {
+                event.preventDefault();
+                if (window.matchMedia('(min-width: 1024px)').matches) {
+                    toggleDesktopSidebar();
+                } else {
+                    toggleSidebar();
+                }
+                return;
+            }
+
+            if (isSidebarShortcut && !isEditingField) {
                 const sidebarShortcutOrder = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't'];
-                const shortcutIndex = sidebarShortcutOrder.indexOf(event.code.replace(/^(Digit|Numpad|Key)/, '').toLowerCase());
+                const shortcutIndex = sidebarShortcutOrder.indexOf(pressedSidebarShortcut);
                 const sidebarLink = sidebarNav?.querySelectorAll('a[data-sidebar-label]')[shortcutIndex];
 
                 if (shortcutIndex >= 0 && sidebarLink instanceof HTMLAnchorElement) {
