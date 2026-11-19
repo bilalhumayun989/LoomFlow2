@@ -310,6 +310,21 @@
             color: var(--operator-accent) !important;
         }
 
+        .sidebar-shortcut-badge {
+            flex: 0 0 auto;
+            margin-left: auto;
+            padding: 2px 4px;
+            border: 1px solid #c5cfd2;
+            border-radius: 2px;
+            background: #f7f9fa;
+            color: #627079;
+            font: 10px Consolas, monospace;
+        }
+
+        body.operator-console #appSidebar.sidebar-collapsed .sidebar-shortcut-badge {
+            display: none;
+        }
+
         body.operator-console .sidebar-operator-card {
             border-radius: 2px !important;
             border-color: #38676b !important;
@@ -549,25 +564,6 @@
             color: #153e43;
         }
 
-        .operator-toolbar {
-            min-height: 52px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            overflow-x: auto;
-            padding: 8px 13px;
-            background: #e3e8ea;
-            border-bottom: 1px solid #b7c1c7;
-        }
-
-        .operator-toolbar-title {
-            margin-right: auto;
-            color: #334c53;
-            font-size: 14px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
         .operator-toolbar-menu {
             display: none;
             min-width: 32px;
@@ -595,6 +591,95 @@
             color: #627079;
             font-size: 11px;
             font-weight: 700;
+        }
+
+        .operator-guide-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 110;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgb(18 35 39 / 56%);
+        }
+
+        .operator-guide-overlay.is-open { display: flex; }
+
+        .operator-guide-dialog {
+            width: min(100%, 620px);
+            max-height: min(82vh, 720px);
+            overflow: auto;
+            background: #fff;
+            border: 1px solid #9eafb4;
+            box-shadow: 0 16px 48px rgb(10 27 31 / 24%);
+        }
+
+        .operator-guide-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 13px 16px;
+            color: #f8ffff;
+            background: #153e43;
+            border-bottom: 3px solid #74a49f;
+        }
+
+        .operator-guide-heading h2 { margin: 0; font-size: 16px; }
+
+        .operator-guide-close {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #6c9b9d;
+            border-radius: 2px;
+            background: transparent;
+            color: #fff;
+        }
+
+        .operator-guide-body { padding: 16px; }
+
+        .operator-guide-table { width: 100%; border-collapse: collapse; }
+
+        .operator-guide-table th,
+        .operator-guide-table td {
+            padding: 9px 10px;
+            border: 1px solid #d2dade;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .operator-guide-table th {
+            background: #edf1f3;
+            color: #45565d;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .operator-guide-table kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            border: 1px solid #b7c1c7;
+            border-bottom-width: 2px;
+            border-radius: 2px;
+            background: #f7f9fa;
+            color: #24333b;
+            font: 600 11px Consolas, monospace;
+            white-space: nowrap;
+        }
+
+        .operator-guide-note {
+            margin-top: 12px;
+            padding: 10px;
+            background: #fbf9ee;
+            border: 1px solid #e2d8af;
+            color: #70633d;
+            font-size: 11px;
+            line-height: 1.5;
         }
 
         .operator-tool-link {
@@ -655,8 +740,6 @@
             .operator-user-role { display: none; }
             .operator-user-meta { gap: 6px; }
             .operator-menubar { min-height: 31px; }
-            .operator-toolbar { min-height: 46px; }
-            .operator-toolbar-title { font-size: 12px; }
             .operator-tool-link { padding-right: 8px; padding-left: 8px; }
         }
     </style>
@@ -972,6 +1055,7 @@
                 <a class="operator-tool-link" href="{{ route('factory.parchis') }}">Kachi / Pakki Parchis</a>
                 <a class="operator-tool-link primary" href="{{ route('sales.contracts') }}">Sales Contracts</a>
                 <a class="operator-tool-link" href="{{ route('accounts.index') }}">Party Accounts</a>
+                <button class="operator-tool-link" type="button" onclick="openOperatorKeyboardGuide()">Keyboard Guide · Shift ×3</button>
             </nav>
 
             <main class="flex-1 px-4 sm:px-8 py-6">
@@ -993,6 +1077,50 @@
         </div>
         </div>
 
+    </div>
+
+    <div id="operatorKeyboardGuide" class="operator-guide-overlay" onclick="if (event.target === this) closeOperatorKeyboardGuide()">
+        <section class="operator-guide-dialog" role="dialog" aria-modal="true" aria-labelledby="operatorKeyboardGuideTitle" tabindex="-1">
+            <div class="operator-guide-heading">
+                <h2 id="operatorKeyboardGuideTitle">Keyboard Shortcuts</h2>
+                <button class="operator-guide-close" type="button" onclick="closeOperatorKeyboardGuide()" aria-label="Close keyboard shortcuts">×</button>
+            </div>
+            <div class="operator-guide-body">
+                <table class="operator-guide-table">
+                    <thead><tr><th>Keys</th><th>Action</th></tr></thead>
+                    <tbody>
+                        <tr><td><kbd>Alt</kbd> + <kbd>1</kbd></td><td>Open Checking / Thaan Entry</td></tr>
+                        <tr><td><kbd>Alt</kbd> + <kbd>2</kbd></td><td>Open Production</td></tr>
+                        <tr><td><kbd>Alt</kbd> + <kbd>3</kbd></td><td>Open Kachi / Pakki Parchis</td></tr>
+                        <tr><td><kbd>Alt</kbd> + <kbd>4</kbd></td><td>Open Pakki acceptance in Kachi / Pakki Parchis</td></tr>
+                        <tr><td><kbd>Alt</kbd> + <kbd>5</kbd></td><td>Open Bags and Yarn</td></tr>
+                        <tr><td><kbd>Alt</kbd> + <kbd>6</kbd></td><td>Open Receipts and Payments</td></tr>
+                        <tr><th colspan="2">Sidebar destinations — in sidebar order</th></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>1</kbd></td><td>Main Hub / Boxes</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>2</kbd></td><td>Factory Orders &amp; Parta</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>3</kbd></td><td>Checking / Thaan Stock</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>4</kbd></td><td>Sales Contracts</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>5</kbd></td><td>Production</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>6</kbd></td><td>Factory Reports &amp; Wages</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd></td><td>Bags (Yarn)</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>8</kbd></td><td>Sizing &amp; Beams</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>9</kbd></td><td>Parts Store</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>0</kbd></td><td>Fabric Stock</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Q</kbd></td><td>Sales &amp; Slips</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>W</kbd></td><td>Invoices &amp; Accounts</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd></td><td>Accounts Overview</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd></td><td>Expenses</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd></td><td>Party Ledgers</td></tr>
+                        <tr><td><kbd>F2</kbd></td><td>Focus the first editable field; opens Checking if the page has no entry fields</td></tr>
+                        <tr><td><kbd>F8</kbd></td><td>Submit the current form when focus is in one of its fields</td></tr>
+                        <tr><td><kbd>Enter</kbd></td><td>Move to the next editable cell in a table</td></tr>
+                        <tr><td><kbd>Tab</kbd></td><td>Move to the next field using normal browser focus order</td></tr>
+                        <tr><td><kbd>Esc</kbd></td><td>Close this guide, or return to the dashboard when not editing a field</td></tr>
+                    </tbody>
+                </table>
+                <p class="operator-guide-note">Open this guide by pressing <kbd>Shift</kbd> three times quickly, or use the Keyboard Guide button below the notices. Navigation shortcuts are paused while typing in a field.</p>
+            </div>
+        </section>
     </div>
 
     <!-- Scripts and Modal Helpers -->
@@ -1022,7 +1150,10 @@
                 return;
             }
 
-            sidebarTooltip.textContent = label;
+            const shortcut = link.getAttribute('data-sidebar-shortcut');
+            sidebarTooltip.textContent = shortcut
+                ? `${label} · Ctrl+Shift+${shortcut.toUpperCase()}`
+                : label;
             sidebarTooltip.classList.remove('hidden');
 
             const linkRect = link.getBoundingClientRect();
@@ -1035,7 +1166,20 @@
         }
 
         if (sidebarNav) {
-            sidebarNav.querySelectorAll('a[data-sidebar-label]').forEach((link) => {
+            const sidebarShortcutCodes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't'];
+            const sidebarLinks = Array.from(sidebarNav.querySelectorAll('a[data-sidebar-label]'));
+
+            sidebarLinks.forEach((link, index) => {
+                const shortcut = sidebarShortcutCodes[index];
+                if (shortcut) {
+                    link.setAttribute('data-sidebar-shortcut', shortcut);
+                    const badge = document.createElement('span');
+                    badge.className = 'sidebar-shortcut-badge';
+                    badge.textContent = `Ctrl+⇧${shortcut.toUpperCase()}`;
+                    badge.setAttribute('aria-hidden', 'true');
+                    link.appendChild(badge);
+                }
+
                 link.addEventListener('pointerenter', () => showSidebarTooltip(link));
                 link.addEventListener('pointerleave', () => sidebarTooltip?.classList.add('hidden'));
                 link.addEventListener('focus', () => showSidebarTooltip(link));
@@ -1074,6 +1218,12 @@
             }
         }
 
+        const sidebarDefaultVersion = 'loomflow-sidebar-default-collapsed-v2';
+        if (localStorage.getItem(sidebarDefaultVersion) !== 'true') {
+            localStorage.setItem('loomflow-sidebar-collapsed', 'true');
+            localStorage.setItem(sidebarDefaultVersion, 'true');
+        }
+
         if (window.matchMedia('(min-width: 1024px)').matches && localStorage.getItem('loomflow-sidebar-collapsed') !== 'false') {
             const sidebar = document.getElementById('appSidebar');
             const toggle = document.querySelector('.sidebar-collapse-toggle');
@@ -1101,6 +1251,137 @@
                 toggle.setAttribute('data-sidebar-label', 'Collapse sidebar');
             }
         }
+
+        let operatorGuidePreviousFocus = null;
+        let operatorShiftPresses = [];
+
+        function openOperatorKeyboardGuide() {
+            const guide = document.getElementById('operatorKeyboardGuide');
+            const dialog = guide?.querySelector('[role="dialog"]');
+            if (!guide || !dialog) {
+                return;
+            }
+
+            operatorGuidePreviousFocus = document.activeElement;
+            guide.classList.add('is-open');
+            document.body.classList.add('overflow-hidden');
+            dialog.focus();
+        }
+
+        function closeOperatorKeyboardGuide() {
+            const guide = document.getElementById('operatorKeyboardGuide');
+            if (!guide) {
+                return;
+            }
+
+            guide.classList.remove('is-open');
+            document.body.classList.remove('overflow-hidden');
+            if (operatorGuidePreviousFocus instanceof HTMLElement) {
+                operatorGuidePreviousFocus.focus();
+            }
+        }
+
+        const operatorShortcutDestinations = {
+            '1': @json(route('factory.checking')),
+            '2': @json(route('production.index')),
+            '3': @json(route('factory.parchis')),
+            '4': @json(route('factory.parchis')),
+            '5': @json(route('bags.index')),
+            '6': @json(route('invoices.payments')),
+        };
+
+        document.addEventListener('keydown', (event) => {
+            const guide = document.getElementById('operatorKeyboardGuide');
+            const guideIsOpen = guide?.classList.contains('is-open');
+            const target = event.target instanceof HTMLElement ? event.target : null;
+            const isEditingField = target?.matches('input, textarea, select, [contenteditable="true"]') ?? false;
+
+            if (guideIsOpen && event.key === 'Escape') {
+                event.preventDefault();
+                closeOperatorKeyboardGuide();
+                return;
+            }
+
+            if (guideIsOpen) {
+                if (event.key === 'Tab') {
+                    event.preventDefault();
+                    guide.querySelector('.operator-guide-close')?.focus();
+                }
+                return;
+            }
+
+            if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && !isEditingField) {
+                const sidebarShortcutOrder = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't'];
+                const shortcutIndex = sidebarShortcutOrder.indexOf(event.code.replace(/^(Digit|Numpad|Key)/, '').toLowerCase());
+                const sidebarLink = sidebarNav?.querySelectorAll('a[data-sidebar-label]')[shortcutIndex];
+
+                if (shortcutIndex >= 0 && sidebarLink instanceof HTMLAnchorElement) {
+                    event.preventDefault();
+                    sidebarLink.click();
+                    return;
+                }
+            }
+
+            if (event.key === 'Shift' && !event.repeat && !isEditingField && !guideIsOpen) {
+                const now = Date.now();
+                operatorShiftPresses = operatorShiftPresses.filter((pressedAt) => now - pressedAt < 1200);
+                operatorShiftPresses.push(now);
+                if (operatorShiftPresses.length >= 3) {
+                    operatorShiftPresses = [];
+                    openOperatorKeyboardGuide();
+                }
+                return;
+            }
+
+            if (event.altKey && !event.ctrlKey && !event.metaKey && !isEditingField && operatorShortcutDestinations[event.key]) {
+                event.preventDefault();
+                window.location.assign(operatorShortcutDestinations[event.key]);
+                return;
+            }
+
+            if (event.key === 'F2' && !event.ctrlKey && !event.metaKey) {
+                const firstEditableField = document.querySelector('main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([readonly]):not([disabled]), main select:not([disabled]), main textarea:not([readonly]):not([disabled])');
+                event.preventDefault();
+                if (firstEditableField instanceof HTMLElement) {
+                    firstEditableField.focus();
+                } else {
+                    window.location.assign(@json(route('factory.checking')));
+                }
+                return;
+            }
+
+            if (event.key === 'F8' && !event.ctrlKey && !event.metaKey && isEditingField) {
+                const form = target?.closest('main form');
+                if (form instanceof HTMLFormElement) {
+                    event.preventDefault();
+                    const submitter = form.querySelector('button[type="submit"]:not([disabled]), input[type="submit"]:not([disabled])');
+                    if (submitter instanceof HTMLElement) {
+                        form.requestSubmit(submitter);
+                    } else {
+                        form.requestSubmit();
+                    }
+                }
+                return;
+            }
+
+            if (event.key === 'Enter' && target?.matches('main table input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([disabled]), main table select:not([disabled])')) {
+                const table = target.closest('table');
+                const cells = Array.from(table?.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([disabled]), select:not([disabled])') ?? [])
+                    .filter((cell) => cell instanceof HTMLElement && cell.getClientRects().length > 0);
+                const currentIndex = cells.indexOf(target);
+                const nextIndex = currentIndex + (event.shiftKey ? -1 : 1);
+                event.preventDefault();
+                if (cells[nextIndex] instanceof HTMLElement) {
+                    cells[nextIndex].focus();
+                }
+                return;
+            }
+
+            if (event.key === 'Escape' && !isEditingField && !event.altKey && !event.ctrlKey && !event.metaKey) {
+                event.preventDefault();
+                window.location.assign(@json(route('dashboard')));
+            }
+        });
 
         // Modal Helpers for child views
         function openModal(id) {
