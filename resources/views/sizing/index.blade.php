@@ -397,6 +397,7 @@
                                                 data-id="{{ $bm->id }}"
                                                 data-beam-no="{{ $bm->beam_no }}"
                                                 data-beam-name="{{ $bm->beam_name }}"
+                                                data-work-order-id="{{ $bm->work_order_id }}"
                                                 data-loom="{{ $bm->assigned_loom_no }}"
                                                 data-quality="{{ $bm->yarn_quality }}"
                                                 data-warp-meters="{{ number_format((float) $bm->total_length_meters, 2, '.', '') }}"
@@ -960,6 +961,18 @@
                 Select a beam to see its yarn quality and remaining length.
             </div>
             <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Production Order *</label>
+                <select name="work_order_id" id="selectMountOrder" required class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    <option value="">Choose order</option>
+                    @foreach($activeOrders as $order)
+                        <option value="{{ $order->id }}" data-fabric-stock-id="{{ $order->fabric_stock_id }}">
+                            {{ $order->order_no }} · {{ $order->fabricStock?->quality_name }}{{ $order->party_name ? ' · '.$order->party_name : '' }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-[11px] text-zinc-500">The beam’s existing order is preselected when it has one. Otherwise choose the order for this loom run.</p>
+            </div>
+            <div>
                 <label class="block text-xs font-semibold text-zinc-600 mb-1">Select Loom for this Beam *</label>
                 <select name="assigned_loom_no" id="selectMountLoom" required class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
                     @foreach($looms as $loom)
@@ -1175,9 +1188,14 @@
         const currentLoom = button.dataset.loom;
         const remainingMeters = parseFloat(button.dataset.remainingMeters) || 0;
         const widthMultiplier = parseFloat(button.dataset.widthFactor) || 1;
+        const orderSelect = document.getElementById('selectMountOrder');
+        const beamOrderId = button.dataset.workOrderId || '';
         document.getElementById('formMountBeam').action = sizingBeamAssignUrlTemplate.replace('__BEAM_ID__', encodeURIComponent(beamId));
         document.getElementById('mountBeamName').value = `${button.dataset.beamName || beamNo} (${beamNo})`;
         document.getElementById('mountBeamDetails').textContent = `${button.dataset.quality}\n${parseFloat(button.dataset.warpMeters).toFixed(2)}m warp supplied · ${remainingMeters.toFixed(2)}m warp remaining\n${(remainingMeters * widthMultiplier).toFixed(2)}m expected fabric at factor ${widthMultiplier}`;
+        orderSelect.value = beamOrderId;
+        orderSelect.disabled = Boolean(beamOrderId);
+        orderSelect.required = !beamOrderId;
         if (currentLoom) document.getElementById('selectMountLoom').value = currentLoom;
         openModal('modalMountBeam');
     }

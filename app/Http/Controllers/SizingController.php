@@ -120,7 +120,7 @@ class SizingController extends Controller
         $yarnQualities = YarnQuality::orderBy('name')->get();
 
         $looms = config('loomflow.looms');
-        $activeOrders = WorkOrder::with('fabricStock')->whereIn('status', ['active', 'fulfilled'])->latest('id')->get();
+        $activeOrders = WorkOrder::with('fabricStock')->where('status', 'active')->latest('id')->get();
         $assignments = LoomAssignment::with('order.fabricStock')->whereNull('end_date')->orderBy('loom_no')->get();
         $transferBeams = SizingBeam::with(['workOrder.contract', 'workOrder.parta'])
             ->whereNotIn('status', ['exhausted', 'returned_to_customer'])->orderBy('beam_no')->get();
@@ -385,6 +385,7 @@ class SizingController extends Controller
         $validated = $request->validate([
             'assigned_loom_no' => ['required', 'string', Rule::in(config('loomflow.looms'))],
             'mounted_date' => 'required|date',
+            'work_order_id' => 'nullable|exists:work_orders,id',
         ]);
 
         if (! in_array($beam->status, ['ready_in_store', 'mounted_on_loom'], true) || $beam->remaining_length_meters <= 0) {
@@ -405,26 +406,48 @@ class SizingController extends Controller
                 ]);
             }
 
+            $orderId = $lockedBeam->work_order_id ?? $validated['work_order_id'] ?? null;
+            if (! $orderId) {
+                throw ValidationException::withMessages([
+                    'work_order_id' => 'Select a production order for this beam before mounting it.',
+                ]);
+            }
+
+            $order = WorkOrder::whereKey($orderId)->lockForUpdate()->firstOrFail();
+            if ($order->status !== 'active' || $validated['mounted_date'] < $order->start_date) {
+                throw ValidationException::withMessages([
+                    'work_order_id' => 'Choose an active production order that has started by the mounting date.',
+                ]);
+            }
+            if ($lockedBeam->work_order_id && (int) $lockedBeam->work_order_id !== (int) $order->id) {
+                throw ValidationException::withMessages([
+                    'work_order_id' => 'This beam belongs to a different production order.',
+                ]);
+            }
+            if ($lockedBeam->fabric_stock_id && (int) $lockedBeam->fabric_stock_id !== (int) $order->fabric_stock_id) {
+                throw ValidationException::withMessages([
+                    'work_order_id' => 'The beam quality does not match the selected production order.',
+                ]);
+            }
+
             $assignment = LoomAssignment::where('loom_no', $validated['assigned_loom_no'])
                 ->where('start_date', '<=', $validated['mounted_date'])
                 ->where(function ($query) use ($validated): void {
                     $query->whereNull('end_date')->orWhere('end_date', '>=', $validated['mounted_date']);
                 })->lockForUpdate()->get();
-            if ($assignment->count() !== 1) {
+            if ($assignment->count() > 1 || ($assignment->isNotEmpty() && (int) $assignment->first()->work_order_id !== (int) $order->id)) {
                 throw ValidationException::withMessages([
-                    'assigned_loom_no' => 'Allocate this loom to exactly one production order for the mounting date first.',
+                    'assigned_loom_no' => 'This loom is already allocated to another production order on the mounting date.',
                 ]);
             }
+
             $activeAssignment = $assignment->first();
-            $order = WorkOrder::whereKey($activeAssignment->work_order_id)->lockForUpdate()->firstOrFail();
-            if ($lockedBeam->work_order_id && (int) $lockedBeam->work_order_id !== (int) $order->id) {
-                throw ValidationException::withMessages([
-                    'assigned_loom_no' => 'This beam belongs to its previous contract; use Settle & Reassign.',
-                ]);
-            }
-            if ($lockedBeam->fabric_stock_id && (int) $lockedBeam->fabric_stock_id !== (int) $order->fabric_stock_id) {
-                throw ValidationException::withMessages([
-                    'assigned_loom_no' => 'This beam quality differs from the loom order.',
+            if (! $activeAssignment) {
+                $activeAssignment = LoomAssignment::create([
+                    'work_order_id' => $order->id,
+                    'loom_no' => $validated['assigned_loom_no'],
+                    'start_date' => $validated['mounted_date'],
+                    'change_reason' => 'Created while mounting beam '.$lockedBeam->beam_no,
                 ]);
             }
             $previousLoom = $lockedBeam->assigned_loom_no;
