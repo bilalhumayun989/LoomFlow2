@@ -95,17 +95,51 @@
                 @csrf
                 <label class="block text-xs font-bold text-stone-700">
                     Kachi awaiting Pakki
-                    <select name="kachi_parchi_id" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white focus:outline-none focus:border-[#133e2b]" required>
+                    <select name="kachi_parchi_id" id="pakki-kachi-select" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white focus:outline-none focus:border-[#133e2b]" required>
                         <option value="">Select Kachi</option>
                         @foreach($pendingKachis as $k)
                             @if(!$k->pakki)
-                                <option value="{{ $k->id }}">
-                                    {{ $k->parchi_no }} &middot; {{ $k->order?->customer?->name ?? $k->order?->party_name }} &middot; {{ number_format((float)$k->dispatched_meters,0) }}m &middot; {{ $k->thaan_count }} Thaans
+                                <option value="{{ $k->id }}" data-dispatched-meters="{{ number_format((float) $k->dispatched_meters, 2, '.', '') }}" data-thaan-count="{{ $k->thaan_count }}">
+                                    {{ $k->parchi_no }} · {{ $k->order?->contract?->contract_no ?? $k->order?->order_no }} · {{ $k->order?->customer?->name ?? $k->order?->party_name }} · {{ number_format((float) $k->dispatched_meters, 2) }}m · {{ $k->thaan_count }} Thaans
                                 </option>
                             @endif
                         @endforeach
                     </select>
                 </label>
+
+                <div id="pakki-kachi-details" class="hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-3 space-y-3" aria-live="polite">
+                    @foreach($pendingKachis as $k)
+                        @if(!$k->pakki)
+                            <div data-pakki-kachi-details="{{ $k->id }}" class="hidden space-y-3">
+                                <div class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                                    <div><span class="block text-[10px] font-bold uppercase text-stone-400">Kachi / contract</span><strong class="text-stone-900">{{ $k->parchi_no }} / {{ $k->order?->contract?->contract_no ?? $k->order?->order_no }}</strong><span class="block text-[10px] text-stone-500">Order {{ $k->order?->order_no }}</span></div>
+                                    <div><span class="block text-[10px] font-bold uppercase text-stone-400">Customer</span><strong class="text-stone-900">{{ $k->order?->customer?->name ?? $k->order?->party_name ?? '—' }}</strong></div>
+                                    <div><span class="block text-[10px] font-bold uppercase text-stone-400">Fabric quality</span><strong class="text-stone-900">{{ $k->order?->fabricStock?->quality_name ?? '—' }}</strong></div>
+                                    <div><span class="block text-[10px] font-bold uppercase text-stone-400">Dispatched</span><strong class="text-[#133e2b]">{{ number_format((float) $k->dispatched_meters, 2) }}m · {{ $k->thaan_count }} Thaans</strong></div>
+                                </div>
+                                <div class="max-h-52 overflow-auto rounded-xl border border-stone-200 bg-white">
+                                    <table class="w-full text-xs">
+                                        <thead class="sticky top-0 bg-stone-100 text-[10px] uppercase text-stone-500">
+                                            <tr><th class="p-2 text-left">Thaan marking</th><th class="p-2 text-left">Loom</th><th class="p-2 text-right">Sent length</th><th class="p-2 text-left">Owner</th></tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-stone-100">
+                                            @foreach($k->items as $item)
+                                                <tr>
+                                                    <td class="p-2 font-bold text-stone-900">{{ $item->roll?->roll_no ?? 'Thaan unavailable' }}</td>
+                                                    <td class="p-2 text-stone-600">{{ $item->roll?->loom_no ?? '—' }}</td>
+                                                    <td class="p-2 text-right font-bold tabular-nums">{{ number_format((float) $item->length_meters, 2) }}m</td>
+                                                    <td class="p-2 text-stone-600">{{ $item->roll?->owner_type === 'customer' ? 'Customer' : 'Factory' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+
+                <p class="text-[11px] leading-5 text-stone-500">Use the list above to match the customer’s Pakki against the exact Thaans sent. Accepted and rejected metres are still entered as dispatch totals; record specific physically returned Thaan markings in the Returns section after saving Pakki.</p>
 
                 <div class="grid grid-cols-2 gap-3">
                     <label class="text-xs font-bold text-stone-700">
@@ -121,21 +155,25 @@
                 <div class="grid grid-cols-3 gap-3">
                     <label class="text-xs font-bold text-stone-700">
                         Accepted Thaans
-                        <input type="number" min="0" step="1" name="accepted_thaans" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input type="number" min="0" step="1" name="accepted_thaans" id="pakki-accepted-thaans" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Accepted Metres
-                        <input type="number" min="0" step=".01" name="accepted_meters" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input type="number" min="0" step=".01" name="accepted_meters" id="pakki-accepted-meters" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Rejected Metres
-                        <input type="number" min="0" step=".01" name="rejected_meters" value="0" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input type="number" min="0" step=".01" name="rejected_meters" id="pakki-rejected-meters" value="0" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
+                </div>
+
+                <div id="pakki-meter-balance" class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-900" aria-live="polite">
+                    Select a Kachi and enter accepted and rejected metres. Their total must equal the dispatched metres shown above.
                 </div>
 
                 <input name="notes" placeholder="Customer remarks / deductions / quality feedback" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[#133e2b]">
 
-                <button class="w-full bg-[#133e2b] hover:bg-[#1b5239] text-white rounded-xl p-3 font-bold text-xs shadow-2xs transition-all" onclick="return confirm('Confirm Pakki accepted quantities? A weaving invoice will be generated immediately.')">
+                <button id="save-pakki" class="w-full bg-[#133e2b] hover:bg-[#1b5239] text-white rounded-xl p-3 font-bold text-xs shadow-2xs transition-all" onclick="return confirm('Confirm Pakki accepted quantities? A weaving invoice will be generated immediately.')">
                     Save Pakki &amp; Generate Weaving Bill
                 </button>
             </form>
@@ -442,6 +480,69 @@
     order.addEventListener('change', update);
     labels.forEach(e => e.querySelector('input').addEventListener('change', update));
     update();
+
+    const pakkiKachi = document.getElementById('pakki-kachi-select');
+    const pakkiDetails = document.getElementById('pakki-kachi-details');
+    const acceptedThaans = document.getElementById('pakki-accepted-thaans');
+    const acceptedMeters = document.getElementById('pakki-accepted-meters');
+    const rejectedMeters = document.getElementById('pakki-rejected-meters');
+    const pakkiBalance = document.getElementById('pakki-meter-balance');
+    const savePakki = document.getElementById('save-pakki');
+    let previousPakkiKachi = '';
+    const updatePakkiDetails = () => {
+        const selectedOption = pakkiKachi.selectedOptions[0];
+        const selectedKachiId = pakkiKachi.value;
+        const dispatchedMeters = Number(selectedOption?.dataset.dispatchedMeters) || 0;
+        const thaanCount = Number(selectedOption?.dataset.thaanCount) || 0;
+        const hasSelection = Boolean(selectedKachiId);
+
+        pakkiDetails.classList.toggle('hidden', !hasSelection);
+        pakkiDetails.querySelectorAll('[data-pakki-kachi-details]').forEach((details) => {
+            details.classList.toggle('hidden', details.dataset.pakkiKachiDetails !== selectedKachiId);
+        });
+        [acceptedThaans, acceptedMeters, rejectedMeters].forEach((input) => {
+            if (hasSelection) {
+                input.max = input === acceptedThaans ? String(thaanCount) : dispatchedMeters.toFixed(2);
+            } else {
+                input.removeAttribute('max');
+            }
+        });
+
+        const accepted = Number(acceptedMeters.value) || 0;
+        const rejected = Number(rejectedMeters.value) || 0;
+        const acceptedCount = Number(acceptedThaans.value) || 0;
+        const accountedMeters = accepted + rejected;
+        const matchesDispatch = hasSelection && Math.abs(accountedMeters - dispatchedMeters) <= 0.011;
+        const acceptedCountValid = accepted > 0 ? acceptedCount > 0 && acceptedCount <= thaanCount : acceptedCount === 0;
+        const outOfBounds = accepted > dispatchedMeters + 0.001 || rejected > dispatchedMeters + 0.001 || acceptedCount > thaanCount;
+
+        if (!hasSelection) {
+            pakkiBalance.textContent = 'Select a Kachi to view its dispatched Thaan markings and meter lengths.';
+            pakkiBalance.className = 'rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-900';
+        } else if (outOfBounds) {
+            pakkiBalance.textContent = `The entries exceed this Kachi dispatch (${thaanCount} Thaans, ${dispatchedMeters.toFixed(2)} m). Check the accepted/rejected quantities.`;
+            pakkiBalance.className = 'rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-900';
+        } else if (matchesDispatch && acceptedCountValid) {
+            pakkiBalance.textContent = `${accepted.toFixed(2)} m accepted + ${rejected.toFixed(2)} m rejected = ${dispatchedMeters.toFixed(2)} m dispatched. Accepted count: ${acceptedCount} / ${thaanCount} Thaans.`;
+            pakkiBalance.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-900';
+        } else {
+            pakkiBalance.textContent = `${accountedMeters.toFixed(2)} m accounted of ${dispatchedMeters.toFixed(2)} m dispatched. Accepted and rejected metres must add up to the Kachi total.`;
+            pakkiBalance.className = 'rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-900';
+        }
+
+        savePakki.disabled = !hasSelection || !matchesDispatch || !acceptedCountValid || outOfBounds;
+    };
+    pakkiKachi.addEventListener('change', () => {
+        if (previousPakkiKachi !== pakkiKachi.value) {
+            acceptedThaans.value = '';
+            acceptedMeters.value = '';
+            rejectedMeters.value = '0';
+            previousPakkiKachi = pakkiKachi.value;
+        }
+        updatePakkiDetails();
+    });
+    [acceptedThaans, acceptedMeters, rejectedMeters].forEach((input) => input.addEventListener('input', updatePakkiDetails));
+    updatePakkiDetails();
 
     const ret = document.getElementById('return-kachi');
     const rt = [...document.querySelectorAll('.return-option')];

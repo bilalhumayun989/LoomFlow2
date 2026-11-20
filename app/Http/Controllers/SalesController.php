@@ -96,7 +96,8 @@ class SalesController extends Controller
                 ->where('type', 'job')->whereIn('status', ['active', 'fulfilled'])->orderBy('order_no')->get();
             $rolls = ThaanRoll::with('order')->whereIn('status', ['ready', 'returned_ready', 'returned_hold', 'dispatched'])->orderByDesc('id')->get();
             $kachis = KachiParchi::with(['order.fabricStock', 'order.customer', 'items.roll', 'pakki', 'returns'])->latest('id')->paginate(30);
-            $pendingKachis = KachiParchi::with('order')->whereDoesntHave('pakki')->orderByDesc('id')->get();
+            $pendingKachis = KachiParchi::with(['order.customer', 'order.contract', 'order.fabricStock', 'items.roll'])
+                ->whereDoesntHave('pakki')->orderByDesc('id')->get();
             $rejectedKachis = KachiParchi::with(['pakki', 'items.roll'])
                 ->whereHas('pakki', fn ($query) => $query->where('rejected_meters', '>', 0))->orderByDesc('id')->get();
         }
