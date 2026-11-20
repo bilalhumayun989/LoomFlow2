@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#133e2b">
+    <title>Offline · LoomFlow</title>
+    <style>
+        :root { color-scheme: light; font-family: system-ui, sans-serif; background: #f4f6f4; color: #133e2b; }
+        body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 1.5rem; box-sizing: border-box; }
+        main { width: min(100%, 28rem); padding: 2rem; border: 1px solid #dce5dc; border-radius: 1.25rem; background: white; box-shadow: 0 12px 40px #133e2b12; }
+        .mark { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border-radius: 1rem; background: #133e2b; color: #c6f16d; font-weight: 900; }
+        h1 { margin: 1.5rem 0 .5rem; font-size: 1.5rem; }
+        p { color: #526459; line-height: 1.6; }
+        button { margin-top: .75rem; padding: .75rem 1rem; border: 0; border-radius: .75rem; background: #133e2b; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="mark" aria-label="LoomFlow">LF</div>
+        <h1>You’re offline</h1>
+        <p>LoomFlow needs a connection to load current production, orders, and stock. Your records are not stored on this device while offline.</p>
+        <button type="button" onclick="window.location.reload()">Try again</button>
+    </main>
+</body>
+</html>

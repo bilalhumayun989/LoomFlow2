@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#133e2b">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="icon" href="{{ asset('icons/loomflow.svg') }}" type="image/svg+xml">
     <title>@yield('title', 'LoomFlow') - LoomFlow</title>
     
     <!-- Google Fonts -->
@@ -1649,5 +1652,13 @@
         }
     </script>
     @stack('scripts')
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{{ asset('service-worker.js') }}', { scope: '{{ rtrim(asset('/'), '/') }}/' })
+                    .catch((error) => console.error('LoomFlow service worker registration failed:', error));
+            });
+        }
+    </script>
 </body>
 </html>

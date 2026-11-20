@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#133e2b">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="icon" href="{{ asset('icons/loomflow.svg') }}" type="image/svg+xml">
     <title>Login - LoomFlow Factory Workspace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,6 +151,13 @@
             loomflow &bull; Single-Operator Weaving Engine
         </div>
     </div>
-
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{{ asset('service-worker.js') }}', { scope: '{{ rtrim(asset('/'), '/') }}/' })
+                    .catch((error) => console.error('LoomFlow service worker registration failed:', error));
+            });
+        }
+    </script>
 </body>
 </html>
