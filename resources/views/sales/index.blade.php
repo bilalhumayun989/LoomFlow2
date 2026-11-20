@@ -692,6 +692,9 @@
                             : 0;
                         $customerReceipt = $contractBagReceipts->get($cnt->id);
                         $receiptReference = ($cnt->party_contract_no ?: $cnt->contract_no).'-BAG-'.str_pad((string) ((int) ($customerReceipt?->receipt_count ?? 0) + 1), 2, '0', STR_PAD_LEFT);
+                        $requiredCustomerBags = round((float) ($cnt->warp_bags ?? 0) + (float) ($cnt->weft_bags ?? 0), 2);
+                        $receivedCustomerBags = (float) ($customerReceipt?->bags_received ?? 0);
+                        $remainingCustomerBags = max(0, round($requiredCustomerBags - $receivedCustomerBags, 2));
                     @endphp
                     <div class="rounded-2xl border border-zinc-200 bg-white p-4 space-y-3 shadow-sm hover:border-zinc-400 hover:shadow-md transition-all">
 
@@ -757,7 +760,8 @@
                                                 Customer-owned yarn bags
                                             </div>
                                             <p class="mt-1 text-[10px] text-amber-900/70">
-                                                {{ number_format((float) ($customerReceipt?->bags_received ?? 0), 2) }} bags · {{ number_format((float) ($customerReceipt?->weight_received_kg ?? 0), 3) }} kg received
+                                                Required: {{ number_format((float) ($cnt->warp_bags ?? 0), 2) }} warp + {{ number_format((float) ($cnt->weft_bags ?? 0), 2) }} weft = {{ number_format($requiredCustomerBags, 2) }} bags total (100 lb / bag).
+                                                <br>Received: {{ number_format($receivedCustomerBags, 2) }} bags · {{ number_format((float) ($customerReceipt?->weight_received_kg ?? 0), 3) }} kg. <strong>{{ number_format($remainingCustomerBags, 2) }} bags remaining.</strong>
                                                 @if($customerReceipt)<span class="text-amber-800"> · {{ $customerReceipt->receipt_count }} receipt(s)</span>@endif
                                             </p>
                                         </div>
@@ -778,7 +782,7 @@
                                                 </select>
                                             </label>
                                             <label class="text-[10px] font-bold text-zinc-600">Bags received
-                                                <input type="number" name="quantity_bags" min="0.01" step="0.01" required oninput="this.form.querySelector('[data-weight-output]').textContent = ((Number(this.value) || 0) * 45.359237).toFixed(3) + ' kg (' + ((Number(this.value) || 0) * 100).toFixed(2) + ' lb)'" class="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs font-mono text-zinc-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
+                                                <input type="number" name="quantity_bags" min="0.01" max="{{ number_format($remainingCustomerBags, 2, '.', '') }}" step="0.01" required {{ $remainingCustomerBags <= 0 ? 'disabled' : '' }} oninput="this.form.querySelector('[data-weight-output]').textContent = ((Number(this.value) || 0) * 45.359237).toFixed(3) + ' kg (' + ((Number(this.value) || 0) * 100).toFixed(2) + ' lb)'" class="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs font-mono text-zinc-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
                                             </label>
                                             <label class="text-[10px] font-bold text-zinc-600">Cones in each bag
                                                 <input type="number" name="cones_per_bag" min="1" max="1000" step="1" required class="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs font-mono text-zinc-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
@@ -790,7 +794,7 @@
                                                 <input name="notes" maxlength="2000" class="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs text-zinc-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" placeholder="Lot or delivery notes">
                                             </label>
                                             <p class="col-span-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[10px] leading-relaxed text-amber-900">Each bag is counted as 100 lb. Total weight: <strong data-weight-output>0.000 kg (0.00 lb)</strong>. Saved as customer property, outside factory stock.</p>
-                                            <button type="submit" class="col-span-2 rounded-lg bg-zinc-900 px-3 py-2.5 text-[11px] font-extrabold text-white hover:bg-zinc-700">Save customer bag receipt</button>
+                                            <button type="submit" {{ $remainingCustomerBags <= 0 ? 'disabled' : '' }} class="col-span-2 rounded-lg bg-zinc-900 px-3 py-2.5 text-[11px] font-extrabold text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-400">{{ $remainingCustomerBags <= 0 ? 'Contract yarn requirement received' : 'Save customer bag receipt' }}</button>
                                         </form>
                                     </details>
                                 </div>

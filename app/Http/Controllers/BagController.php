@@ -468,6 +468,20 @@ class BagController extends Controller
                 ]);
             }
 
+            $requiredBags = round((float) $contract->warp_bags + (float) $contract->weft_bags, 2);
+            $receivedBags = (float) BagTransaction::query()
+                ->where('sales_contract_id', $contract->id)
+                ->where('transaction_type', 'customer_sizing_receipt')
+                ->where('owner_type', 'customer')
+                ->sum('quantity_bags');
+            $remainingBags = max(0, round($requiredBags - $receivedBags, 2));
+
+            if ((int) round((float) $validated['quantity_bags'] * 100) > (int) round($remainingBags * 100)) {
+                throw ValidationException::withMessages([
+                    'quantity_bags' => "This contract requires {$requiredBags} customer-supplied bags total. {$remainingBags} bags remain to be received.",
+                ]);
+            }
+
             $order = WorkOrder::where('sales_contract_id', $contract->id)->first();
             if ($order !== null && $order->status !== 'active') {
                 throw ValidationException::withMessages([
