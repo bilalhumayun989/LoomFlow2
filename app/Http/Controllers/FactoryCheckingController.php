@@ -21,26 +21,63 @@ class FactoryCheckingController extends Controller
     {
         return view('factory.checking', [
             'assignments' => LoomAssignment::with('order.fabricStock')->whereNull('end_date')->orderBy('loom_no')->get(),
+            'checkingAssignments' => LoomAssignment::query()
+                ->get(['work_order_id', 'loom_no', 'start_date', 'end_date']),
             'looms' => config('loomflow.looms'),
             'orders' => WorkOrder::with(['fabricStock', 'contract'])->whereIn('status', ['active', 'fulfilled'])->orderBy('order_no')->get(),
             'fabrics' => FabricStock::orderBy('quality_name')->get(),
             'rolls' => ThaanRoll::with(['order.fabricStock', 'order.contract'])->latest('checked_on')->latest('id')->paginate(40),
-            'loomMeters' => Production::selectRaw('loom_no, production_date, SUM(net_meters_produced) as loom_meters')
-                ->groupBy('loom_no', 'production_date')->orderByDesc('production_date')->limit(40)->get(),
+            'loomMeters' => Production::with(['workOrder.customer', 'workOrder.contract', 'workOrder.fabricStock'])
+                ->selectRaw('work_order_id, fabric_stock_id, loom_no, production_date, SUM(net_meters_produced) as loom_meters')
+                ->whereNotNull('work_order_id')
+                ->groupBy('work_order_id', 'fabric_stock_id', 'loom_no', 'production_date')
+                ->orderByDesc('production_date')->limit(40)->get(),
+            'productionCapacity' => $this->productionCapacity(),
         ]);
+    }
+
+    /** @return array<string, array{produced: float, checked: float, available: float}> */
+    private function productionCapacity(): array
+    {
+        $checkedByBatch = ThaanRoll::query()
+            ->selectRaw('work_order_id, loom_no, production_date, SUM(length_meters) as checked_meters')
+            ->whereNotNull('production_date')
+            ->groupBy('work_order_id', 'loom_no', 'production_date')
+            ->get()
+            ->keyBy(fn (ThaanRoll $roll): string => $roll->work_order_id.'|'.$roll->loom_no.'|'.$roll->production_date->toDateString());
+
+        return Production::query()
+            ->selectRaw('work_order_id, loom_no, production_date, SUM(net_meters_produced) as loom_meters')
+            ->whereNotNull('work_order_id')
+            ->groupBy('work_order_id', 'loom_no', 'production_date')
+            ->get()
+            ->mapWithKeys(function (Production $batch) use ($checkedByBatch): array {
+                $date = $batch->production_date->toDateString();
+                $key = $batch->work_order_id.'|'.$batch->loom_no.'|'.$date;
+                $produced = round((float) $batch->loom_meters, 2);
+                $checked = round((float) ($checkedByBatch->get($key)?->checked_meters ?? 0), 2);
+
+                return [$key => [
+                    'produced' => $produced,
+                    'checked' => $checked,
+                    'available' => max(0, round($produced - $checked, 2)),
+                ]];
+            })
+            ->all();
     }
 
     public function store(Request $request, FactoryStockService $stock): RedirectResponse
     {
         $data = $request->validate([
-            'checked_on' => 'required|date',
+            'checked_on' => 'required|date|after_or_equal:production_date',
+            'production_date' => 'required|date',
             'work_type' => 'required|in:own,job',
             'work_order_id' => 'required|exists:work_orders,id',
             'fabric_stock_id' => 'required|exists:fabric_stocks,id',
             'loom_no' => ['required', 'string', Rule::in(config('loomflow.looms'))],
             'rolls' => 'required|array|min:1|max:200',
             'rolls.*.roll_no' => 'required|string|max:100|distinct|unique:thaan_rolls,roll_no',
-            'rolls.*.length_meters' => 'required|numeric|gt:0|max:100000',
+            'rolls.*.length_meters' => 'required|numeric|gt:0|decimal:0,2|max:100000',
             'notes' => 'nullable|string|max:1000',
         ]);
         DB::transaction(function () use ($data, $stock): void {
@@ -57,20 +94,47 @@ class FactoryCheckingController extends Controller
             if (! in_array($order->status, ['active', 'fulfilled'], true)) {
                 throw ValidationException::withMessages(['work_order_id' => 'Choose an active production order.']);
             }
-            $assignment = LoomAssignment::where('loom_no', $data['loom_no'])
-                ->where('work_order_id', $order->id)
-                ->where('start_date', '<=', $data['checked_on'])
+            $assignments = LoomAssignment::where('loom_no', $data['loom_no'])
+                ->where('start_date', '<=', $data['production_date'])
                 ->where(function ($q) use ($data): void {
-                    $q->whereNull('end_date')->orWhere('end_date', '>=', $data['checked_on']);
-                })->lockForUpdate()->first();
-            if (! $assignment) {
-                throw ValidationException::withMessages(['loom_no' => 'No order assigned to this loom for the checking date.']);
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $data['production_date']);
+                })->lockForUpdate()->get();
+            if ($assignments->count() !== 1 || (int) $assignments->first()->work_order_id !== (int) $order->id) {
+                throw ValidationException::withMessages(['loom_no' => 'The selected loom must be assigned only to this production order on the checking date.']);
+            }
+            $productions = Production::where('work_order_id', $order->id)
+                ->where('loom_no', $data['loom_no'])
+                ->whereDate('production_date', $data['production_date'])
+                ->lockForUpdate()
+                ->get();
+            $producedMeters = round((float) $productions->sum('net_meters_produced'), 2);
+            $alreadyCheckedMeters = round((float) ThaanRoll::where('work_order_id', $order->id)
+                ->where('loom_no', $data['loom_no'])
+                ->whereDate('production_date', $data['production_date'])
+                ->lockForUpdate()
+                ->get()
+                ->sum('length_meters'), 2);
+            $newCheckedMeters = round(array_sum(array_map(
+                static fn (array $entry): float => (float) $entry['length_meters'],
+                $data['rolls']
+            )), 2);
+            if ($producedMeters <= 0) {
+                throw ValidationException::withMessages([
+                    'rolls' => 'No production meter reading exists for this order, loom, and date. Record production first.',
+                ]);
+            }
+            if ($alreadyCheckedMeters + $newCheckedMeters > $producedMeters + 0.01) {
+                $availableMeters = max(0, round($producedMeters - $alreadyCheckedMeters, 2));
+                throw ValidationException::withMessages([
+                    'rolls' => "These Thaans total {$newCheckedMeters} m, but only {$availableMeters} m remain available from the loom production reading.",
+                ]);
             }
             foreach ($data['rolls'] as $entry) {
                 ThaanRoll::create([
                     'roll_no' => trim($entry['roll_no']), 'work_order_id' => $order->id,
                     'fabric_stock_id' => $order->fabric_stock_id, 'loom_no' => $data['loom_no'],
-                    'checked_on' => $data['checked_on'], 'length_meters' => round((float) $entry['length_meters'], 2),
+                    'checked_on' => $data['checked_on'], 'production_date' => $data['production_date'],
+                    'length_meters' => round((float) $entry['length_meters'], 2),
                     'grade' => 'A', 'status' => 'ready',
                     'owner_type' => $order->type === 'job' ? 'customer' : 'factory',
                     'notes' => $data['notes'] ?? null,

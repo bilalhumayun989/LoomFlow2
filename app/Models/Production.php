@@ -63,4 +63,9 @@ class Production extends Model
     {
         return $this->belongsTo(FabricStock::class);
     }
+
+    public function workOrder(): BelongsTo
+    {
+        return $this->belongsTo(WorkOrder::class);
+    }
 }

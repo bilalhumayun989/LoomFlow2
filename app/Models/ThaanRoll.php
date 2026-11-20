@@ -14,11 +14,17 @@ class ThaanRoll extends Model
         'fabric_stock_id',
         'loom_no',
         'checked_on',
+        'production_date',
         'length_meters',
         'grade',
         'status',
         'owner_type',
         'notes',
+    ];
+
+    protected $casts = [
+        'production_date' => 'date',
+        'length_meters' => 'decimal:2',
     ];
 
     public function order(): BelongsTo

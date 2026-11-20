@@ -57,17 +57,23 @@
                         </select>
                     </label>
                     <label class="text-xs font-bold text-stone-700">
+                        Production date
+                        <input name="production_date" id="production-date" type="date" required value="{{ date('Y-m-d') }}" class="w-full mt-1 border border-[#e2e8e0] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
+                    </label>
+                    <label class="text-xs font-bold text-stone-700">
                         Date checked
-                        <input name="checked_on" type="date" required value="{{ date('Y-m-d') }}" class="w-full mt-1 border border-[#e2e8e0] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
+                        <input name="checked_on" id="checking-date" type="date" required value="{{ date('Y-m-d') }}" class="w-full mt-1 border border-[#e2e8e0] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Loom Number
-                        <select name="loom_no" class="w-full mt-1 border border-[#e2e8e0] rounded-xl p-2.5 text-xs bg-white focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]" required>
-                            @foreach($looms as $loom)
-                                <option value="{{ $loom }}">{{ $loom }}</option>
-                            @endforeach
+                        <select name="loom_no" id="checking-loom" class="w-full mt-1 border border-[#e2e8e0] rounded-xl p-2.5 text-xs bg-white focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]" required>
+                            <option value="">Choose order and date first</option>
                         </select>
                     </label>
+                </div>
+
+                <div id="production-capacity" class="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs font-semibold text-blue-900" aria-live="polite">
+                    Choose the order, production date, and loom to see how many production meters are still available to check.
                 </div>
 
                 <div class="border border-[#e2e8e0] rounded-2xl overflow-hidden">
@@ -104,7 +110,7 @@
 
                 <input name="notes" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[#133e2b]" placeholder="Optional checking report notes (inspector name, lot details)">
 
-                <button class="w-full rounded-xl bg-[#133e2b] hover:bg-[#1b5239] text-white p-3 font-bold text-xs shadow-2xs transition-all" onclick="return confirm('Confirm each Thaan number and length? These metres will enter stock as A-grade.')">
+                <button id="save-checking-report" class="w-full rounded-xl bg-[#133e2b] hover:bg-[#1b5239] text-white p-3 font-bold text-xs shadow-2xs transition-all" onclick="return confirm('Confirm each Thaan number and length? These metres will enter stock as A-grade.')">
                     Save Checked Thaans
                 </button>
             </form>
@@ -114,7 +120,7 @@
         <section class="card p-6 lg:col-span-2 space-y-4 shadow-2xs">
             <div class="pb-3 border-b border-[#e2e8e0]">
                 <h2 class="font-extrabold text-base text-[#133e2b]">Active Loom &rarr; Quality</h2>
-                <p class="text-xs text-stone-500">The system finds the order automatically using loom and checking date.</p>
+            <p class="text-xs text-stone-500">Each checking entry must match the order assigned to the loom on the selected date.</p>
             </div>
 
             <div class="max-h-96 overflow-auto border border-stone-200 rounded-xl text-xs">
@@ -158,6 +164,7 @@
                 <thead>
                     <tr class="bg-stone-50 border-b border-stone-200 text-[10px] font-bold uppercase tracking-wider text-stone-600">
                         <th class="text-left p-3">Checked</th>
+                        <th class="text-left p-3">Production date</th>
                         <th class="text-left p-3">Thaan marking</th>
                         <th class="p-3">Work type</th>
                         <th class="text-left p-3">Contract / Order</th>
@@ -173,6 +180,7 @@
                     @forelse($rolls as $r)
                         <tr class="hover:bg-stone-50/70 transition-colors">
                             <td class="p-3 text-stone-500">{{ $r->checked_on }}</td>
+                            <td class="p-3 text-stone-500">{{ $r->production_date?->toDateString() ?? $r->checked_on }}</td>
                             <td class="p-3 font-bold text-stone-900">{{ $r->roll_no }}</td>
                             <td class="text-center p-3 text-stone-700">{{ $r->order?->type === 'job' ? 'Job Work' : 'Own Factory' }}</td>
                             <td class="p-3 text-stone-700">
@@ -199,7 +207,7 @@
                             <td class="p-3 text-stone-600">{{ $r->notes ?: '—' }}</td>
                         </tr>
                     @empty
-                        <tr><td class="p-6 text-center text-stone-400 italic" colspan="10">No checked Thaans yet.</td></tr>
+                        <tr><td class="p-6 text-center text-stone-400 italic" colspan="11">No checked Thaans yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -220,18 +228,30 @@
                     <tr class="bg-stone-50 border-b border-stone-200 text-[10px] font-bold uppercase tracking-wider text-stone-600">
                         <th class="text-left p-3">Date</th>
                         <th class="p-3 text-left">Loom</th>
-                        <th class="p-3 text-right">Meter Reading Output</th>
+                        <th class="p-3">Work type / order / customer</th>
+                        <th class="text-left p-3">Quality</th>
+                        <th class="p-3 text-right">Loom output (m)</th>
+                        <th class="p-3 text-right">Already checked (m)</th>
+                        <th class="p-3 text-right">Available to check (m)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     @forelse($loomMeters as $m)
                         <tr class="hover:bg-stone-50/60">
-                            <td class="p-3 text-stone-600">{{ $m->production_date }}</td>
+                            @php
+                                $batchKey = $m->work_order_id.'|'.$m->loom_no.'|'.$m->production_date->toDateString();
+                                $capacity = $productionCapacity[$batchKey] ?? ['checked' => 0, 'available' => (float) $m->loom_meters];
+                            @endphp
+                            <td class="p-3 text-stone-600">{{ $m->production_date->toDateString() }}</td>
                             <td class="p-3 font-bold text-stone-900">{{ $m->loom_no }}</td>
-                            <td class="p-3 text-right font-black text-[#133e2b] tabular-nums">{{ number_format((float)$m->loom_meters,2) }} m</td>
+                            <td class="p-3 text-stone-700">{{ $m->workOrder?->type === 'job' ? 'Job Work' : 'Own Factory' }} · {{ $m->workOrder?->order_no }}<span class="block text-[10px] text-stone-400">{{ $m->workOrder?->contract?->contract_no ?? $m->workOrder?->customer?->name ?? 'Factory order' }}</span></td>
+                            <td class="p-3 text-stone-700">{{ $m->workOrder?->fabricStock?->quality_name }}</td>
+                            <td class="p-3 text-right font-bold tabular-nums">{{ number_format((float) $m->loom_meters, 2) }}</td>
+                            <td class="p-3 text-right tabular-nums">{{ number_format((float) $capacity['checked'], 2) }}</td>
+                            <td class="p-3 text-right font-black text-[#133e2b] tabular-nums">{{ number_format((float) $capacity['available'], 2) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="3" class="p-4 text-center text-stone-400 italic">No loom meter readings entered yet.</td></tr>
+                        <tr><td colspan="7" class="p-4 text-center text-stone-400 italic">No loom meter readings entered yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -249,6 +269,64 @@
     const ownOrder = document.getElementById('own-work-order');
     const jobOrder = document.getElementById('job-work-order');
     const quality = document.getElementById('checking-quality');
+    const productionDate = document.getElementById('production-date');
+    const loom = document.getElementById('checking-loom');
+    const capacityMessage = document.getElementById('production-capacity');
+    const saveButton = document.getElementById('save-checking-report');
+    const productionCapacity = @json($productionCapacity);
+    const checkingAssignments = @json($checkingAssignments);
+    const allLoomNumbers = @json($looms);
+    const updateLoomOptions = () => {
+        const selectedOrder = workType.value === 'job' ? jobOrder : ownOrder;
+        const orderId = selectedOrder.value;
+        const date = productionDate.value;
+        const previousLoom = loom.value;
+        const assignedLoomNumbers = new Set(checkingAssignments
+            .filter((assignment) => String(assignment.work_order_id) === String(orderId)
+                && assignment.start_date <= date
+                && (!assignment.end_date || assignment.end_date >= date))
+            .map((assignment) => assignment.loom_no));
+        const options = [...assignedLoomNumbers]
+            .map((loomNumber) => ({
+                loomNumber,
+                capacity: productionCapacity[`${orderId}|${loomNumber}|${date}`],
+            }))
+            .filter(({ capacity }) => Boolean(capacity))
+            .sort((left, right) => allLoomNumbers.indexOf(left.loomNumber) - allLoomNumbers.indexOf(right.loomNumber));
+
+        loom.replaceChildren(new Option('Choose loom', ''));
+        options.forEach(({ loomNumber, capacity }) => {
+            const remaining = Math.max(0, capacity.available);
+            const suffix = remaining > 0 ? ` · ${remaining.toFixed(2)} m available` : ' · fully checked';
+            const option = new Option(`${loomNumber}${suffix}`, loomNumber);
+            option.disabled = remaining <= 0;
+            loom.add(option);
+        });
+
+        if (options.some(({ loomNumber, capacity }) => loomNumber === previousLoom && capacity.available > 0)) {
+            loom.value = previousLoom;
+        }
+        loom.disabled = options.length === 0;
+        updateProductionCapacity();
+    };
+    const updateProductionCapacity = () => {
+        const selectedOrder = workType.value === 'job' ? jobOrder : ownOrder;
+        const capacity = productionCapacity[`${selectedOrder.value}|${loom.value}|${productionDate.value}`];
+        const enteredMeters = Number(document.getElementById('checked-total').textContent) || 0;
+        if (!capacity) {
+            capacityMessage.textContent = 'No production meter reading exists for this order, loom, and date. Record production first.';
+            capacityMessage.className = 'rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-900';
+            saveButton.disabled = true;
+            return;
+        }
+        const remaining = Math.max(0, capacity.available);
+        const exceedsAvailable = enteredMeters > remaining + 0.01;
+        capacityMessage.textContent = `Loom output: ${capacity.produced.toFixed(2)} m · Already checked: ${capacity.checked.toFixed(2)} m · Available to check: ${remaining.toFixed(2)} m${exceedsAvailable ? ' · Entered Thaan lengths exceed the available output.' : ''}`;
+        capacityMessage.className = exceedsAvailable
+            ? 'rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-900'
+            : 'rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs font-semibold text-blue-900';
+        saveButton.disabled = remaining <= 0 || exceedsAvailable;
+    };
     const updateWorkSelection = () => {
         const isJob = workType.value === 'job';
         ownOrderField.classList.toggle('hidden', isJob);
@@ -266,15 +344,19 @@
             option.disabled = option.value !== '' && option.value !== qualityId;
         });
         quality.value = qualityId;
+        updateLoomOptions();
     };
     workType.addEventListener('change', updateWorkSelection);
     ownOrder.addEventListener('change', updateQuality);
     jobOrder.addEventListener('change', updateQuality);
+    productionDate.addEventListener('change', updateLoomOptions);
+    loom.addEventListener('change', updateProductionCapacity);
     updateWorkSelection();
     const recalc = () => {
         const l = [...table.querySelectorAll('input[type=number]')];
         document.getElementById('checked-total').textContent = l.reduce((t,x) => t + (Number(x.value)||0), 0).toFixed(2);
         document.getElementById('checked-pieces').textContent = table.rows.length;
+        updateProductionCapacity();
     };
     document.getElementById('more-rolls').addEventListener('click', () => {
         if (n >= 200) return;

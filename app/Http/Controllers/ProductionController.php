@@ -191,7 +191,7 @@ class ProductionController extends Controller
                 throw ValidationException::withMessages(['loom_no' => 'Allocate the loom to exactly one active order for this date first.']);
             }
             $assignment = $assignments->first();
-            $order = WorkOrder::findOrFail($assignment->work_order_id);
+            $order = WorkOrder::whereKey($assignment->work_order_id)->lockForUpdate()->firstOrFail();
             if ($beam->work_order_id && (int) $beam->work_order_id !== (int) $order->id) {
                 throw ValidationException::withMessages(['sizing_beam_id' => 'This beam belongs to a different contract. Settle or transfer the beam first.']);
             }
