@@ -134,16 +134,120 @@
                     {{ ['dashboard' => 'Open market sales, contract deliveries, and full revenue overview.', 'slips' => 'All fabric dispatch invoices — open market and contract sales.', 'contracts' => 'Long-term buyer contracts with delivery tracking and remaining meters.'][$page] }}
                 </p>
             </div>
-            @if($page === 'dashboard')
             <div class="flex flex-wrap gap-2 shrink-0">
-                <button type="button" onclick="openSalesParchi('kachi')" class="rounded-xl bg-zinc-900 px-3 py-2 text-xs font-bold text-white">Kachi Parchi</button>
-                <button type="button" onclick="openSalesParchi('pakki')" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Pakki Parchi</button>
-                <button type="button" onclick="openSalesParchi('returns')" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Returns</button>
-                <button type="button" onclick="openSalesParchi('disposition')" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Disposition</button>
-                <button type="button" onclick="openSalesParchi('own-sale')" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Own Fabric Sale</button>
+                @if($page === 'dashboard')
+                <a href="#kachi" class="rounded-xl bg-zinc-900 px-3 py-2 text-xs font-bold text-white">Kachi Parchi</a>
+                <a href="#pakki" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Pakki Parchi</a>
+                <a href="#returns" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Returns</a>
+                <a href="#disposition" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Disposition</a>
+                <a href="#own-sale" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Own Fabric Sale</a>
+                @endif
+                @if(in_array($page, ['dashboard', 'slips'], true))
+                <a href="#sales-slip-entry" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">New Sales Slip</a>
+                @endif
+                @if($page === 'contracts')
+                    <a href="#sales-contract-entry" class="rounded-xl bg-zinc-900 px-3 py-2 text-xs font-bold text-white">Create a buyer contract</a>
+                @endif
             </div>
-            @endif
         </div>
+
+        @if($page === 'dashboard')
+        @include('factory._dispatch_workflow')
+        @endif
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const operationForm = @json(old('operation_form'));
+                const sectionId = {
+                    sales_kachi: 'kachi',
+                    sales_pakki: 'pakki',
+                    sales_return: 'returns',
+                    sales_disposition: 'disposition',
+                    sales_own_sale: 'own-sale',
+                    sales_contract: 'sales-contract-entry',
+                    sales_slip: 'sales-slip-entry',
+                }[operationForm];
+                if (sectionId) {
+                    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        </script>
+
+        @if(in_array($page, ['dashboard', 'slips'], true))
+        <section id="sales-slip-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div class="mb-4">
+                <h2 class="text-base font-extrabold text-zinc-900">Create a sales slip</h2>
+                <p class="mt-1 text-xs text-zinc-500">Record an open-market sale from available fabric stock.</p>
+            </div>
+            <form method="POST" action="{{ route('sales.store') }}" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                @csrf
+                <input type="hidden" name="operation_form" value="sales_slip">
+                <input type="hidden" name="sale_type" value="open_market">
+                <label class="text-xs font-semibold text-zinc-600">Slip number
+                    <input name="slip_no" value="{{ old('slip_no') }}" required maxlength="100" placeholder="e.g. SL-2026-001" class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Customer
+                    <select name="customer_id" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                        <option value="">Choose customer</option>
+                        @foreach($customers as $customer)
+                        <option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}{{ $customer->phone ? ' - '.$customer->phone : '' }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Fabric quality
+                    <select name="fabric_stock_id" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                        <option value="">Choose available quality</option>
+                        @foreach($openMarketFabrics as $fabric)
+                            <option value="{{ $fabric->id }}" @selected((string) old('fabric_stock_id') === (string) $fabric->id)>{{ $fabric->quality_name }} - Available {{ number_format((float) $fabric->available_open_meters, 2) }}m - {{ $fabric->total_rolls_in_stock }} rolls</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Meters sold
+                    <input name="meters_sold" type="number" min="1" step="0.01" value="{{ old('meters_sold') }}" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Rolls / Thaans sold
+                    <input name="rolls_sold" type="number" min="1" step="1" value="{{ old('rolls_sold') }}" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Rate per meter (Rs.)
+                    <input name="rate_per_meter" type="number" min="0" step="0.01" value="{{ old('rate_per_meter') }}" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Discount (Rs.)
+                    <input name="discount" type="number" min="0" step="0.01" value="{{ old('discount', 0) }}" class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Sale date
+                    <input name="sale_date" type="date" value="{{ old('sale_date', now()->toDateString()) }}" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Payment type
+                    <select name="payment_type" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                        <option value="cash" @selected(old('payment_type', 'cash') === 'cash')>Cash</option>
+                        <option value="credit" @selected(old('payment_type') === 'credit')>Credit</option>
+                        <option value="bank_transfer" @selected(old('payment_type') === 'bank_transfer')>Bank transfer</option>
+                    </select>
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Payment status
+                    <select name="payment_status" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                        <option value="paid" @selected(old('payment_status', 'paid') === 'paid')>Paid</option>
+                        <option value="partial" @selected(old('payment_status') === 'partial')>Partially paid</option>
+                        <option value="unpaid" @selected(old('payment_status') === 'unpaid')>Unpaid</option>
+                    </select>
+                </label>
+                <label class="text-xs font-semibold text-zinc-600">Vehicle / bilty number
+                    <input name="vehicle_no" value="{{ old('vehicle_no') }}" maxlength="50" class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <label class="text-xs font-semibold text-zinc-600 sm:col-span-2 xl:col-span-3">Notes
+                    <input name="notes" value="{{ old('notes') }}" class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
+                </label>
+                <div class="flex justify-end border-t pt-3 sm:col-span-2 xl:col-span-3">
+                    <button type="submit" class="rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-zinc-700">Save sales slip</button>
+                </div>
+            </form>
+            @if($errors->any() && old('operation_form') === 'sales_slip')
+                <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700" role="alert">
+                    <p class="font-bold">Please correct these sales slip details:</p>
+                    <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                </div>
+            @endif
+        </section>
+        @endif
 
         {{-- KPI Cards (dashboard only) --}}
         @if($page === 'dashboard')
@@ -290,7 +394,7 @@
         ============================================================ --}}
         @if(in_array($page, ['dashboard', 'contracts'], true))
         @if($page === 'contracts')
-        <section class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section id="sales-contract-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
             <div class="mb-4">
                 <h2 class="text-base font-extrabold text-zinc-900">Create a buyer contract</h2>
                 <p class="mt-1 text-xs text-zinc-500">Conversion contracts can be linked to a job work order in Factory → Orders. Grey Sale contracts reserve finished stock for sales.</p>
@@ -316,6 +420,7 @@
             </style>
             <form method="POST" action="{{ route('sales.contract.store') }}" class="contract-form space-y-5">
                 @csrf
+                <input type="hidden" name="operation_form" value="sales_contract">
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <h3 class="col-span-full border-b border-zinc-200 pb-2 text-xs font-extrabold uppercase tracking-wider text-zinc-500">Buyer and agreement</h3>
                 <label class="text-xs font-semibold text-zinc-600">Our contract number
@@ -494,7 +599,7 @@
                     <button type="submit" class="rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-zinc-700">Save contract</button>
                 </div>
             </form>
-            @if($errors->any())
+            @if($errors->any() && old('operation_form') === 'sales_contract')
                 <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
                     <p class="font-bold">Please review these contract fields:</p>
                     <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
@@ -853,11 +958,5 @@
 
     </div>{{-- end main --}}
 </div>{{-- end grid --}}
-
-@if($page === 'dashboard')
-    @include('factory._dispatch_workflow')
-@endif
-
-
 
 @endsection

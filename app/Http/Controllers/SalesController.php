@@ -61,6 +61,7 @@ class SalesController extends Controller
     ): View {
         $customers = collect();
         $fabrics = collect();
+        $openMarketFabrics = collect();
         $partas = collect();
         $contractOrderNumbers = collect();
         $contractBagReceipts = collect();
@@ -70,8 +71,11 @@ class SalesController extends Controller
         $kachis = collect();
         $pendingKachis = collect();
         $rejectedKachis = collect();
-        if (in_array($page, ['dashboard', 'contracts'], true)) {
+        if (in_array($page, ['dashboard', 'contracts', 'slips'], true)) {
             $customers = Customer::where('status', 'active')->orderBy('name')->get();
+        }
+
+        if (in_array($page, ['dashboard', 'contracts'], true)) {
             $yarnQualities = YarnQuality::orderBy('name')->get();
             $contractOrderNumbers = WorkOrder::whereNotNull('sales_contract_id')
                 ->pluck('order_no', 'sales_contract_id');
@@ -83,6 +87,13 @@ class SalesController extends Controller
                 ->groupBy('sales_contract_id')
                 ->get()
                 ->keyBy('sales_contract_id');
+        }
+
+        if (in_array($page, ['dashboard', 'slips'], true)) {
+            $openMarketFabrics = FabricStock::query()
+                ->where('available_open_meters', '>', 0)
+                ->orderBy('quality_name')
+                ->get();
         }
 
         if ($page === 'contracts') {
@@ -119,6 +130,7 @@ class SalesController extends Controller
             'contracts',
             'customers',
             'fabrics',
+            'openMarketFabrics',
             'partas',
             'contractOrderNumbers',
             'contractBagReceipts',

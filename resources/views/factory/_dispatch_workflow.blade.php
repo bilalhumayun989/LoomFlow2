@@ -3,7 +3,7 @@
     #parchi-workflow section#pakki,
     #parchi-workflow section#returns,
     #parchi-workflow section#disposition,
-    #parchi-workflow section#own-sale { display: none; }
+    #parchi-workflow section#own-sale { display: block; }
 </style>
 <div class="max-w-7xl mx-auto space-y-6 pb-12" id="parchi-workflow">
     <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -25,14 +25,15 @@
 
             <form method="POST" action="{{ route('factory.kachi.store') }}" class="space-y-3.5">
                 @csrf
+                <input type="hidden" name="operation_form" value="sales_kachi">
                 <div class="grid grid-cols-2 gap-3">
                     <label class="text-xs font-bold text-stone-700">
                         Kachi No.
-                        <input name="parchi_no" required placeholder="KP-001" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
+                        <input name="parchi_no" value="{{ old('parchi_no') }}" required placeholder="KP-001" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Dispatch Date
-                        <input name="dispatch_date" type="date" value="{{ date('Y-m-d') }}" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
+                        <input name="dispatch_date" type="date" value="{{ old('dispatch_date', date('Y-m-d')) }}" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
                     </label>
                 </div>
 
@@ -41,7 +42,7 @@
                     <select name="work_order_id" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]" id="kachi-order" required>
                         <option value="">Choose order</option>
                         @foreach($jobOrders as $o)
-                            <option value="{{ $o->id }}">{{ $o->order_no }} &middot; {{ $o->customer?->name ?? $o->party_name }} ({{ $o->fabricStock?->quality_name }})</option>
+                            <option value="{{ $o->id }}" @selected((string) old('work_order_id') === (string) $o->id)>{{ $o->order_no }} &middot; {{ $o->customer?->name ?? $o->party_name }} ({{ $o->fabricStock?->quality_name }})</option>
                         @endforeach
                     </select>
                 </label>
@@ -93,13 +94,14 @@
 
             <form method="POST" action="{{ route('factory.pakki.store') }}" class="space-y-3.5">
                 @csrf
+                <input type="hidden" name="operation_form" value="sales_pakki">
                 <label class="block text-xs font-bold text-stone-700">
                     Kachi awaiting Pakki
                     <select name="kachi_parchi_id" id="pakki-kachi-select" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white focus:outline-none focus:border-[#133e2b]" required>
                         <option value="">Select Kachi</option>
                         @foreach($pendingKachis as $k)
                             @if(!$k->pakki)
-                                <option value="{{ $k->id }}" data-dispatched-meters="{{ number_format((float) $k->dispatched_meters, 2, '.', '') }}" data-thaan-count="{{ $k->thaan_count }}">
+                                <option value="{{ $k->id }}" @selected((string) old('kachi_parchi_id') === (string) $k->id) data-dispatched-meters="{{ number_format((float) $k->dispatched_meters, 2, '.', '') }}" data-thaan-count="{{ $k->thaan_count }}">
                                     {{ $k->parchi_no }} · {{ $k->order?->contract?->contract_no ?? $k->order?->order_no }} · {{ $k->order?->customer?->name ?? $k->order?->party_name }} · {{ number_format((float) $k->dispatched_meters, 2) }}m · {{ $k->thaan_count }} Thaans
                                 </option>
                             @endif
@@ -144,26 +146,26 @@
                 <div class="grid grid-cols-2 gap-3">
                     <label class="text-xs font-bold text-stone-700">
                         Pakki No.
-                        <input name="parchi_no" required placeholder="PKP-001" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input name="parchi_no" value="{{ old('parchi_no') }}" required placeholder="PKP-001" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Received On
-                        <input type="date" name="received_date" value="{{ date('Y-m-d') }}" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input type="date" name="received_date" value="{{ old('received_date', date('Y-m-d')) }}" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
                     <label class="text-xs font-bold text-stone-700">
                         Accepted Thaans
-                        <input type="number" min="0" step="1" name="accepted_thaans" id="pakki-accepted-thaans" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input type="number" min="0" step="1" name="accepted_thaans" id="pakki-accepted-thaans" value="{{ old('accepted_thaans') }}" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Accepted Metres
-                        <input type="number" min="0" step=".01" name="accepted_meters" id="pakki-accepted-meters" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input type="number" min="0" step=".01" name="accepted_meters" id="pakki-accepted-meters" value="{{ old('accepted_meters') }}" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Rejected Metres
-                        <input type="number" min="0" step=".01" name="rejected_meters" id="pakki-rejected-meters" value="0" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
+                        <input type="number" min="0" step=".01" name="rejected_meters" id="pakki-rejected-meters" value="{{ old('rejected_meters', 0) }}" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs focus:outline-none focus:border-[#133e2b]">
                     </label>
                 </div>
 
@@ -193,13 +195,14 @@
 
             <form method="POST" action="{{ route('factory.returns.store') }}" class="space-y-3.5">
                 @csrf
+                <input type="hidden" name="operation_form" value="sales_return">
                 <label class="block text-xs font-bold text-stone-700">
                     Kachi with Pakki rejection
                     <select name="kachi_parchi_id" id="return-kachi" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white">
                         <option value="">Choose Kachi</option>
                         @foreach($rejectedKachis as $k)
                             @if($k->pakki && (float)$k->pakki->rejected_meters > 0)
-                                <option value="{{ $k->id }}">{{ $k->parchi_no }} &middot; Rejected {{ $k->pakki->rejected_meters }}m</option>
+                                <option value="{{ $k->id }}" @selected((string) old('kachi_parchi_id') === (string) $k->id)>{{ $k->parchi_no }} &middot; Rejected {{ $k->pakki->rejected_meters }}m</option>
                             @endif
                         @endforeach
                     </select>
@@ -223,7 +226,7 @@
 
                 <label class="block text-xs font-bold text-stone-700">
                     Returned On
-                    <input name="returned_on" type="date" value="{{ date('Y-m-d') }}" required class="mt-1 border border-[#e2e8e0] rounded-xl w-full p-2.5 text-xs">
+                    <input name="returned_on" type="date" value="{{ old('returned_on', date('Y-m-d')) }}" required class="mt-1 border border-[#e2e8e0] rounded-xl w-full p-2.5 text-xs">
                 </label>
 
                 <button class="bg-[#133e2b] hover:bg-[#1b5239] text-white rounded-xl p-3 font-bold text-xs w-full shadow-2xs transition-all">
@@ -241,6 +244,7 @@
 
             <form method="POST" action="{{ route('factory.disposition.store') }}" class="space-y-3.5">
                 @csrf
+                <input type="hidden" name="operation_form" value="sales_disposition">
                 <label class="block text-xs font-bold text-stone-700">
                     Returned rejected Thaan
                     <select name="thaan_roll_id" required class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white">
@@ -267,7 +271,7 @@
                     <select name="to_work_order_id" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white">
                         <option value="">Not required</option>
                         @foreach($jobOrders as $o)
-                            <option value="{{ $o->id }}">{{ $o->order_no }} &middot; {{ $o->customer?->name ?? $o->party_name }}</option>
+                            <option value="{{ $o->id }}" @selected((string) old('work_order_id') === (string) $o->id)>{{ $o->order_no }} &middot; {{ $o->customer?->name ?? $o->party_name }}</option>
                         @endforeach
                     </select>
                 </label>
@@ -275,20 +279,20 @@
                 <div class="grid grid-cols-2 gap-3">
                     <label class="text-xs font-bold text-stone-700">
                         Agreed settlement (Rs if applicable)
-                        <input type="number" name="settlement_amount" min="0" step=".01" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs">
+                        <input type="number" name="settlement_amount" value="{{ old('settlement_amount') }}" min="0" step=".01" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs">
                     </label>
                     <label class="text-xs font-bold text-stone-700">
                         Approval Ref
-                        <input name="approval_reference" placeholder="Ref / Date" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs">
+                        <input name="approval_reference" value="{{ old('approval_reference') }}" placeholder="Ref / Date" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs">
                     </label>
                 </div>
 
                 <label class="block text-xs font-bold text-stone-700">
                     Decision Date
-                    <input name="action_date" type="date" required value="{{ date('Y-m-d') }}" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs">
+                    <input name="action_date" type="date" required value="{{ old('action_date', date('Y-m-d')) }}" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs">
                 </label>
 
-                <input name="notes" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs" placeholder="Notes about settlement agreement">
+                <input name="notes" value="{{ old('notes') }}" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs" placeholder="Notes about settlement agreement">
 
                 <button class="w-full bg-[#133e2b] hover:bg-[#1b5239] text-white rounded-xl p-3 font-bold text-xs shadow-2xs transition-all">
                     Save Fabric Decision
@@ -307,6 +311,7 @@
 
         <form method="POST" action="{{ route('factory.own-sale.store') }}" class="space-y-3.5">
             @csrf
+                <input type="hidden" name="operation_form" value="sales_own_sale">
             <div class="grid sm:grid-cols-4 gap-3">
                 <label class="text-xs font-bold text-stone-700">
                     Sale Slip No.
@@ -414,54 +419,9 @@
 
 <script>
 (function(){
-    const parchiDialogs = {
-        kachi: 'salesParchiKachiModal',
-        pakki: 'salesParchiPakkiModal',
-        returns: 'salesParchiReturnModal',
-        disposition: 'salesParchiDispositionModal',
-        'own-sale': 'salesParchiOwnSaleModal',
-    };
-    Object.entries(parchiDialogs).forEach(([sectionId, modalId]) => {
-        const section = document.getElementById(sectionId);
-        if (!section) return;
-        const modal = document.createElement('div');
-        modal.id = modalId;
-        modal.className = 'fixed inset-0 z-[70] hidden items-center justify-center overflow-y-auto bg-zinc-950/60 p-4 backdrop-blur-sm';
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
-        const panel = document.createElement('div');
-        panel.className = 'my-auto w-full max-w-3xl';
-        const close = document.createElement('button');
-        close.type = 'button';
-        close.className = 'mb-2 ml-auto block rounded-lg bg-white px-3 py-2 text-xs font-bold text-zinc-700';
-        close.textContent = 'Close';
-        close.addEventListener('click', () => closeSalesParchi(modalId));
-        section.classList.remove('card');
-        section.classList.add('rounded-3xl', 'border', 'border-zinc-200', 'bg-white', 'p-5', 'shadow-2xl', 'max-h-[85vh]', 'overflow-y-auto');
-        panel.append(close, section);
-        modal.append(panel);
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) closeSalesParchi(modalId);
-        });
-        document.body.append(modal);
-    });
-    window.openSalesParchi = (action) => {
-        const modal = document.getElementById(parchiDialogs[action]);
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-    };
-    window.closeSalesParchi = (modalId) => {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-    };
-
     const order = document.getElementById('kachi-order');
     const labels = [...document.querySelectorAll('.kachi-option')];
+    if (order) {
     const update = () => {
         let total = 0, count = 0;
         labels.forEach(el => {
@@ -480,6 +440,7 @@
     order.addEventListener('change', update);
     labels.forEach(e => e.querySelector('input').addEventListener('change', update));
     update();
+    }
 
     const pakkiKachi = document.getElementById('pakki-kachi-select');
     const pakkiDetails = document.getElementById('pakki-kachi-details');
@@ -532,6 +493,7 @@
 
         savePakki.disabled = !hasSelection || !matchesDispatch || !acceptedCountValid || outOfBounds;
     };
+    if (pakkiKachi) {
     pakkiKachi.addEventListener('change', () => {
         if (previousPakkiKachi !== pakkiKachi.value) {
             acceptedThaans.value = '';
@@ -543,6 +505,7 @@
     });
     [acceptedThaans, acceptedMeters, rejectedMeters].forEach((input) => input.addEventListener('input', updatePakkiDetails));
     updatePakkiDetails();
+    }
 
     const ret = document.getElementById('return-kachi');
     const rt = [...document.querySelectorAll('.return-option')];
@@ -551,7 +514,9 @@
         e.classList.toggle('hidden', !on);
         if (!on) e.querySelector('input').checked = false;
     });
-    ret.addEventListener('change', updateRet);
-    updateRet();
+    if (ret) {
+        ret.addEventListener('change', updateRet);
+        updateRet();
+    }
 })();
 </script>
