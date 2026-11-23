@@ -36,7 +36,9 @@
         document.querySelectorAll('[data-yarn-quality-select]').forEach((select) => {
             select.value = createdYarnQuality;
         });
-        document.getElementById('inpYarnQuality')?.dispatchEvent(new Event('change'));
+        setTimeout(() => {
+            document.getElementById('inpYarnQuality')?.dispatchEvent(new Event('change'));
+        }, 0);
     }
     @if($errors->has('name'))
         document.getElementById('yarn-quality-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -91,13 +91,13 @@
         {{-- Quick actions --}}
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
-            <button type="button" onclick="openModal('modalNewSizingSlip')"
+            <a href="#sizing-slip-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 New Sizing Slip
-            </button>
+            </a>
             <a href="{{ route('bags.index') }}"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,16 +128,269 @@
             <h1 class="text-2xl font-black text-zinc-900 tracking-tight">{{ ['dashboard' => 'Sizing Dashboard', 'beams' => 'Beams Tracking', 'slips' => 'Sizing Slips', 'balance' => 'Sizing Balance'][$page] }}</h1>
         </div>
         <div class="flex items-center gap-3">
-            <button type="button" onclick="openModal('modalNewSizingSlip')" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
+            <a href="#sizing-slip-entry" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>+ New Sizing Slip Entry</span>
-            </button>
+            </a>
             <a href="{{ route('bags.index') }}" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 <span>Bags History</span>
             </a>
         </div>
     </div>
+
+<section id="sizing-slip-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white shadow-sm">
+    <div class="mx-auto max-w-5xl">
+
+        {{-- Sticky header --}}
+        <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4 sm:px-6">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-900">
+                    <svg class="h-5 w-5 text-zinc-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </span>
+                <div>
+                    <h3 class="text-base font-extrabold text-zinc-900">New Sizing Slip Entry</h3>
+                    <p class="text-xs text-zinc-400">Record the gate pass, bill weights, bag returns, and each finished beam</p>
+                </div>
+            </div>
+        </div>
+
+        <form action="{{ route('sizing.slip.store') }}" method="POST" class="p-5 space-y-5 sm:p-6">
+            @csrf
+            <label class="block text-xs font-semibold text-zinc-600">Perch entry type<select id="sizingSlipType" name="slip_type" onchange="toggleFinalPerchFields()" class="mt-1 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm"><option value="raw_perch">Raw Perch — gate pass and beam details</option><option value="final_perch">Final Perch — sizing invoice and returned-material deductions</option></select></label>
+            <div>
+                <label class="mb-1 block text-xs font-semibold text-zinc-600">Bag receipt / issue being sized *</label>
+                <select id="inpBagTransactionId" name="bag_transaction_id" required onchange="populateBagTransaction(this)"
+                        class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    <option value="">Select a pending bag transaction</option>
+                    @foreach($pendingSizingTransactions as $transaction)
+                        @php
+                            $sizingParty = $transaction->destination ?: ($transaction->party_name ?: $transaction->source);
+                            $sizingSlipNo = 'SZ-' . $transaction->id . '-' . date('ymd', strtotime($transaction->transaction_date));
+                        @endphp
+                        <option value="{{ $transaction->id }}" data-slip="{{ $sizingSlipNo }}" data-party="{{ $sizingParty }}" data-quality="{{ $transaction->quality }}" data-quantity="{{ $transaction->quantity_bags }}" data-date="{{ $transaction->transaction_date->format('Y-m-d') }}">
+                            {{ $transaction->reference_no }} · {{ $transaction->quality }} · {{ number_format((float) $transaction->quantity_bags, 2) }} bags · {{ $sizingParty }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-[10px] text-zinc-400">Each bag receipt can be used for one sizing slip. If none appear, record the yarn purchase or issue to sizing first.</p>
+            </div>
+
+            {{-- ── Section 1: Slip Basics ── --}}
+            <div>
+                <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Slip Details</div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Sizing Slip # *</label>
+                        <input type="text" id="inpSlipNo" name="slip_no" required placeholder="e.g. SZ-2026-092"
+                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Slip Date *</label>
+                        <input type="date" id="inpSlipDate" name="slip_date" required value="{{ date('Y-m-d') }}"
+                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Sizing Unit / Party *</label>
+                        <input type="text" id="inpSizingParty" name="sizing_party" required placeholder="e.g. National Sizing Industries"
+                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality *</label>
+                        <div class="flex gap-2">
+                            <select id="inpYarnQuality" name="yarn_quality" required data-yarn-quality-select onchange="updateSizingCountPreview()"
+                                    class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                                <option value="">Select yarn quality</option>
+                                @foreach($yarnQualities as $yarnQuality)
+                                <option value="{{ $yarnQuality->name }}" data-warp-weight="{{ $yarnQuality->warp_weight_per_meter_lb }}" data-weft-weight="{{ $yarnQuality->weft_weight_per_meter_lb }}" data-total-weight="{{ $yarnQuality->total_weight_per_meter_lb }}" data-unit-cost="{{ $yarnQuality->unit_cost_meter }}">{{ $yarnQuality->name }}</option>
+                                @endforeach
+                            </select>
+                            <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
+                        </div>
+                        <p class="mt-1 text-[10px] text-zinc-400">The selected quality records the declared yarn count, such as 52. This estimate does not change it.</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── Section 2: Bags Reconciliation ── --}}
+            <div class="rounded-2xl border border-zinc-200 bg-zinc-50 overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-200 bg-zinc-100">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-zinc-700">⚖️ Bags Reconciliation</span>
+                        <span class="text-[10px] text-zinc-400">Compare bags sent with used, returned, and held</span>
+                    </div>
+                    <span id="sizingBagStatus" class="text-xs font-bold font-mono text-zinc-500">—</span>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Total Bags Given to Sizing *</label>
+                        <input type="number" id="inpBagsAllocated" name="bags_allocated" required min="0.01" step="0.01" readonly
+                               placeholder="Select a bag receipt" oninput="calculateSizingBags(); updateSizingWeightPreview()"
+                               class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2.5 text-base text-zinc-900 font-mono font-black focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        <span id="sizingBagWeightPreview" class="mt-1 block text-[10px] text-zinc-500">100 lb per bag · 0.00 kg total</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="rounded-xl border border-zinc-200 bg-white p-3">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Used in Beams *</label>
+                            <input type="number" id="inpBagsUsed" name="bags_used" required min="0" step="0.01"
+                                   placeholder="65" oninput="calculateSizingBags()"
+                                   class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        </div>
+                        <div class="rounded-xl border border-zinc-200 bg-white p-3">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Returned to Factory</label>
+                            <input type="number" id="inpBagsReturned" name="bags_returned_to_factory"
+                                   value="0" min="0" step="0.01" oninput="calculateSizingBags()"
+                                   class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        </div>
+                        <div class="rounded-xl border border-zinc-200 bg-white p-3">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Held with Sizing</label>
+                            <input type="number" id="inpBagsHeld" name="bags_held_with_sizing"
+                                   value="0" min="0" step="0.01" oninput="calculateSizingBags()"
+                                   class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        </div>
+                    </div>
+                    <p class="text-[10px] leading-4 text-zinc-500">If counts do not match, save the slip and it will be flagged for review. A mismatch is a record discrepancy, not proof of theft.</p>
+                    {{-- Balance indicator bar --}}
+                    <div id="bagBalanceBar" class="h-1.5 rounded-full bg-zinc-200 overflow-hidden">
+                        <div id="bagBalanceFill" class="h-full rounded-full bg-zinc-300 transition-all duration-300" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── Section 3: Beam & Length Info ── --}}
+            <div>
+                <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Beam & Warp Length</div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Raw / Back Beams</label>
+                        <input type="number" name="back_beam_count" min="1" max="1000"
+                               placeholder="e.g. 5"
+                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Finished Full Beams Made *</label>
+                        <input type="number" id="inpTotalBeams" name="total_beams" required min="1" max="100"
+                               placeholder="e.g. 4" oninput="calculateBeamLengthSplit(); renderBeamNameInputs()"
+                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Finished Beam Names *</label>
+                        <div id="beamNamesContainer" class="grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
+                        <p class="mt-1 text-[10px] text-zinc-400">Enter the actual name or identifying mark for each finished beam.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Set Warp Length (Gate Pass) *</label>
+                        <div class="flex gap-2">
+                            <input type="number" step="0.01" id="inpSetLength" name="set_length_value"
+                                   required min="0.01" placeholder="e.g. 18481" oninput="calculateBeamLengthSplit(); updateSizingCountPreview()"
+                                   class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                            <select id="selectSetLengthUnit" name="set_length_unit" onchange="calculateBeamLengthSplit(); updateSizingCountPreview()"
+                                    class="w-24 bg-zinc-50 border border-zinc-300 rounded-xl px-2 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                                <option value="meters">Meters</option>
+                                <option value="gaz">Gaz/yds</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Fabric Panna *</label>
+                        <select id="inpWidthMultiplier" name="width_multiplier" required onchange="calculateBeamLengthSplit()"
+                                class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                            <option value="1" selected>Single panna · factor 1</option>
+                            <option value="2">Double panna · factor 2</option>
+                        </select>
+                        <span class="mt-1 block text-[10px] text-zinc-400">Choose the actual fabric width arrangement on this set.</span>
+                    </div>
+                </div>
+
+                {{-- Live beam length result --}}
+            <div class="mt-3 flex items-center justify-between rounded-xl bg-zinc-900 px-4 py-3">
+                    <span class="text-xs text-zinc-400">Expected fabric production:</span>
+                    <strong id="displayPerBeamLength" class="font-mono text-sm text-zinc-50">Enter set length, width factor, and full beams</strong>
+                </div>
+            </div>
+
+            {{-- ── Section 4: Warp Construction ── --}}
+            <div>
+                <div class="mb-3">
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Warp Construction</div>
+                    <p class="mt-1 text-[10px] text-zinc-500">Enter the total warp ends from the gate pass. This is used to estimate and check warp count.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Total Ends / Taarein</label>
+                    <input type="number" id="inpTotalEnds" name="total_ends" required min="1" placeholder="e.g. 10080" oninput="updateSizingCountPreview()"
+                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    <span class="mt-1 block text-[10px] text-zinc-400">Required to create a sizing slip.</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="mb-3">
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Sizing Bill Weight</div>
+                    <p id="sizingWeightSourceHint" class="mt-1 text-[10px] text-zinc-500">Enter the net warp yarn weight from the bill. The gross weight is optional for Raw Perch.</p>
+                </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div id="sizingGrossWeightField">
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Gross Weight on Sizing Bill (kg)</label>
+                        <input type="number" step="0.01" id="inpSizingGrossWeightKg" name="sizing_gross_weight_kg" min="0.01" placeholder="e.g. 2550" oninput="updateSizingWeightPreview(); updateFinalPerchPreview()"
+                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    </div>
+                    <div id="sizingNetWeightField">
+                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Net Warp Yarn Weight (kg)</label>
+                        <input type="number" step="0.01" id="inpSizingWeightKg" name="sizing_weight_kg" min="0.01" placeholder="e.g. 2266" oninput="updateSizingCountPreview()"
+                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    </div>
+                </div>
+                <div class="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                    <span id="sizingCountPreview" class="block text-[10px] font-semibold text-zinc-700">Enter total ends, set length, and net weight to estimate yarn count.</span>
+                    <span class="mt-1 block text-[10px] text-zinc-400">Estimate = ends × set length in metres ÷ (1693.6 × net kg). It is a reconciliation check and does not change the selected yarn quality.</span>
+                    <span id="sizingQualityWeightPreview" class="mt-2 block border-t border-zinc-200 pt-2 text-[10px] font-semibold text-zinc-700">Select a yarn quality with stored Read/Pick and yarn counts to preview fabric weight.</span>
+                </div>
+            </div>
+
+            <section id="finalPerchFields" class="hidden rounded-2xl border border-zinc-300 bg-zinc-50 p-4 space-y-4">
+                <div><h4 class="text-xs font-extrabold uppercase tracking-wider text-zinc-700">Final Perch Invoice — returned materials</h4><p class="mt-1 text-[10px] text-zinc-500">These returned weights are subtracted from the gross bill weight. The remaining net warp weight is used for warp-count reconciliation and sizing charges.</p></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="text-xs font-semibold">Used cones-bags count<input name="wet_cone_bags" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Used cones-bags weight (kg)<input id="wetConeWeightKg" name="wet_cone_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Empty bags count<input name="empty_bag_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Empty bags weight (kg)<input id="emptyBagWeightKg" name="empty_bag_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Gatta-bags count<input name="paper_bag_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Gatta-bags weight (kg)<input id="paperBagWeightKg" name="paper_bag_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Salim/unused cones count<input name="sound_cone_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Salim/unused cones weight (kg)<input id="soundConeWeightKg" name="sound_cone_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Cartons count<input name="carton_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                    <label class="text-xs font-semibold">Cartons weight (kg)<input id="cartonWeightKg" name="carton_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
+                </div>
+                <div class="grid grid-cols-2 gap-3 border-t border-zinc-200 pt-3"><div class="rounded-xl bg-white p-3"><span class="text-[10px] font-bold uppercase text-zinc-500">Total deductions</span><strong id="finalDeductionsPreview" class="mt-1 block font-mono text-lg">0.00 kg</strong></div><label class="text-xs font-semibold">Sizing rate (Rs. / kg)<input id="sizingRatePerKg" name="sizing_rate_per_kg" type="number" min="0" step="0.01" placeholder="61.00" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label></div>
+                <div class="rounded-xl bg-zinc-900 p-3 text-white"><div class="flex justify-between text-xs"><span>Net yarn weight</span><strong id="finalNetWeightPreview">0.00 kg</strong></div><div class="mt-2 flex justify-between border-t border-white/20 pt-2 text-sm"><span>Sizing bill</span><strong id="finalBillPreview">Rs. 0.00</strong></div></div>
+            </section>
+
+            {{-- Notes --}}
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Notes</label>
+                <input type="text" name="notes" placeholder="e.g. Sizing chemicals used, tension settings"
+                       class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+
+            {{-- Footer actions --}}
+            <div class="pt-3 border-t border-zinc-100 flex items-center justify-between gap-3">
+                <p class="text-[11px] text-zinc-400">Bag mismatches save with a review flag</p>
+                <div class="flex items-center gap-3">
+                    <button type="submit" id="btnSubmitSizingSlip"
+                            class="px-6 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm transition-colors opacity-50 cursor-not-allowed"
+                            disabled>
+                        Create Slip & Beams
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+@include('yarn-qualities.modal')
 
     <!-- KPIs -->
     @if ($page === 'dashboard')
@@ -671,273 +924,7 @@
     </div>
     @endif
 
-    </div>
-</div>
 
-<!-- MODAL 1: NEW SIZING SLIP -->
-{{-- ============================================================
-     MODAL: NEW SIZING SLIP
-============================================================ --}}
-<div id="modalNewSizingSlip" class="fixed inset-0 z-50 hidden bg-zinc-950/60 backdrop-blur-sm overflow-y-auto p-4 sm:p-6">
-    <div class="mx-auto my-8 w-full max-w-2xl overflow-y-auto rounded-3xl border border-zinc-200 bg-white shadow-2xl">
-
-        {{-- Sticky header --}}
-        <div class="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-100 bg-white/95 px-6 py-4 backdrop-blur">
-            <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-900">
-                    <svg class="h-5 w-5 text-zinc-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                </span>
-                <div>
-                    <h3 class="text-base font-extrabold text-zinc-900">New Sizing Slip Entry</h3>
-                    <p class="text-xs text-zinc-400">Record the gate pass, bill weights, bag returns, and each finished beam</p>
-                </div>
-            </div>
-            <button type="button" onclick="closeModal('modalNewSizingSlip')"
-                    class="rounded-xl p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-
-        <form action="{{ route('sizing.slip.store') }}" method="POST" class="px-6 py-5 space-y-5">
-            @csrf
-            <label class="block text-xs font-semibold text-zinc-600">Perch entry type<select id="sizingSlipType" name="slip_type" onchange="toggleFinalPerchFields()" class="mt-1 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm"><option value="raw_perch">Raw Perch — gate pass and beam details</option><option value="final_perch">Final Perch — sizing invoice and returned-material deductions</option></select></label>
-            <div>
-                <label class="mb-1 block text-xs font-semibold text-zinc-600">Bag receipt / issue being sized *</label>
-                <select id="inpBagTransactionId" name="bag_transaction_id" required onchange="populateBagTransaction(this)"
-                        class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    <option value="">Select a pending bag transaction</option>
-                    @foreach($pendingSizingTransactions as $transaction)
-                        @php
-                            $sizingParty = $transaction->destination ?: ($transaction->party_name ?: $transaction->source);
-                            $sizingSlipNo = 'SZ-' . $transaction->id . '-' . date('ymd', strtotime($transaction->transaction_date));
-                        @endphp
-                        <option value="{{ $transaction->id }}" data-slip="{{ $sizingSlipNo }}" data-party="{{ $sizingParty }}" data-quality="{{ $transaction->quality }}" data-quantity="{{ $transaction->quantity_bags }}" data-date="{{ $transaction->transaction_date->format('Y-m-d') }}">
-                            {{ $transaction->reference_no }} · {{ $transaction->quality }} · {{ number_format((float) $transaction->quantity_bags, 2) }} bags · {{ $sizingParty }}
-                        </option>
-                    @endforeach
-                </select>
-                <p class="mt-1 text-[10px] text-zinc-400">Each bag receipt can be used for one sizing slip. If none appear, record the yarn purchase or issue to sizing first.</p>
-            </div>
-
-            {{-- ── Section 1: Slip Basics ── --}}
-            <div>
-                <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Slip Details</div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Sizing Slip # *</label>
-                        <input type="text" id="inpSlipNo" name="slip_no" required placeholder="e.g. SZ-2026-092"
-                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Slip Date *</label>
-                        <input type="date" id="inpSlipDate" name="slip_date" required value="{{ date('Y-m-d') }}"
-                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Sizing Unit / Party *</label>
-                        <input type="text" id="inpSizingParty" name="sizing_party" required placeholder="e.g. National Sizing Industries"
-                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality *</label>
-                        <div class="flex gap-2">
-                            <select id="inpYarnQuality" name="yarn_quality" required data-yarn-quality-select onchange="updateSizingCountPreview()"
-                                    class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                                <option value="">Select yarn quality</option>
-                                @foreach($yarnQualities as $yarnQuality)
-                                <option value="{{ $yarnQuality->name }}" data-warp-weight="{{ $yarnQuality->warp_weight_per_meter_lb }}" data-weft-weight="{{ $yarnQuality->weft_weight_per_meter_lb }}" data-total-weight="{{ $yarnQuality->total_weight_per_meter_lb }}" data-unit-cost="{{ $yarnQuality->unit_cost_meter }}">{{ $yarnQuality->name }}</option>
-                                @endforeach
-                            </select>
-                            <button type="button" onclick="openModal('modalYarnQualities')" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Create</button>
-                        </div>
-                        <p class="mt-1 text-[10px] text-zinc-400">The selected quality records the declared yarn count, such as 52. This estimate does not change it.</p>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ── Section 2: Bags Reconciliation ── --}}
-            <div class="rounded-2xl border border-zinc-200 bg-zinc-50 overflow-hidden">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-200 bg-zinc-100">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold uppercase tracking-wider text-zinc-700">⚖️ Bags Reconciliation</span>
-                        <span class="text-[10px] text-zinc-400">Compare bags sent with used, returned, and held</span>
-                    </div>
-                    <span id="sizingBagStatus" class="text-xs font-bold font-mono text-zinc-500">—</span>
-                </div>
-                <div class="p-4 space-y-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Total Bags Given to Sizing *</label>
-                        <input type="number" id="inpBagsAllocated" name="bags_allocated" required min="0.01" step="0.01" readonly
-                               placeholder="Select a bag receipt" oninput="calculateSizingBags(); updateSizingWeightPreview()"
-                               class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2.5 text-base text-zinc-900 font-mono font-black focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        <span id="sizingBagWeightPreview" class="mt-1 block text-[10px] text-zinc-500">100 lb per bag · 0.00 kg total</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-3">
-                        <div class="rounded-xl border border-zinc-200 bg-white p-3">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Used in Beams *</label>
-                            <input type="number" id="inpBagsUsed" name="bags_used" required min="0" step="0.01"
-                                   placeholder="65" oninput="calculateSizingBags()"
-                                   class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        </div>
-                        <div class="rounded-xl border border-zinc-200 bg-white p-3">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Returned to Factory</label>
-                            <input type="number" id="inpBagsReturned" name="bags_returned_to_factory"
-                                   value="0" min="0" step="0.01" oninput="calculateSizingBags()"
-                                   class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        </div>
-                        <div class="rounded-xl border border-zinc-200 bg-white p-3">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Held with Sizing</label>
-                            <input type="number" id="inpBagsHeld" name="bags_held_with_sizing"
-                                   value="0" min="0" step="0.01" oninput="calculateSizingBags()"
-                                   class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        </div>
-                    </div>
-                    <p class="text-[10px] leading-4 text-zinc-500">If counts do not match, save the slip and it will be flagged for review. A mismatch is a record discrepancy, not proof of theft.</p>
-                    {{-- Balance indicator bar --}}
-                    <div id="bagBalanceBar" class="h-1.5 rounded-full bg-zinc-200 overflow-hidden">
-                        <div id="bagBalanceFill" class="h-full rounded-full bg-zinc-300 transition-all duration-300" style="width:0%"></div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ── Section 3: Beam & Length Info ── --}}
-            <div>
-                <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Beam & Warp Length</div>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Raw / Back Beams</label>
-                        <input type="number" name="back_beam_count" min="1" max="1000"
-                               placeholder="e.g. 5"
-                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Finished Full Beams Made *</label>
-                        <input type="number" id="inpTotalBeams" name="total_beams" required min="1" max="100"
-                               placeholder="e.g. 4" oninput="calculateBeamLengthSplit(); renderBeamNameInputs()"
-                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Finished Beam Names *</label>
-                        <div id="beamNamesContainer" class="grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
-                        <p class="mt-1 text-[10px] text-zinc-400">Enter the actual name or identifying mark for each finished beam.</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Set Warp Length (Gate Pass) *</label>
-                        <div class="flex gap-2">
-                            <input type="number" step="0.01" id="inpSetLength" name="set_length_value"
-                                   required min="0.01" placeholder="e.g. 18481" oninput="calculateBeamLengthSplit(); updateSizingCountPreview()"
-                                   class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                            <select id="selectSetLengthUnit" name="set_length_unit" onchange="calculateBeamLengthSplit(); updateSizingCountPreview()"
-                                    class="w-24 bg-zinc-50 border border-zinc-300 rounded-xl px-2 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                                <option value="meters">Meters</option>
-                                <option value="gaz">Gaz/yds</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Fabric Panna *</label>
-                        <select id="inpWidthMultiplier" name="width_multiplier" required onchange="calculateBeamLengthSplit()"
-                                class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                            <option value="1" selected>Single panna · factor 1</option>
-                            <option value="2">Double panna · factor 2</option>
-                        </select>
-                        <span class="mt-1 block text-[10px] text-zinc-400">Choose the actual fabric width arrangement on this set.</span>
-                    </div>
-                </div>
-
-                {{-- Live beam length result --}}
-            <div class="mt-3 flex items-center justify-between rounded-xl bg-zinc-900 px-4 py-3">
-                    <span class="text-xs text-zinc-400">Expected fabric production:</span>
-                    <strong id="displayPerBeamLength" class="font-mono text-sm text-zinc-50">Enter set length, width factor, and full beams</strong>
-                </div>
-            </div>
-
-            {{-- ── Section 4: Warp Construction ── --}}
-            <div>
-                <div class="mb-3">
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Warp Construction</div>
-                    <p class="mt-1 text-[10px] text-zinc-500">Enter the total warp ends from the gate pass. This is used to estimate and check warp count.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Total Ends / Taarein</label>
-                    <input type="number" id="inpTotalEnds" name="total_ends" required min="1" placeholder="e.g. 10080" oninput="updateSizingCountPreview()"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    <span class="mt-1 block text-[10px] text-zinc-400">Required to create a sizing slip.</span>
-                </div>
-            </div>
-
-            <div>
-                <div class="mb-3">
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Sizing Bill Weight</div>
-                    <p id="sizingWeightSourceHint" class="mt-1 text-[10px] text-zinc-500">Enter the net warp yarn weight from the bill. The gross weight is optional for Raw Perch.</p>
-                </div>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div id="sizingGrossWeightField">
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Gross Weight on Sizing Bill (kg)</label>
-                        <input type="number" step="0.01" id="inpSizingGrossWeightKg" name="sizing_gross_weight_kg" min="0.01" placeholder="e.g. 2550" oninput="updateSizingWeightPreview(); updateFinalPerchPreview()"
-                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    </div>
-                    <div id="sizingNetWeightField">
-                        <label class="block text-xs font-semibold text-zinc-600 mb-1">Net Warp Yarn Weight (kg)</label>
-                        <input type="number" step="0.01" id="inpSizingWeightKg" name="sizing_weight_kg" min="0.01" placeholder="e.g. 2266" oninput="updateSizingCountPreview()"
-                               class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    </div>
-                </div>
-                <div class="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
-                    <span id="sizingCountPreview" class="block text-[10px] font-semibold text-zinc-700">Enter total ends, set length, and net weight to estimate yarn count.</span>
-                    <span class="mt-1 block text-[10px] text-zinc-400">Estimate = ends × set length in metres ÷ (1693.6 × net kg). It is a reconciliation check and does not change the selected yarn quality.</span>
-                    <span id="sizingQualityWeightPreview" class="mt-2 block border-t border-zinc-200 pt-2 text-[10px] font-semibold text-zinc-700">Select a yarn quality with stored Read/Pick and yarn counts to preview fabric weight.</span>
-                </div>
-            </div>
-
-            <section id="finalPerchFields" class="hidden rounded-2xl border border-zinc-300 bg-zinc-50 p-4 space-y-4">
-                <div><h4 class="text-xs font-extrabold uppercase tracking-wider text-zinc-700">Final Perch Invoice — returned materials</h4><p class="mt-1 text-[10px] text-zinc-500">These returned weights are subtracted from the gross bill weight. The remaining net warp weight is used for warp-count reconciliation and sizing charges.</p></div>
-                <div class="grid grid-cols-2 gap-3">
-                    <label class="text-xs font-semibold">Used cones-bags count<input name="wet_cone_bags" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Used cones-bags weight (kg)<input id="wetConeWeightKg" name="wet_cone_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Empty bags count<input name="empty_bag_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Empty bags weight (kg)<input id="emptyBagWeightKg" name="empty_bag_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Gatta-bags count<input name="paper_bag_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Gatta-bags weight (kg)<input id="paperBagWeightKg" name="paper_bag_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Salim/unused cones count<input name="sound_cone_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Salim/unused cones weight (kg)<input id="soundConeWeightKg" name="sound_cone_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Cartons count<input name="carton_count" type="number" min="0" placeholder="Enter count if returned" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                    <label class="text-xs font-semibold">Cartons weight (kg)<input id="cartonWeightKg" name="carton_weight_kg" type="number" min="0" step="0.01" placeholder="Enter weight if returned" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label>
-                </div>
-                <div class="grid grid-cols-2 gap-3 border-t border-zinc-200 pt-3"><div class="rounded-xl bg-white p-3"><span class="text-[10px] font-bold uppercase text-zinc-500">Total deductions</span><strong id="finalDeductionsPreview" class="mt-1 block font-mono text-lg">0.00 kg</strong></div><label class="text-xs font-semibold">Sizing rate (Rs. / kg)<input id="sizingRatePerKg" name="sizing_rate_per_kg" type="number" min="0" step="0.01" placeholder="61.00" oninput="updateFinalPerchPreview()" class="mt-1 w-full rounded-xl border px-3 py-2"></label></div>
-                <div class="rounded-xl bg-zinc-900 p-3 text-white"><div class="flex justify-between text-xs"><span>Net yarn weight</span><strong id="finalNetWeightPreview">0.00 kg</strong></div><div class="mt-2 flex justify-between border-t border-white/20 pt-2 text-sm"><span>Sizing bill</span><strong id="finalBillPreview">Rs. 0.00</strong></div></div>
-            </section>
-
-            {{-- Notes --}}
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Notes</label>
-                <input type="text" name="notes" placeholder="e.g. Sizing chemicals used, tension settings"
-                       class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-
-            {{-- Footer actions --}}
-            <div class="pt-3 border-t border-zinc-100 flex items-center justify-between gap-3">
-                <p class="text-[11px] text-zinc-400">Bag mismatches save with a review flag</p>
-                <div class="flex items-center gap-3">
-                    <button type="button" onclick="closeModal('modalNewSizingSlip')"
-                            class="px-4 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 text-xs font-semibold transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" id="btnSubmitSizingSlip"
-                            class="px-6 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm transition-colors opacity-50 cursor-not-allowed"
-                            disabled>
-                        Create Slip & Beams
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 <!-- MODAL 2: MOUNT BEAM ON LOOM -->
 <div id="modalMountBeam" class="fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto bg-zinc-900/50 p-4 backdrop-blur-sm">
@@ -1002,7 +989,7 @@
         populateBagTransaction(bagTransaction);
         document.getElementById('sizingSlipType').value = 'raw_perch';
         toggleFinalPerchFields();
-        openModal('modalNewSizingSlip');
+        document.getElementById('sizing-slip-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function populateBagTransaction(select) {
@@ -1199,7 +1186,10 @@
         if (currentLoom) document.getElementById('selectMountLoom').value = currentLoom;
         openModal('modalMountBeam');
     }
+
+    @if($errors->any())
+        document.getElementById('sizing-slip-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    @endif
 </script>
 @endpush
-@include('yarn-qualities.modal')
 @endsection
