@@ -103,20 +103,20 @@
         {{-- Quick Actions --}}
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
-            <button type="button" onclick="openModal('modalIssuePart')"
+            <a href="#part-issue-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Issue Part to Loom
-            </button>
-            <button type="button" onclick="openModal('modalAddPart')"
+            </a>
+            <a href="#part-add-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 Add New Part Item
-            </button>
+            </a>
             <a href="{{ route('production.index') }}"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,18 +147,178 @@
                 </p>
             </div>
             <div class="flex items-center gap-3 shrink-0">
-                <button type="button" onclick="openModal('modalIssuePart')"
+                <a href="#part-issue-entry"
                         class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Issue Part to Loom
-                </button>
-                <button type="button" onclick="openModal('modalAddPart')"
+                </a>
+                <a href="#part-add-entry"
                         class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     + Add New Part
-                </button>
+                </a>
             </div>
         </div>
+
+{{-- ============================================================
+     ADD PART TO STORE
+============================================================ --}}
+<section id="part-add-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mx-auto max-w-5xl">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+            <div>
+                <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-zinc-700"></span>
+                    Add New Loom Part to Store
+                </h3>
+                <p class="text-xs text-zinc-400 mt-0.5">Add a new part to the store catalogue with opening stock</p>
+            </div>
+        </div>
+        <form action="{{ route('parts.store') }}" method="POST" class="mt-5 grid gap-4 sm:grid-cols-2">
+            @csrf
+            <input type="hidden" name="operation_form" value="add_part">
+            <div class="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Part Code / Item # *</label>
+                    <input type="text" name="part_code" required placeholder="e.g. GRP-RH-02"
+                           value="{{ old('part_code') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Category *</label>
+                    <select name="category" required class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat }}" @selected(old('category', $loop->first ? $cat : null) === $cat)>{{ $cat }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Part Name / Specification *</label>
+                <input type="text" name="part_name" required placeholder="e.g. Rapier Gripper Head (Right)"
+                       value="{{ old('part_name') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div class="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-3">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Opening Stock *</label>
+                    <input type="number" name="stock_quantity" required min="0" placeholder="10"
+                           value="{{ old('stock_quantity') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Low Alert Limit *</label>
+                    <input type="number" name="min_alert_threshold" required min="0" placeholder="5"
+                           value="{{ old('min_alert_threshold') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Unit *</label>
+                    <input type="text" name="unit" required value="{{ old('unit', 'pcs') }}" placeholder="pcs, set, kg" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Unit Cost (Rs.) *</label>
+                    <input type="number" step="0.01" name="unit_price" required min="0" placeholder="3800"
+                           value="{{ old('unit_price') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Rack / Bin Location</label>
+                    <input type="text" name="rack_location" placeholder="e.g. Rack P-1"
+                           value="{{ old('rack_location') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Notes / Description</label>
+                <input type="text" name="notes" placeholder="e.g. Compatible with Picanol / Dornier rapier looms"
+                       value="{{ old('notes') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div class="sm:col-span-2 pt-3 border-t border-zinc-100 flex justify-end gap-3">
+                <button type="submit"
+                        class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm">
+                    Save Part to Store
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+
+{{-- ============================================================
+     ISSUE PART TO LOOM
+============================================================ --}}
+<section id="part-issue-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mx-auto max-w-5xl">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+            <div>
+                <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-zinc-600"></span>
+                    Issue Part to Factory Loom
+                </h3>
+                <p class="text-xs text-zinc-400 mt-0.5">Select a part and assign it to a specific loom</p>
+            </div>
+        </div>
+        <form action="{{ route('parts.issue') }}" method="POST" class="mt-5 grid gap-4 sm:grid-cols-2">
+            @csrf
+            <input type="hidden" name="operation_form" value="issue_part">
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Select Part from Store *</label>
+                <select name="part_id" id="selectIssuePart" required onchange="handlePartSelectChange()"
+                        class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    <option value="">— Choose Part Item —</option>
+                    @foreach($issuanceParts as $p)
+                        <option value="{{ $p->id }}" @selected((string) old('part_id') === (string) $p->id) data-price="{{ $p->unit_price }}"
+                                data-stock="{{ $p->stock_quantity }}" data-unit="{{ $p->unit }}">
+                            {{ $p->part_name }} ({{ $p->part_code }}) — In Stock: {{ $p->stock_quantity }} {{ $p->unit }}
+                        </option>
+                    @endforeach
+                </select>
+                <div id="issueStockNotice" class="text-[11px] text-zinc-500 mt-1 min-h-[16px]"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 sm:col-span-2">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Target Loom # *</label>
+                    <select name="loom_no" required
+                            class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        @foreach($looms as $loom)
+                            <option value="{{ $loom }}" @selected(old('loom_no', $loop->first ? $loom : null) === $loom)>{{ $loom }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Issuance Date *</label>
+                    <input type="date" name="issuance_date" required value="{{ old('issuance_date', date('Y-m-d')) }}"
+                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 sm:col-span-2">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Quantity to Issue *</label>
+                    <input type="number" id="inpIssueQty" name="quantity" required min="1" value="{{ old('quantity', 1) }}"
+                           oninput="calculateIssueTotalCost()"
+                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Issued to (Person) *</label>
+                    <input type="text" name="issued_to_person" required value="{{ old('issued_to_person') }}" placeholder="e.g. Master Aslam"
+                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+            </div>
+            <div class="sm:col-span-2 p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-between text-xs">
+                <span class="text-zinc-500 font-medium">Total Part Cost:</span>
+                <strong id="displayIssueCost" class="font-mono text-zinc-900 text-base">Rs. 0.00</strong>
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Reason / Maintenance Remarks</label>
+                <input type="text" name="remarks" value="{{ old('remarks') }}" placeholder="e.g. Routine replacement, worn gripper clip"
+                       class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div class="sm:col-span-2 pt-3 border-t border-zinc-100 flex justify-end gap-3">
+                <button type="submit"
+                        class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm">
+                    Confirm Issuance
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
 
         {{-- KPI Cards (dashboard only) --}}
         @if($page === 'dashboard')
@@ -277,7 +437,7 @@
                                 <td class="px-4 py-3 text-zinc-400 font-mono text-[11px]">{{ $part->rack_location ?? '—' }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <button type="button"
-                                            onclick="preselectPartForIssuance('{{ $part->id }}', '{{ addslashes($part->part_name) }}', '{{ $part->stock_quantity }}', '{{ $part->unit }}', '{{ $part->unit_price }}')"
+                                            onclick="preselectPartForIssuance('{{ $part->id }}')"
                                             class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-[11px] font-bold transition-all whitespace-nowrap">
                                         Issue &rarr;
                                     </button>
@@ -382,182 +542,26 @@
 </div>{{-- end grid --}}
 
 
-{{-- ============================================================
-     MODAL 1: ADD NEW PART
-============================================================ --}}
-<div id="modalAddPart" class="fixed inset-0 z-50 hidden bg-zinc-900/50 backdrop-blur-sm overflow-y-auto p-4">
-    <div class="mx-auto my-8 bg-white border border-zinc-200 rounded-3xl max-w-lg w-full p-6 shadow-xl">
-        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-            <div>
-                <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-zinc-700"></span>
-                    Add New Loom Part to Store
-                </h3>
-                <p class="text-xs text-zinc-400 mt-0.5">Add a new part to the store catalogue with opening stock</p>
-            </div>
-            <button type="button" onclick="closeModal('modalAddPart')" class="text-zinc-400 hover:text-zinc-900 p-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <form action="{{ route('parts.store') }}" method="POST" class="mt-4 space-y-4">
-            @csrf
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Part Code / Item # *</label>
-                    <input type="text" name="part_code" required placeholder="e.g. GRP-RH-02"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Category *</label>
-                    <select name="category" required
-                            class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat }}">{{ $cat }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Part Name / Specification *</label>
-                <input type="text" name="part_name" required placeholder="e.g. Rapier Gripper Head (Right)"
-                       class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div class="grid grid-cols-3 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Opening Stock *</label>
-                    <input type="number" name="stock_quantity" required min="0" placeholder="10"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Low Alert Limit *</label>
-                    <input type="number" name="min_alert_threshold" required min="0" placeholder="5"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Unit *</label>
-                    <input type="text" name="unit" required value="pcs" placeholder="pcs, set, kg"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Unit Cost (Rs.) *</label>
-                    <input type="number" step="0.01" name="unit_price" required min="0" placeholder="3800"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Rack / Bin Location</label>
-                    <input type="text" name="rack_location" placeholder="e.g. Rack P-1"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Notes / Description</label>
-                <input type="text" name="notes" placeholder="e.g. Compatible with Picanol / Dornier rapier looms"
-                       class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div class="pt-3 border-t border-zinc-100 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalAddPart')"
-                        class="px-4 py-2 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-semibold">Cancel</button>
-                <button type="submit"
-                        class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm">
-                    Save Part to Store
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-
-{{-- ============================================================
-     MODAL 2: ISSUE PART TO LOOM
-============================================================ --}}
-<div id="modalIssuePart" class="fixed inset-0 z-50 hidden bg-zinc-900/50 backdrop-blur-sm overflow-y-auto p-4">
-    <div class="mx-auto my-8 bg-white border border-zinc-200 rounded-3xl max-w-md w-full p-6 shadow-xl">
-        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-            <div>
-                <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-zinc-600"></span>
-                    Issue Part to Factory Loom
-                </h3>
-                <p class="text-xs text-zinc-400 mt-0.5">Select a part and assign it to a specific loom</p>
-            </div>
-            <button type="button" onclick="closeModal('modalIssuePart')" class="text-zinc-400 hover:text-zinc-900 p-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <form action="{{ route('parts.issue') }}" method="POST" class="mt-4 space-y-4">
-            @csrf
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Select Part from Store *</label>
-                <select name="part_id" id="selectIssuePart" required onchange="handlePartSelectChange()"
-                        class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    <option value="">— Choose Part Item —</option>
-                    @foreach($issuanceParts as $p)
-                        <option value="{{ $p->id }}" data-price="{{ $p->unit_price }}"
-                                data-stock="{{ $p->stock_quantity }}" data-unit="{{ $p->unit }}">
-                            {{ $p->part_name }} ({{ $p->part_code }}) — In Stock: {{ $p->stock_quantity }} {{ $p->unit }}
-                        </option>
-                    @endforeach
-                </select>
-                <div id="issueStockNotice" class="text-[11px] text-zinc-500 mt-1 min-h-[16px]"></div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Target Loom # *</label>
-                    <select name="loom_no" required
-                            class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        @foreach($looms as $loom)
-                            <option value="{{ $loom }}">{{ $loom }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Issuance Date *</label>
-                    <input type="date" name="issuance_date" required value="{{ date('Y-m-d') }}"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Quantity to Issue *</label>
-                    <input type="number" id="inpIssueQty" name="quantity" required min="1" value="1"
-                           oninput="calculateIssueTotalCost()"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Issued to (Person) *</label>
-                    <input type="text" name="issued_to_person" required placeholder="e.g. Master Aslam"
-                           class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-            </div>
-            <div class="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-between text-xs">
-                <span class="text-zinc-500 font-medium">Total Part Cost:</span>
-                <strong id="displayIssueCost" class="font-mono text-zinc-900 text-base">Rs. 0.00</strong>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Reason / Maintenance Remarks</label>
-                <input type="text" name="remarks" placeholder="e.g. Routine replacement, worn gripper clip"
-                       class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div class="pt-3 border-t border-zinc-100 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalIssuePart')"
-                        class="px-4 py-2 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-semibold">Cancel</button>
-                <button type="submit"
-                        class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm">
-                    Confirm Issuance
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 @push('scripts')
 <script>
     let selectedPartPrice = 0;
 
+    document.addEventListener('DOMContentLoaded', () => {
+        handlePartSelectChange();
+
+        const operationForm = @json(old('operation_form'));
+        const formId = operationForm === 'add_part' ? 'part-add-entry' : (operationForm === 'issue_part' ? 'part-issue-entry' : null);
+        if (formId) {
+            document.getElementById(formId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+
     function handlePartSelectChange() {
         const select = document.getElementById('selectIssuePart');
+        if (!select) {
+            return;
+        }
+
         const opt = select.options[select.selectedIndex];
         if (opt && opt.value) {
             selectedPartPrice = parseFloat(opt.dataset.price) || 0;
@@ -571,15 +575,21 @@
     }
 
     function calculateIssueTotalCost() {
-        const qty = parseFloat(document.getElementById('inpIssueQty').value) || 0;
-        document.getElementById('displayIssueCost').innerText =
+        const quantityInput = document.getElementById('inpIssueQty');
+        const totalCostDisplay = document.getElementById('displayIssueCost');
+        if (!quantityInput || !totalCostDisplay) {
+            return;
+        }
+
+        const qty = parseFloat(quantityInput.value) || 0;
+        totalCostDisplay.innerText =
             'Rs. ' + (qty * selectedPartPrice).toLocaleString('en-US', { minimumFractionDigits: 2 });
     }
 
-    function preselectPartForIssuance(partId, partName, stock, unit, price) {
+    function preselectPartForIssuance(partId) {
         document.getElementById('selectIssuePart').value = partId;
         handlePartSelectChange();
-        openModal('modalIssuePart');
+        document.getElementById('part-issue-entry').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 </script>
 @endpush
