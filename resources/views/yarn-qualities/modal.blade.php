@@ -1,11 +1,10 @@
-<div id="modalYarnQualities" class="fixed inset-0 z-[60] hidden items-center justify-center bg-zinc-950/50 p-4 backdrop-blur-sm">
-    <div class="w-full max-w-2xl rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl">
+<section id="yarn-quality-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mx-auto max-w-5xl">
         <div class="flex items-start justify-between border-b border-zinc-100 pb-4">
             <div>
                 <h2 class="text-lg font-extrabold text-zinc-900">Yarn Quality List</h2>
                 <p class="mt-1 text-xs text-zinc-500">Add a yarn quality with its fabric construction and stored weight calculation for sizing predictions.</p>
             </div>
-            <button type="button" onclick="closeModal('modalYarnQualities')" class="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900" aria-label="Close yarn quality list">✕</button>
         </div>
 
         <div class="mt-4 max-h-40 overflow-y-auto rounded-xl border border-zinc-100 bg-zinc-50 p-3">
@@ -16,7 +15,7 @@
             @endforelse
         </div>
 
-        <form action="{{ route('yarn-qualities.store') }}" method="POST" class="mt-4 space-y-3">
+        <form id="yarn-quality-form" action="{{ route('yarn-qualities.store') }}" method="POST" class="mt-4 space-y-3">
             @csrf
             <div>
                 <label for="newYarnQualityName" class="mb-1 block text-xs font-semibold text-zinc-600">New Yarn Quality *</label>
@@ -42,12 +41,11 @@
                 <span>Weft lb/m = TRUNC(Pick × Width ÷ Weft Count ÷ 20 × 1.0936 ÷ 40, 4)</span>
             </div>
             <div class="flex justify-end gap-2 border-t border-zinc-100 pt-3">
-                <button type="button" onclick="closeModal('modalYarnQualities')" class="rounded-xl bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-600">Close</button>
                 <button type="submit" class="rounded-xl bg-zinc-900 px-5 py-2 text-xs font-bold text-white hover:bg-zinc-700">Add Yarn Quality</button>
             </div>
         </form>
     </div>
-</div>
+</section>
 
 @push('scripts')
 <script>
@@ -59,7 +57,7 @@
         document.getElementById('inpYarnQuality')?.dispatchEvent(new Event('change'));
     }
     @if($errors->hasAny(['name', 'construction', 'read', 'pick', 'warp_count', 'weft_count', 'width_inches', 'unit_cost_meter']))
-        openModal('modalYarnQualities');
+        document.getElementById('yarn-quality-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     @endif
 </script>
 @endpush

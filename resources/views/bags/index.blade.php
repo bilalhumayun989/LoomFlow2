@@ -4,6 +4,18 @@
 
 @section('content')
 <div class="grid grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)] gap-6 items-start">
+    @if(session('success'))
+        <div class="lg:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" role="status">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="lg:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900" role="alert">{{ session('error') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="lg:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">
+            <p class="font-bold">Please correct these details:</p>
+            <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
@@ -104,35 +116,35 @@
         {{-- Quick actions at bottom of sidebar --}}
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
-            <button type="button" onclick="openModal('modalNewPurchase')"
+            <a href="#bag-purchase-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Buy Bags
-            </button>
+            </a>
             <a href="{{ route('bags.split') }}" class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 Split Existing Bags
             </a>
-            <button type="button" onclick="openModal('modalIssueStock')"
+            <a href="#bag-issue-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
                 Issue Bags
-            </button>
-            <button type="button" onclick="openModal('modalReturnStock')"
+            </a>
+            <a href="#bag-return-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
                 </svg>
                 Receive Return
-            </button>
-            <button type="button" onclick="openModal('modalYarnQualities')"
+            </a>
+            <a href="#yarn-quality-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Manage Yarn Qualities
-            </button>
+            </a>
         </div>
     </aside>
 
@@ -149,21 +161,343 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-            <button type="button" onclick="openModal('modalNewPurchase')" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
+            <a href="#bag-purchase-entry" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>Buy Bags</span>
-            </button>
+            </a>
             <a href="{{ route('bags.split') }}" class="px-3.5 py-2 rounded-xl bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors">Split Existing Bags</a>
-            <button type="button" onclick="openModal('modalIssueStock')" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
+            <a href="#bag-issue-entry" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 <span>Issue Bags Daily</span>
-            </button>
-            <button type="button" onclick="openModal('modalReturnStock')" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
+            </a>
+            <a href="#bag-return-entry" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/></svg>
                 <span>Receive Bags Return</span>
-            </button>
+            </a>
         </div>
     </div>
+
+<!-- On-page purchase entry -->
+<section id="bag-purchase-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mx-auto max-w-5xl">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+            <div>
+                <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-zinc-700"></span>
+                    New Bag Purchase (Yarn)
+                </h3>
+                <p class="text-xs text-zinc-400">Enter purchase & split between Sizing and Factory Stock Store</p>
+            </div>
+        </div>
+        <form id="bag-purchase-form" action="{{ route('bags.purchase') }}" method="POST" class="mt-4 space-y-4">
+            @csrf
+            <input type="hidden" name="purchase_form" value="bag_purchase">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Challan / Invoice # *</label>
+                    <input type="text" name="challan_no" required placeholder="e.g. CH-8901" value="{{ old('challan_no') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Purchase Date *</label>
+                    <input type="date" name="purchase_date" required value="{{ old('purchase_date', date('Y-m-d')) }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Spinning Mill / Supplier *</label>
+                    <input type="text" name="supplier_name" required placeholder="e.g. Al-Karam Spinning" value="{{ old('supplier_name') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality / Count *</label>
+                    <div class="flex gap-2">
+                        <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                            <option value="">Select yarn quality</option>
+                            @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->name }}</option>@endforeach
+                        </select>
+                        <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Total Bags Purchased *</label>
+                    <input type="number" step="0.01" id="inpTotalBags" name="total_bags" required min="0.01" placeholder="100" value="{{ old('total_bags') }}" oninput="calculateSplit()" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Rate Per Bag (Rs.) *</label>
+                    <input type="number" step="0.01" id="inpRatePerBag" name="rate_per_bag" required min="0" placeholder="14500" value="{{ old('rate_per_bag') }}" oninput="calculateSplit()" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Cones in Each Bag *</label>
+                    <input type="number" name="cones_per_bag" required min="1" max="1000" step="1" placeholder="e.g. 48" value="{{ old('cones_per_bag') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Paid From Account *</label>
+                    <select name="financial_account_id" required class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        <option value="">Select cash / bank account</option>
+                        @foreach($activeAccounts as $account)<option value="{{ $account->id }}" @selected((string) old('financial_account_id') === (string) $account->id)>{{ $account->name }}</option>@endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3">
+                @if($errors->any() && old('purchase_form') === 'bag_purchase')
+                    <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+                        <p class="font-bold">Please correct the purchase details below:</p>
+                        <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                    </div>
+                @elseif(session('error') && old('purchase_form') === 'bag_purchase')
+                    <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-800">{{ session('error') }}</div>
+                @endif
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-600">📦 Dispatch Split: Sizing vs Factory</span>
+                    <span id="splitStatus" class="text-xs font-bold font-mono text-zinc-500">Total: 0 Bags</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-zinc-600 mb-1">Direct to Sizing (Bags)</label>
+                        <input type="number" step="0.01" id="inpBagsToSizing" name="bags_to_sizing" value="{{ old('bags_to_sizing', 0) }}" min="0" oninput="markPurchaseSplitAsManual()" class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        <span class="text-[10px] text-zinc-400">Leave 0 or blank if none are sent directly</span>
+                        @error('bags_to_sizing')<span class="mt-1 block text-[10px] font-semibold text-red-700">{{ $message }}</span>@enderror
+                        <span id="displaySizingBagWeight" class="block text-[10px] font-semibold text-zinc-600">0 bags · 0.00 kg / 0 lb</span>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-zinc-600 mb-1">To Factory Godown (Bags)</label>
+                        <input type="number" step="0.01" id="inpBagsToFactory" name="bags_to_factory" value="{{ old('bags_to_factory', 0) }}" min="0" oninput="markPurchaseSplitAsManual()" class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        <span class="text-[10px] text-zinc-400">Stored in mill warehouse</span>
+                    </div>
+                </div>
+                <div id="sizingDestinationWrap" class="hidden">
+                    <label class="block text-[11px] font-semibold text-zinc-600 mb-1">Sizing Mill / Contractor *</label>
+                    <input type="text" id="inpSizingDestination" name="sizing_destination" value="{{ old('sizing_destination') }}" placeholder="e.g. National Sizing Mill" class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    @error('sizing_destination')<span class="mt-1 block text-[10px] font-semibold text-red-700">{{ $message }}</span>@enderror
+                    <span class="mt-1 block text-[10px] text-zinc-500">This will appear as a pending sizing entry with the bag quantity and quality already filled.</span>
+                </div>
+                <div class="pt-2 border-t border-zinc-200 flex items-center justify-between text-xs">
+                    <span class="text-zinc-500">Calculated Total Amount:</span>
+                    <strong id="displayTotalAmount" class="font-mono text-zinc-900 text-sm">Rs. 0.00</strong>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Notes / Contract Details</label>
+                <textarea name="notes" rows="2" placeholder="e.g. Contract #889, direct dispatch" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">{{ old('notes') }}</textarea>
+            </div>
+            <div class="pt-3 border-t border-zinc-100 flex justify-end gap-3">
+                <button type="submit" id="btnSubmitPurchase" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm">Save Purchase & Split</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- On-page stock issue entry -->
+<section id="bag-issue-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mx-auto max-w-5xl">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+            <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-zinc-600"></span>
+                Issue Stock Daily (From Factory)
+            </h3>
+        </div>
+        <form id="bag-issue-form" action="{{ route('bags.issue') }}" method="POST" class="mt-4 grid gap-4 sm:grid-cols-2">
+            @csrf
+            <input type="hidden" name="operation_form" value="bag_issue">
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Issuance Reference / Slip # *</label>
+                <input type="text" name="reference_no" required placeholder="e.g. ISS-105" value="{{ old('reference_no') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Date *</label>
+                    <input type="date" name="transaction_date" required value="{{ old('transaction_date', date('Y-m-d')) }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Quantity (Bags) *</label>
+                    <input type="number" id="inpIssueBags" name="quantity_bags" required min="0.01" step="0.01" max="{{ $factoryStoreStock }}" placeholder="10" value="{{ old('quantity_bags') }}" oninput="updateIssueBagWeight()" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    <span class="text-[10px] text-zinc-500">In Godown: {{ $factoryStoreStock }} bags · <span id="displayIssueBagWeight">0.00 kg</span></span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality *</label>
+                <div class="flex gap-2">
+                    <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        <option value="">Select yarn quality</option>
+                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->name }}</option>@endforeach
+                    </select>
+                <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Destination / Sizing Mill *</label>
+                <input type="text" name="destination" required placeholder="e.g. National Sizing Mill" value="{{ old('destination') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Receiver Name / Contractor *</label>
+                <input type="text" name="party_name" required placeholder="e.g. Master Aslam" value="{{ old('party_name') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Link to Work Order (optional)</label>
+                <select name="work_order_id" id="issueWorkOrder" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                    <option value="">General factory issue (no order khata)</option>
+                    @foreach($activeWorkOrders as $workOrder)
+                        <option value="{{ $workOrder->id }}" @selected((string) old('work_order_id') === (string) $workOrder->id)>{{ $workOrder->order_no }} · {{ $workOrder->party_name ?? 'Factory' }}</option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-[10px] text-zinc-500">Select an order to create its yarn issue automatically. Enter the actual measured weight below.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="block text-xs font-semibold text-zinc-600">Order component
+                    <select name="component" id="issueComponent" class="w-full mt-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900">
+                        <option value="">Select when linking order</option>
+                        <option value="warp" @selected(old('component') === 'warp')>Taana / Warp</option>
+                        <option value="weft" @selected(old('component') === 'weft')>Baana / Weft</option>
+                    </select>
+                </label>
+                <label class="block text-xs font-semibold text-zinc-600">Measured net weight (kg)
+                    <input type="number" name="net_weight_kg" min=".001" step=".001" value="{{ old('net_weight_kg') }}" class="w-full mt-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900" placeholder="Required for order link">
+                </label>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Remarks</label>
+                <input type="text" name="notes" value="{{ old('notes') }}" placeholder="e.g. Lot for beam set 4" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div class="sm:col-span-2 pt-3 border-t border-zinc-100 flex justify-end gap-3">
+                <button type="submit" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black">Confirm Issuance</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- On-page return entry -->
+<section id="bag-return-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mx-auto max-w-5xl">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+            <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-zinc-500"></span>
+                Receive Unused Bags Back
+            </h3>
+        </div>
+        <form id="bag-return-form" action="{{ route('bags.return') }}" method="POST" class="mt-4 grid gap-4 sm:grid-cols-2">
+            @csrf
+            <input type="hidden" name="operation_form" value="bag_return">
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Return Slip / Ref # *</label>
+                <input type="text" name="reference_no" required placeholder="e.g. RET-45" value="{{ old('reference_no') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Date *</label>
+                    <input type="date" name="transaction_date" required value="{{ old('transaction_date', date('Y-m-d')) }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Quantity Returned (Bags) *</label>
+                    <input type="number" name="quantity_bags" required min="0.01" step="0.01" placeholder="5" value="{{ old('quantity_bags') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality *</label>
+                <div class="flex gap-2">
+                    <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        <option value="">Select yarn quality</option>
+                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->name }}</option>@endforeach
+                    </select>
+                    <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Returning Sizing Mill / Party *</label>
+                <input type="text" name="source" required placeholder="e.g. National Sizing Mill" value="{{ old('source') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Contractor / Person Name *</label>
+                <input type="text" name="party_name" required placeholder="e.g. Sizing Contractor" value="{{ old('party_name') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-zinc-600 mb-1">Reason / Notes</label>
+                <input type="text" name="notes" placeholder="e.g. Surplus bags from completed beam set" value="{{ old('notes') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+            </div>
+            <div class="sm:col-span-2 pt-3 border-t border-zinc-100 flex justify-end gap-3">
+                <button type="submit" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black">Receive into Godown</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@push('scripts')
+<script>
+    let purchaseSplitManuallyAdjusted = false;
+
+    function updateSizingDestination() {
+        const quantity = parseFloat(document.getElementById('inpBagsToSizing').value) || 0;
+        const wrap = document.getElementById('sizingDestinationWrap');
+        const destination = document.getElementById('inpSizingDestination');
+        wrap.classList.toggle('hidden', quantity <= 0);
+        destination.required = quantity > 0;
+    }
+
+    function updateSizingBagWeight() {
+        const bags = parseFloat(document.getElementById('inpBagsToSizing').value) || 0;
+        document.getElementById('displaySizingBagWeight').innerText = `${bags} bags · ${(bags * 45.359237).toFixed(2)} kg / ${(bags * 100).toLocaleString()} lb`;
+    }
+
+    function updateIssueBagWeight() {
+        const bags = parseFloat(document.getElementById('inpIssueBags').value) || 0;
+        document.getElementById('displayIssueBagWeight').innerText = `${(bags * 45.359237).toFixed(2)} kg (${(bags * 100).toLocaleString()} lb)`;
+    }
+
+    function calculateSplit() {
+        const total = parseFloat(document.getElementById('inpTotalBags').value) || 0;
+        if (!purchaseSplitManuallyAdjusted) {
+            const half = Math.floor(total * 50) / 100;
+            document.getElementById('inpBagsToSizing').value = half;
+            document.getElementById('inpBagsToFactory').value = total - half;
+        }
+        updateSizingDestination();
+        updateSizingBagWeight();
+        validateSplitNumbers();
+    }
+
+    function markPurchaseSplitAsManual() {
+        purchaseSplitManuallyAdjusted = true;
+        validateSplitNumbers();
+        updateSizingDestination();
+        updateSizingBagWeight();
+    }
+
+    function validateSplitNumbers() {
+        const total = parseFloat(document.getElementById('inpTotalBags').value) || 0;
+        const rate = parseFloat(document.getElementById('inpRatePerBag').value) || 0;
+        const sizing = parseFloat(document.getElementById('inpBagsToSizing').value) || 0;
+        const factory = parseFloat(document.getElementById('inpBagsToFactory').value) || 0;
+        const sum = sizing + factory;
+        const statusEl = document.getElementById('splitStatus');
+        const submitBtn = document.getElementById('btnSubmitPurchase');
+        document.getElementById('displayTotalAmount').innerText = 'Rs. ' + (total * rate).toLocaleString('en-US', {minimumFractionDigits: 2});
+        if (Math.round(sum * 100) === Math.round(total * 100) && total > 0) {
+            statusEl.innerText = `Matched: ${sizing} Sizing + ${factory} Factory = ${total} ✓`;
+            statusEl.className = 'text-xs font-bold font-mono text-zinc-700';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            statusEl.innerText = `Sum: ${sum} / ${total} Bags ✗`;
+            statusEl.className = 'text-xs font-bold font-mono text-zinc-400';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    updateSizingDestination();
+    updateSizingBagWeight();
+    validateSplitNumbers();
+    @if(old('purchase_form') === 'bag_purchase')
+        purchaseSplitManuallyAdjusted = true;
+        document.getElementById('bag-purchase-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    @elseif(old('operation_form') === 'bag_issue')
+        document.getElementById('bag-issue-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    @elseif(old('operation_form') === 'bag_return')
+        document.getElementById('bag-return-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    @endif
+</script>
+@endpush
+@include('yarn-qualities.modal')
 
     <!-- KPI Metric Cards -->
     @if ($page === 'dashboard')
@@ -482,332 +816,4 @@
 
     </div>
 </div>
-
-<!-- MODAL 1: NEW BAG PURCHASE -->
-<div id="modalNewPurchase" class="fixed inset-0 z-50 hidden bg-zinc-900/50 backdrop-blur-sm overflow-y-auto p-4">
-    <div class="mx-auto my-8 bg-white border border-zinc-200 rounded-3xl max-w-xl w-full p-6 shadow-xl">
-        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-            <div>
-                <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-zinc-700"></span>
-                    New Bag Purchase (Yarn)
-                </h3>
-                <p class="text-xs text-zinc-400">Enter purchase & split between Sizing and Factory Stock Store</p>
-            </div>
-            <button type="button" onclick="closeModal('modalNewPurchase')" class="text-zinc-400 hover:text-zinc-900 p-1 rounded-lg">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <form action="{{ route('bags.purchase') }}" method="POST" class="mt-4 space-y-4">
-            @csrf
-            <input type="hidden" name="purchase_form" value="bag_purchase">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Challan / Invoice # *</label>
-                    <input type="text" name="challan_no" required placeholder="e.g. CH-8901" value="{{ old('challan_no') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Purchase Date *</label>
-                    <input type="date" name="purchase_date" required value="{{ old('purchase_date', date('Y-m-d')) }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Spinning Mill / Supplier *</label>
-                    <input type="text" name="supplier_name" required placeholder="e.g. Al-Karam Spinning" value="{{ old('supplier_name') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality / Count *</label>
-                    <div class="flex gap-2">
-                        <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                            <option value="">Select yarn quality</option>
-                            @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->name }}</option>@endforeach
-                        </select>
-                        <button type="button" onclick="openModal('modalYarnQualities')" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Create</button>
-                    </div>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Total Bags Purchased *</label>
-                    <input type="number" step="0.01" id="inpTotalBags" name="total_bags" required min="0.01" placeholder="100" value="{{ old('total_bags') }}" oninput="calculateSplit()" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Rate Per Bag (Rs.) *</label>
-                    <input type="number" step="0.01" id="inpRatePerBag" name="rate_per_bag" required min="0" placeholder="14500" value="{{ old('rate_per_bag') }}" oninput="calculateSplit()" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Cones in Each Bag *</label>
-                    <input type="number" name="cones_per_bag" required min="1" max="1000" step="1" placeholder="e.g. 48" value="{{ old('cones_per_bag') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Paid From Account *</label>
-                    <select name="financial_account_id" required class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        <option value="">Select cash / bank account</option>
-                        @foreach($activeAccounts as $account)<option value="{{ $account->id }}" @selected((string) old('financial_account_id') === (string) $account->id)>{{ $account->name }}</option>@endforeach
-                    </select>
-                </div>
-            </div>
-            <div class="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3">
-                @if($errors->any() && old('purchase_form') === 'bag_purchase')
-                    <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
-                        <p class="font-bold">Please correct the purchase details below:</p>
-                        <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-                    </div>
-                @elseif(session('error') && old('purchase_form') === 'bag_purchase')
-                    <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-800">{{ session('error') }}</div>
-                @endif
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-600">📦 Dispatch Split: Sizing vs Factory</span>
-                    <span id="splitStatus" class="text-xs font-bold font-mono text-zinc-500">Total: 0 Bags</span>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-zinc-600 mb-1">Direct to Sizing (Bags)</label>
-                        <input type="number" step="0.01" id="inpBagsToSizing" name="bags_to_sizing" value="{{ old('bags_to_sizing', 0) }}" min="0" oninput="markPurchaseSplitAsManual()" class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        <span class="text-[10px] text-zinc-400">Leave 0 or blank if none are sent directly</span>
-                        @error('bags_to_sizing')<span class="mt-1 block text-[10px] font-semibold text-red-700">{{ $message }}</span>@enderror
-                        <span id="displaySizingBagWeight" class="block text-[10px] font-semibold text-zinc-600">0 bags · 0.00 kg / 0 lb</span>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-zinc-600 mb-1">To Factory Godown (Bags)</label>
-                        <input type="number" step="0.01" id="inpBagsToFactory" name="bags_to_factory" value="{{ old('bags_to_factory', 0) }}" min="0" oninput="markPurchaseSplitAsManual()" class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        <span class="text-[10px] text-zinc-400">Stored in mill warehouse</span>
-                    </div>
-                </div>
-                <div id="sizingDestinationWrap" class="hidden">
-                    <label class="block text-[11px] font-semibold text-zinc-600 mb-1">Sizing Mill / Contractor *</label>
-                    <input type="text" id="inpSizingDestination" name="sizing_destination" value="{{ old('sizing_destination') }}" placeholder="e.g. National Sizing Mill" class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    @error('sizing_destination')<span class="mt-1 block text-[10px] font-semibold text-red-700">{{ $message }}</span>@enderror
-                    <span class="mt-1 block text-[10px] text-zinc-500">This will appear as a pending sizing entry with the bag quantity and quality already filled.</span>
-                </div>
-                <div class="pt-2 border-t border-zinc-200 flex items-center justify-between text-xs">
-                    <span class="text-zinc-500">Calculated Total Amount:</span>
-                    <strong id="displayTotalAmount" class="font-mono text-zinc-900 text-sm">Rs. 0.00</strong>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Notes / Contract Details</label>
-                <textarea name="notes" rows="2" placeholder="e.g. Contract #889, direct dispatch" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">{{ old('notes') }}</textarea>
-            </div>
-            <div class="pt-3 border-t border-zinc-100 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalNewPurchase')" class="px-4 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 text-xs font-semibold">Cancel</button>
-                <button type="submit" id="btnSubmitPurchase" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm">Save Purchase & Split</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL 2: ISSUE BAGS DAILY -->
-<div id="modalIssueStock" class="fixed inset-0 z-50 hidden bg-zinc-900/50 backdrop-blur-sm overflow-y-auto p-4">
-    <div class="bg-white border border-zinc-200 rounded-3xl max-w-md w-full p-6 shadow-xl relative">
-        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-            <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-zinc-600"></span>
-                Issue Stock Daily (From Factory)
-            </h3>
-            <button type="button" onclick="closeModal('modalIssueStock')" class="text-zinc-400 hover:text-zinc-900 p-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <form action="{{ route('bags.issue') }}" method="POST" class="mt-4 space-y-4">
-            @csrf
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Issuance Reference / Slip # *</label>
-                <input type="text" name="reference_no" required placeholder="e.g. ISS-105" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Date *</label>
-                    <input type="date" name="transaction_date" required value="{{ date('Y-m-d') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Quantity (Bags) *</label>
-                    <input type="number" id="inpIssueBags" name="quantity_bags" required min="0.01" step="0.01" max="{{ $factoryStoreStock }}" placeholder="10" oninput="updateIssueBagWeight()" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    <span class="text-[10px] text-zinc-500">In Godown: {{ $factoryStoreStock }} bags · <span id="displayIssueBagWeight">0.00 kg</span></span>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality *</label>
-                <div class="flex gap-2">
-                    <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        <option value="">Select yarn quality</option>
-                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}">{{ $yarnQuality->name }}</option>@endforeach
-                    </select>
-                    <button type="button" onclick="openModal('modalYarnQualities')" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Create</button>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Destination / Sizing Mill *</label>
-                <input type="text" name="destination" required placeholder="e.g. National Sizing Mill" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Receiver Name / Contractor *</label>
-                <input type="text" name="party_name" required placeholder="e.g. Master Aslam" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Link to Work Order (optional)</label>
-                <select name="work_order_id" id="issueWorkOrder" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                    <option value="">General factory issue (no order khata)</option>
-                    @foreach($activeWorkOrders as $workOrder)
-                        <option value="{{ $workOrder->id }}">{{ $workOrder->order_no }} · {{ $workOrder->party_name ?? 'Factory' }}</option>
-                    @endforeach
-                </select>
-                <p class="mt-1 text-[10px] text-zinc-500">Select an order to create its yarn issue automatically. Enter the actual measured weight below.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <label class="block text-xs font-semibold text-zinc-600">Order component
-                    <select name="component" id="issueComponent" class="w-full mt-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900">
-                        <option value="">Select when linking order</option>
-                        <option value="warp">Taana / Warp</option>
-                        <option value="weft">Baana / Weft</option>
-                    </select>
-                </label>
-                <label class="block text-xs font-semibold text-zinc-600">Measured net weight (kg)
-                    <input type="number" name="net_weight_kg" min=".001" step=".001" class="w-full mt-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900" placeholder="Required for order link">
-                </label>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Remarks</label>
-                <input type="text" name="notes" placeholder="e.g. Lot for beam set 4" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div class="pt-3 border-t border-zinc-100 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalIssueStock')" class="px-4 py-2 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-semibold">Cancel</button>
-                <button type="submit" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black">Confirm Issuance</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL 3: RECEIVE RETURNED BAGS -->
-<div id="modalReturnStock" class="fixed inset-0 z-50 hidden bg-zinc-900/50 backdrop-blur-sm overflow-y-auto p-4">
-    <div class="bg-white border border-zinc-200 rounded-3xl max-w-md w-full p-6 shadow-xl relative">
-        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-            <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-zinc-500"></span>
-                Receive Unused Bags Back
-            </h3>
-            <button type="button" onclick="closeModal('modalReturnStock')" class="text-zinc-400 hover:text-zinc-900 p-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <form action="{{ route('bags.return') }}" method="POST" class="mt-4 space-y-4">
-            @csrf
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Return Slip / Ref # *</label>
-                <input type="text" name="reference_no" required placeholder="e.g. RET-45" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Date *</label>
-                    <input type="date" name="transaction_date" required value="{{ date('Y-m-d') }}" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-600 mb-1">Quantity Returned (Bags) *</label>
-                    <input type="number" name="quantity_bags" required min="0.01" step="0.01" placeholder="5" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Yarn Quality *</label>
-                <div class="flex gap-2">
-                    <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-                        <option value="">Select yarn quality</option>
-                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}">{{ $yarnQuality->name }}</option>@endforeach
-                    </select>
-                    <button type="button" onclick="openModal('modalYarnQualities')" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Create</button>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Returning Sizing Mill / Party *</label>
-                <input type="text" name="source" required placeholder="e.g. National Sizing Mill" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Contractor / Person Name *</label>
-                <input type="text" name="party_name" required placeholder="e.g. Sizing Contractor" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-zinc-600 mb-1">Reason / Notes</label>
-                <input type="text" name="notes" placeholder="e.g. Surplus bags from completed beam set" class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
-            </div>
-            <div class="pt-3 border-t border-zinc-100 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalReturnStock')" class="px-4 py-2 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-semibold">Cancel</button>
-                <button type="submit" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black">Receive into Godown</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-    let purchaseSplitManuallyAdjusted = false;
-
-    function updateSizingDestination() {
-        const quantity = parseFloat(document.getElementById('inpBagsToSizing').value) || 0;
-        const wrap = document.getElementById('sizingDestinationWrap');
-        const destination = document.getElementById('inpSizingDestination');
-        wrap.classList.toggle('hidden', quantity <= 0);
-        destination.required = quantity > 0;
-    }
-
-    function updateSizingBagWeight() {
-        const bags = parseFloat(document.getElementById('inpBagsToSizing').value) || 0;
-        document.getElementById('displaySizingBagWeight').innerText = `${bags} bags · ${(bags * 45.359237).toFixed(2)} kg / ${(bags * 100).toLocaleString()} lb`;
-    }
-
-    function updateIssueBagWeight() {
-        const bags = parseFloat(document.getElementById('inpIssueBags').value) || 0;
-        document.getElementById('displayIssueBagWeight').innerText = `${(bags * 45.359237).toFixed(2)} kg (${(bags * 100).toLocaleString()} lb)`;
-    }
-
-    function calculateSplit() {
-        const total = parseFloat(document.getElementById('inpTotalBags').value) || 0;
-        if (!purchaseSplitManuallyAdjusted) {
-            const half = Math.floor(total * 50) / 100;
-            document.getElementById('inpBagsToSizing').value = half;
-            document.getElementById('inpBagsToFactory').value = total - half;
-        }
-        updateSizingDestination();
-        updateSizingBagWeight();
-        validateSplitNumbers();
-    }
-
-    function markPurchaseSplitAsManual() {
-        purchaseSplitManuallyAdjusted = true;
-        validateSplitNumbers();
-        updateSizingDestination();
-        updateSizingBagWeight();
-    }
-
-    function validateSplitNumbers() {
-        const total = parseFloat(document.getElementById('inpTotalBags').value) || 0;
-        const rate = parseFloat(document.getElementById('inpRatePerBag').value) || 0;
-        const sizing = parseFloat(document.getElementById('inpBagsToSizing').value) || 0;
-        const factory = parseFloat(document.getElementById('inpBagsToFactory').value) || 0;
-        const sum = sizing + factory;
-        const statusEl = document.getElementById('splitStatus');
-        const submitBtn = document.getElementById('btnSubmitPurchase');
-        document.getElementById('displayTotalAmount').innerText = 'Rs. ' + (total * rate).toLocaleString('en-US', {minimumFractionDigits: 2});
-        if (Math.round(sum * 100) === Math.round(total * 100) && total > 0) {
-            statusEl.innerText = `Matched: ${sizing} Sizing + ${factory} Factory = ${total} ✓`;
-            statusEl.className = 'text-xs font-bold font-mono text-zinc-700';
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-            statusEl.innerText = `Sum: ${sum} / ${total} Bags ✗`;
-            statusEl.className = 'text-xs font-bold font-mono text-zinc-400';
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-    }
-
-    updateSizingDestination();
-    updateSizingBagWeight();
-    validateSplitNumbers();
-    @if(old('purchase_form') === 'bag_purchase')
-        purchaseSplitManuallyAdjusted = true;
-        openModal('modalNewPurchase');
-    @endif
-</script>
-@endpush
-@include('yarn-qualities.modal')
 @endsection
