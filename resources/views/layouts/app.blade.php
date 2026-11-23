@@ -481,7 +481,15 @@
             flex-direction: column;
         }
 
+        body.operator-console > .operator-app > .operator-titlebar,
+        body.operator-console > .operator-app > .operator-menubar {
+            position: sticky;
+            z-index: 35;
+        }
+
         .operator-titlebar {
+            top: 0;
+            z-index: 36 !important;
             min-height: 43px;
             display: flex;
             align-items: center;
@@ -541,6 +549,8 @@
         }
 
         .operator-menubar {
+            top: 43px;
+            z-index: 35 !important;
             min-height: 31px;
             display: flex;
             align-items: center;
