@@ -3,7 +3,7 @@
 @section('title', 'Accounts Overview')
 
 @section('content')
-<div class="mx-auto max-w-7xl space-y-6">
+<div class="mx-auto flex max-w-7xl flex-col space-y-6">
     <header class="flex flex-col gap-4 border-b border-zinc-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-zinc-500">Finance overview</span>
@@ -20,7 +20,7 @@
         </div>
     </header>
 
-    <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Account summaries">
+    <section class="order-last grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Account summaries">
         <article class="group rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <div class="flex items-start justify-between gap-3">
                 <div><div class="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-800">Customer receivables</div><div class="mt-3 text-2xl font-black tabular-nums tracking-tight text-emerald-950">Rs. {{ number_format($receivables, 2) }}</div></div>
