@@ -153,7 +153,7 @@
 
 @if($page !== 'dashboard' || $mode === 'operator')
 @php
-    $activeBagForm = match (old('purchase_form') === 'bag_purchase' ? 'purchase' : old('operation_form')) {
+    $activeBagForm = $errors->has('name') ? 'quality' : match (old('purchase_form') === 'bag_purchase' ? 'purchase' : old('operation_form')) {
         'bag_issue' => 'issue',
         'bag_return' => 'return',
         default => 'purchase',
@@ -165,6 +165,7 @@
     <button type="button" class="bag-form-tab rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white" data-bag-form-tab="purchase" role="tab" aria-controls="bag-purchase-entry" aria-selected="true">Purchase <kbd class="ml-1 text-[10px] text-zinc-300">Ctrl+1</kbd></button>
     <button type="button" class="bag-form-tab rounded-xl bg-zinc-100 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200" data-bag-form-tab="issue" role="tab" aria-controls="bag-issue-entry" aria-selected="false">Issue stock daily <kbd class="ml-1 text-[10px]">Ctrl+2</kbd></button>
     <button type="button" class="bag-form-tab rounded-xl bg-zinc-100 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200" data-bag-form-tab="return" role="tab" aria-controls="bag-return-entry" aria-selected="false">Receive return <kbd class="ml-1 text-[10px]">Ctrl+3</kbd></button>
+    <button type="button" class="bag-form-tab rounded-xl bg-zinc-100 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200" data-bag-form-tab="quality" role="tab" aria-controls="yarn-quality-entry" aria-selected="false">Create yarn quality <kbd class="ml-1 text-[10px]">Ctrl+4</kbd></button>
 </nav>
 @endif
 <!-- On-page purchase entry -->
@@ -441,12 +442,16 @@
         tab.addEventListener('click', () => showBagEntryForm(tab.dataset.bagFormTab, true));
     });
 
+    if (window.location.hash === '#yarn-quality-entry') {
+        showBagEntryForm('quality');
+    }
+
     document.addEventListener('keydown', (event) => {
         if (!event.ctrlKey || event.altKey || event.metaKey) {
             return;
         }
 
-        const formByShortcut = { '1': 'purchase', '2': 'issue', '3': 'return' };
+        const formByShortcut = { '1': 'purchase', '2': 'issue', '3': 'return', '4': 'quality' };
         const formName = formByShortcut[event.key];
         if (!formName) {
             return;
