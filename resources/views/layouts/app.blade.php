@@ -487,6 +487,32 @@
             padding-top: 74px;
         }
 
+        body.operator-console.bags-display-mode {
+            height: auto;
+            overflow: visible;
+        }
+
+        body.operator-console.bags-display-mode > .operator-app {
+            height: auto;
+            min-height: 100vh;
+            overflow: visible;
+        }
+
+        body.operator-console.bags-display-mode > .operator-app > .operator-workspace,
+        body.operator-console.bags-display-mode > .operator-app > .operator-workspace > div.flex-1 {
+            overflow: visible;
+        }
+
+        body.operator-console.bags-display-mode > .operator-app > .operator-workspace > div.flex-1 {
+            height: auto;
+            min-height: calc(100vh - 74px);
+        }
+
+        body.operator-console.bags-display-mode > .operator-app > .operator-workspace > div.flex-1 > main {
+            flex: none;
+            overflow: visible;
+        }
+
         body.operator-console > .operator-app > .operator-titlebar,
         body.operator-console > .operator-app > .operator-menubar {
             position: sticky;
@@ -1031,7 +1057,7 @@
         }
     </style>
 </head>
-<body class="operator-console h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
