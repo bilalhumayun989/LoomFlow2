@@ -2,12 +2,16 @@
 
 @section('title', 'Sizing Slips & Beam Management')
 
-@section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)] gap-6 items-start">
-    <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+@php
+    $sizingMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+@endphp
+
+@section('workspace_sidebar')
+@if($sizingMode === 'display')
+<aside class="sizing-module-sidebar hidden w-[250px] shrink-0 self-start rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24 lg:my-6 lg:ml-6 lg:mr-4 lg:block">
 
         {{-- Dashboard main link --}}
-        <a href="{{ route('sizing.index') }}"
+        <a href="{{ route('sizing.index', ['mode' => $sizingMode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $page === 'dashboard'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -31,7 +35,7 @@
         <nav class="space-y-1.5" aria-label="Sizing sections">
 
             {{-- Beams Tracking --}}
-            <a href="{{ route('sizing.beams') }}"
+            <a href="{{ route('sizing.beams', ['mode' => $sizingMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'beams'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -54,7 +58,7 @@
             </a>
 
             {{-- Sizing Slips --}}
-            <a href="{{ route('sizing.slips') }}"
+            <a href="{{ route('sizing.slips', ['mode' => $sizingMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'slips'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -77,7 +81,7 @@
             </a>
 
             {{-- Sizing Balance --}}
-            <a href="{{ route('sizing.balance') }}"
+            <a href="{{ route('sizing.balance', ['mode' => $sizingMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all {{ $page === 'balance' ? 'bg-zinc-900 text-zinc-50 shadow-sm' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {{ $page === 'balance' ? 'bg-zinc-700' : 'bg-zinc-100' }}">
                     <svg class="h-3.5 w-3.5 {{ $page === 'balance' ? 'text-zinc-100' : 'text-zinc-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a2 2 0 01.707.293l5.414 5.414A2 2 0 0119 9v10a2 2 0 01-2 2z"/></svg>
@@ -91,6 +95,7 @@
         {{-- Quick actions --}}
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
+            @if($sizingMode === 'operator')
             <a href="#sizing-slip-entry"
                     class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,6 +103,7 @@
                 </svg>
                 New Sizing Slip
             </a>
+            @endif
             <a href="{{ route('bags.index') }}"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,8 +120,14 @@
                 Production Module
             </a>
         </div>
-    </aside>
+ </aside>
+@endif
+@endsection
 
+@section('content')
+@php
+    $activeSizingForm = $errors->has('name') ? 'quality' : 'slip';
+@endphp
     <div class="min-w-0 space-y-6">
 
     <!-- Header & Actions -->
@@ -128,18 +140,27 @@
             <h1 class="text-2xl font-black text-zinc-900 tracking-tight">{{ ['dashboard' => 'Sizing Dashboard', 'beams' => 'Beams Tracking', 'slips' => 'Sizing Slips', 'balance' => 'Sizing Balance'][$page] }}</h1>
         </div>
         <div class="flex items-center gap-3">
-            <a href="#sizing-slip-entry" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>+ New Sizing Slip Entry</span>
-            </a>
+            @if($sizingMode === 'operator')
+                <span class="rounded-xl bg-zinc-100 px-3 py-2 text-xs font-bold text-zinc-600">Operator entry</span>
+            @else
             <a href="{{ route('bags.index') }}" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 <span>Bags History</span>
             </a>
+            @endif
         </div>
     </div>
 
-<section id="sizing-slip-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white shadow-sm">
+@if($sizingMode === 'operator')
+<nav class="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Sizing entry forms" role="tablist">
+    <span class="mr-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Entry form</span>
+    <button type="button" class="sizing-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activeSizingForm === 'slip' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-sizing-form-tab="slip" role="tab" aria-controls="sizing-slip-entry" aria-selected="{{ $activeSizingForm === 'slip' ? 'true' : 'false' }}">New Sizing Slip Entry <kbd class="ml-1 text-[10px]">Ctrl+1</kbd></button>
+    <button type="button" class="sizing-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activeSizingForm === 'quality' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-sizing-form-tab="quality" role="tab" aria-controls="yarn-quality-entry" aria-selected="{{ $activeSizingForm === 'quality' ? 'true' : 'false' }}">Yarn Quality List <kbd class="ml-1 text-[10px]">Ctrl+2</kbd></button>
+</nav>
+@endif
+
+@if($sizingMode === 'operator')
+<section id="sizing-slip-entry" data-sizing-form-panel="slip" @if($activeSizingForm !== 'slip') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white shadow-sm">
     <div class="mx-auto max-w-5xl">
 
         {{-- Sticky header --}}
@@ -389,9 +410,13 @@
         </form>
     </div>
 </section>
+@endif
 
-@include('yarn-qualities.modal')
+@if($sizingMode === 'operator')
+    @include('yarn-qualities.modal')
+@endif
 
+@if($sizingMode === 'display')
     <!-- KPIs -->
     @if ($page === 'dashboard')
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -564,7 +589,7 @@
                 </div>
             </div>
             @if($page === 'dashboard')
-                <a href="{{ route('sizing.beams') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                <a href="{{ route('sizing.beams', ['mode' => $sizingMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
             @endif
         </div>
 
@@ -820,7 +845,7 @@
                 </div>
             </div>
             @if($page === 'dashboard')
-                <a href="{{ route('sizing.slips') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                <a href="{{ route('sizing.slips', ['mode' => $sizingMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
             @endif
         </div>
 
@@ -979,9 +1004,45 @@
     </div>
 </div>
 
+@endif
+
 @push('scripts')
 <script>
     const sizingBeamAssignUrlTemplate = @json(route('sizing.beam.assign', ['beam' => '__BEAM_ID__']));
+
+    @if($sizingMode === 'operator')
+    function showSizingEntryForm(formName, focusInput = false) {
+        document.querySelectorAll('[data-sizing-form-panel]').forEach((panel) => {
+            panel.hidden = panel.dataset.sizingFormPanel !== formName;
+        });
+
+        document.querySelectorAll('[data-sizing-form-tab]').forEach((tab) => {
+            const isSelected = tab.dataset.sizingFormTab === formName;
+            tab.setAttribute('aria-selected', String(isSelected));
+            tab.classList.toggle('bg-zinc-900', isSelected);
+            tab.classList.toggle('text-white', isSelected);
+            tab.classList.toggle('bg-zinc-100', !isSelected);
+            tab.classList.toggle('text-zinc-700', !isSelected);
+        });
+
+        if (focusInput) {
+            document.querySelector(`[data-sizing-form-panel="${formName}"] input:not([type="hidden"]), [data-sizing-form-panel="${formName}"] select, [data-sizing-form-panel="${formName}"] textarea`)?.focus();
+        }
+    }
+
+    document.querySelectorAll('[data-sizing-form-tab]').forEach((tab) => {
+        tab.addEventListener('click', () => showSizingEntryForm(tab.dataset.sizingFormTab, true));
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2'].includes(event.key)) {
+            return;
+        }
+
+        event.preventDefault();
+        showSizingEntryForm(event.key === '1' ? 'slip' : 'quality', true);
+    });
+    @endif
 
     function openSizingSlipFromBag(button) {
         const bagTransaction = document.getElementById('inpBagTransactionId');

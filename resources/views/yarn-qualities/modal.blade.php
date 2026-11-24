@@ -1,4 +1,4 @@
-<section id="yarn-quality-entry" data-bag-form-panel="quality" @if(($page ?? null) === 'dashboard' && ($mode ?? null) === 'operator' && !($errors->has('name'))) hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+<section id="yarn-quality-entry" data-bag-form-panel="quality" @if(request()->routeIs('sizing.*')) data-sizing-form-panel="quality" @if(($sizingMode ?? null) === 'operator' && ($activeSizingForm ?? 'slip') !== 'quality') hidden @endif @endif @if(($page ?? null) === 'dashboard' && ($mode ?? null) === 'operator' && !($errors->has('name'))) hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
         <div class="flex items-start justify-between border-b border-zinc-100 pb-4">
             <div>

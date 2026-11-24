@@ -492,6 +492,12 @@
             overflow: visible;
         }
 
+        body.operator-console.sizing-display-mode main form,
+        body.operator-console.sizing-display-mode main button,
+        body.operator-console.sizing-display-mode main a[href="#sizing-slip-entry"] {
+            display: none !important;
+        }
+
         body.operator-console.bags-display-mode > .operator-app {
             height: auto;
             min-height: 100vh;
@@ -1066,7 +1072,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1134,6 +1140,14 @@
                     <select id="bags-mode-switch" name="mode" onchange="this.form.submit()">
                         <option value="operator" @selected(($mode ?? 'operator') === 'operator')>Operator</option>
                         <option value="display" @selected(($mode ?? 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @elseif(str_starts_with($currentRoute, 'sizing'))
+                <form method="GET" action="{{ request()->url() }}" class="operator-mode-switch">
+                    <label for="sizing-mode-switch">Sizing view</label>
+                    <select id="sizing-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
                     </select>
                 </form>
             @endif
@@ -1639,6 +1653,18 @@
                 }
                 return;
             }
+
+            @if(request()->routeIs('sizing.*'))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const sizingModeSwitch = document.getElementById('sizing-mode-switch');
+                if (sizingModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    sizingModeSwitch.value = sizingModeSwitch.value === 'display' ? 'operator' : 'display';
+                    sizingModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
 
             @if(request()->routeIs('bags.index'))
             if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
