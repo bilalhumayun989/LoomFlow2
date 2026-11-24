@@ -3,7 +3,7 @@
 @section('title', 'Bags (Yarn) Management & Stock')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)] gap-6 items-start">
+<div class="grid grid-cols-1 {{ $page === 'dashboard' && $mode === 'operator' ? '' : 'lg:grid-cols-[250px_minmax(0,1fr)]' }} gap-6 items-start">
     @if(session('success'))
         <div class="lg:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" role="status">{{ session('success') }}</div>
     @endif
@@ -16,6 +16,7 @@
             <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </div>
     @endif
+    @if($page !== 'dashboard' || $mode === 'display')
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
@@ -113,6 +114,7 @@
 
         </nav>
 
+        @if($page !== 'dashboard' || $mode !== 'display')
         {{-- Quick actions at bottom of sidebar --}}
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
@@ -146,7 +148,9 @@
                 Manage Yarn Qualities
             </a>
         </div>
+        @endif
     </aside>
+    @endif
 
     <div class="min-w-0 space-y-6">
 
@@ -160,6 +164,15 @@
             <h1 class="text-2xl font-black text-zinc-900 tracking-tight">{{ $page === 'dashboard' ? 'Bags Dashboard' : ['purchases' => 'Bags Purchases', 'ledger' => 'Daily Stock Issuance', 'sizing' => 'Sizing Bag Consumption'][$page] }}</h1>
         </div>
 
+        @if($page === 'dashboard')
+        <form method="GET" action="{{ route('bags.index') }}" class="flex items-center gap-2">
+            <label for="bags-mode" class="text-xs font-bold text-zinc-600">View</label>
+            <select id="bags-mode" name="mode" onchange="this.form.submit()" class="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-800">
+                <option value="operator" @selected($mode === 'operator')>Operator</option>
+                <option value="display" @selected($mode === 'display')>LoomFlow Display</option>
+            </select>
+        </form>
+        @else
         <div class="flex flex-wrap items-center gap-2.5">
             <a href="#bag-purchase-entry" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -175,8 +188,10 @@
                 <span>Receive Bags Return</span>
             </a>
         </div>
+        @endif
     </div>
 
+@if($page !== 'dashboard' || $mode === 'operator')
 <!-- On-page purchase entry -->
 <section id="bag-purchase-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
@@ -420,8 +435,10 @@
         </form>
     </div>
 </section>
+@endif
 
 @push('scripts')
+@if($page !== 'dashboard' || $mode === 'operator')
 <script>
     let purchaseSplitManuallyAdjusted = false;
 
@@ -498,9 +515,10 @@
 </script>
 @endpush
 @include('yarn-qualities.modal')
+@endif
 
     <!-- KPI Metric Cards -->
-    @if ($page === 'dashboard')
+    @if ($page === 'dashboard' && $mode === 'display')
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div class="glass-card rounded-2xl p-4 border border-zinc-200">
             <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 flex items-center justify-between">
@@ -572,7 +590,7 @@
     {{-- ============================================================
          SECTION 1 — Bag Purchases
     ============================================================ --}}
-    @if (in_array($page, ['dashboard', 'purchases'], true))
+    @if (in_array($page, ['dashboard', 'purchases'], true) && ($page !== 'dashboard' || $mode === 'display'))
     <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
 
         {{-- Card header --}}
@@ -647,7 +665,7 @@
     {{-- ============================================================
          SECTION 2 — Daily Stock Issuance Ledger
     ============================================================ --}}
-    @if (in_array($page, ['dashboard', 'ledger'], true))
+    @if (in_array($page, ['dashboard', 'ledger'], true) && ($page !== 'dashboard' || $mode === 'display'))
     <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
 
         <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50">
@@ -736,7 +754,7 @@
     {{-- ============================================================
          SECTION 3 — Sizing Bag Consumption & Returns
     ============================================================ --}}
-    @if (in_array($page, ['dashboard', 'sizing'], true))
+    @if (in_array($page, ['dashboard', 'sizing'], true) && ($page !== 'dashboard' || $mode === 'display'))
     <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
 
         <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50">

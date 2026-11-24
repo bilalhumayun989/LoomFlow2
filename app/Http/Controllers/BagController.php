@@ -30,8 +30,9 @@ class BagController extends Controller
         $transactions = BagTransaction::latest('transaction_date')->latest('id')->limit(5)->get();
         $sizingSlips = SizingSlip::latest('slip_date')->latest('id')->limit(5)->get();
         $page = 'dashboard';
+        $mode = request()->query('mode') === 'display' ? 'display' : 'operator';
 
-        return $this->renderPage($page, $purchases, $transactions, $sizingSlips);
+        return $this->renderPage($page, $purchases, $transactions, $sizingSlips, $mode);
     }
 
     public function purchases(): View
@@ -78,7 +79,8 @@ class BagController extends Controller
         string $page,
         Collection|LengthAwarePaginator $purchases,
         Collection|LengthAwarePaginator $transactions,
-        Collection|LengthAwarePaginator $sizingSlips
+        Collection|LengthAwarePaginator $sizingSlips,
+        string $mode = 'operator'
     ): View {
 
         $totalPurchased = (float) BagPurchase::sum('total_bags');
@@ -125,6 +127,7 @@ class BagController extends Controller
 
         return view('bags.index', compact(
             'page',
+            'mode',
             'purchases',
             'transactions',
             'sizingSlips',
