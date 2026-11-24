@@ -505,6 +505,13 @@
             display: none !important;
         }
 
+        body.operator-console.fabric-display-mode main form,
+        body.operator-console.fabric-display-mode main button,
+        body.operator-console.fabric-display-mode main a[href="#fabric-stock-entry"],
+        body.operator-console.fabric-display-mode main a[href="#fabric-loom-quality-entry"] {
+            display: none !important;
+        }
+
         body.operator-console.bags-display-mode > .operator-app {
             height: auto;
             min-height: 100vh;
@@ -1079,7 +1086,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1161,6 +1168,14 @@
                 <form method="GET" action="{{ request()->url() }}" class="operator-mode-switch">
                     <label for="parts-mode-switch">Parts view</label>
                     <select id="parts-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @elseif(str_starts_with($currentRoute, 'fabric'))
+                <form method="GET" action="{{ request()->url() }}" class="operator-mode-switch">
+                    <label for="fabric-mode-switch">Fabric view</label>
+                    <select id="fabric-mode-switch" name="mode" onchange="this.form.submit()">
                         <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
                         <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
                     </select>
@@ -1688,6 +1703,18 @@
                     event.preventDefault();
                     partsModeSwitch.value = partsModeSwitch.value === 'display' ? 'operator' : 'display';
                     partsModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
+
+            @if(request()->routeIs('fabric.*'))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const fabricModeSwitch = document.getElementById('fabric-mode-switch');
+                if (fabricModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    fabricModeSwitch.value = fabricModeSwitch.value === 'display' ? 'operator' : 'display';
+                    fabricModeSwitch.form?.requestSubmit();
                 }
                 return;
             }

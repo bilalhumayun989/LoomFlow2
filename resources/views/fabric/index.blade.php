@@ -2,16 +2,22 @@
 
 @section('title', 'Fabric Stock Management')
 
+@php
+    $fabricMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $activeFabricForm = in_array(old('operation_form'), ['loom_quality', 'loom_quality_new'], true) ? 'loom-quality' : 'stock';
+@endphp
+
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
+<div class="{{ $fabricMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
+    @if($fabricMode === 'display')
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
-        <a href="{{ route('fabric.index') }}"
+        <a href="{{ route('fabric.index', ['mode' => $fabricMode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $page === 'dashboard'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -35,7 +41,7 @@
         <nav class="space-y-1.5" aria-label="Fabric sections">
 
             {{-- Fabric Inventory --}}
-            <a href="{{ route('fabric.inventory') }}"
+            <a href="{{ route('fabric.inventory', ['mode' => $fabricMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'inventory'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -58,7 +64,7 @@
             </a>
 
             {{-- Active Contracts --}}
-            <a href="{{ route('fabric.contracts') }}"
+            <a href="{{ route('fabric.contracts', ['mode' => $fabricMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'contracts'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -128,6 +134,7 @@
             </a>
         </div>
     </aside>
+    @endif
 
     {{-- ============================================================
          MAIN CONTENT
@@ -149,6 +156,7 @@
                 </p>
             </div>
             <div class="flex items-center gap-3 shrink-0">
+                @if($fabricMode === 'display')
                 <a href="{{ route('sales.index') }}"
                    class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -164,11 +172,21 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-2 2a4 4 0 01-5.656-5.656l1-1m3.656-2.172a4 4 0 010-5.656l2-2a4 4 0 015.656 5.656l-1 1M8 12h8"/></svg>
                     Link Loom Quality
                 </a>
+                @else
+                <span class="rounded-xl bg-zinc-100 px-3 py-2 text-xs font-bold text-zinc-600">Operator entry</span>
+                @endif
             </div>
         </div>
 
+@if($fabricMode === 'operator')
+<nav class="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Fabric entry forms" role="tablist">
+    <span class="mr-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Entry form</span>
+    <button type="button" class="fabric-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activeFabricForm === 'stock' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-fabric-form-tab="stock" role="tab" aria-controls="fabric-stock-entry" aria-selected="{{ $activeFabricForm === 'stock' ? 'true' : 'false' }}">Fabric Stock Entry <kbd class="ml-1 text-[10px]">Ctrl+1</kbd></button>
+    <button type="button" class="fabric-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activeFabricForm === 'loom-quality' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-fabric-form-tab="loom-quality" role="tab" aria-controls="fabric-loom-quality-entry" aria-selected="{{ $activeFabricForm === 'loom-quality' ? 'true' : 'false' }}">Link Fabric Quality to Loom <kbd class="ml-1 text-[10px]">Ctrl+2</kbd></button>
+</nav>
+
                 {{-- Stock entry: existing quality auto-fills its current balance; new quality starts at zero. --}}
-        <section id="fabric-stock-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+        <section id="fabric-stock-entry" data-fabric-form-panel="stock" @if($activeFabricForm !== 'stock') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
             <div>
@@ -196,7 +214,7 @@
     </div>
         </section>
 
-        <section id="fabric-loom-quality-entry" class="scroll-mt-28 rounded-3xl border border-blue-200 bg-white p-5 shadow-sm sm:p-6">
+        <section id="fabric-loom-quality-entry" data-fabric-form-panel="loom-quality" @if($activeFabricForm !== 'loom-quality') hidden @endif class="scroll-mt-28 rounded-3xl border border-blue-200 bg-white p-5 shadow-sm sm:p-6">
             <div class="mx-auto max-w-5xl">
                 <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
                 <div><h3 class="text-base font-extrabold text-zinc-900">Link Fabric Quality to Loom</h3><p class="mt-1 text-xs text-zinc-500">A loom can use only the fabric quality on its active work order. To change quality, reassign the loom to an order for that quality.</p></div>
@@ -250,7 +268,9 @@
                 </form>
             </div>
         </section>
+@endif
 
+@if($fabricMode === 'display')
         {{-- KPI Cards (dashboard only) --}}
         @if($page === 'dashboard')
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -330,7 +350,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     @if($page === 'dashboard')
-                        <a href="{{ route('fabric.inventory') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                        <a href="{{ route('fabric.inventory', ['mode' => $fabricMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
                     @else
                         <span class="text-xs text-zinc-400 font-mono">{{ $fabricStocks->total() }} qualities</span>
                     @endif
@@ -382,7 +402,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     @if($page === 'dashboard')
-                        <a href="{{ route('fabric.contracts') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                        <a href="{{ route('fabric.contracts', ['mode' => $fabricMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
                     @endif
                     <a href="{{ route('sales.index') }}"
                        class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-bold text-[11px] transition-colors whitespace-nowrap">
@@ -468,11 +488,45 @@
         </div>
         @endif
 
+@endif
     </div>{{-- end main --}}
 </div>{{-- end grid --}}
 
 
 <script>
+@if($fabricMode === 'operator')
+function showFabricEntryForm(formName, focusInput = false) {
+    document.querySelectorAll('[data-fabric-form-panel]').forEach((panel) => {
+        panel.hidden = panel.dataset.fabricFormPanel !== formName;
+    });
+
+    document.querySelectorAll('[data-fabric-form-tab]').forEach((tab) => {
+        const isSelected = tab.dataset.fabricFormTab === formName;
+        tab.setAttribute('aria-selected', String(isSelected));
+        tab.classList.toggle('bg-zinc-900', isSelected);
+        tab.classList.toggle('text-white', isSelected);
+        tab.classList.toggle('bg-zinc-100', !isSelected);
+        tab.classList.toggle('text-zinc-700', !isSelected);
+    });
+
+    if (focusInput) {
+        document.querySelector(`[data-fabric-form-panel="${formName}"] input:not([type="hidden"]), [data-fabric-form-panel="${formName}"] select, [data-fabric-form-panel="${formName}"] textarea`)?.focus();
+    }
+}
+
+document.querySelectorAll('[data-fabric-form-tab]').forEach((tab) => {
+    tab.addEventListener('click', () => showFabricEntryForm(tab.dataset.fabricFormTab, true));
+});
+
+document.addEventListener('keydown', (event) => {
+    if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2'].includes(event.key)) {
+        return;
+    }
+
+    event.preventDefault();
+    showFabricEntryForm(event.key === '1' ? 'stock' : 'loom-quality', true);
+});
+
 document.addEventListener('DOMContentLoaded',()=>{toggleFabricQualityMode();if(document.getElementById('qualityMode').value==='existing'){fillExistingFabricStock()}calculateFabricWeightPerMeter();const operationForm=@json(old('operation_form'));if(operationForm==='fabric_stock'){document.getElementById('fabric-stock-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}else if(operationForm==='loom_quality'||operationForm==='loom_quality_new'){document.getElementById('fabric-loom-quality-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}});
 function toggleFabricQualityMode(){const isNew=document.getElementById('qualityMode').value==='new';document.getElementById('existingQualityFields').classList.toggle('hidden',isNew);document.getElementById('newQualityFields').classList.toggle('hidden',!isNew);document.getElementById('existingFabricQuality').required=!isNew;document.getElementById('newQualityName').required=isNew;['fabricRead','fabricPick','fabricWarpCount','fabricWeftCount','fabricWidthInches'].forEach((id)=>{document.getElementById(id).required=isNew});document.getElementById('previousStockMeters').value='0';if(!isNew){fillExistingFabricStock()}}
 function fillExistingFabricStock(){const option=document.getElementById('existingFabricQuality').selectedOptions[0];document.getElementById('previousStockMeters').value=option?.dataset.stock||'0';document.getElementById('stockArea').value=option?.dataset.area||''}
@@ -493,6 +547,6 @@ function toggleLoomLinkQualityModeWithoutSync(){const mode=document.getElementBy
 function submitLoomFabricQuality(){const beamId=document.getElementById('linkSizingBeamId').value;const mode=document.getElementById('linkQualityMode').value;if(!beamId){return false}if(mode==='new'){document.querySelector('#linkLoomQualityForm [name="operation_form"]').value='loom_quality_new';return true}return mode==='unlink'||Boolean(document.getElementById('linkFabricStockId').value)}
 const linkBeamSelect=document.getElementById('linkSizingBeamId');
 if(linkBeamSelect){linkBeamSelect.addEventListener('change',syncLoomQualityOptions);document.getElementById('linkQualityMode').addEventListener('change',syncLoomQualityOptions);if(@json(old('operation_form'))!=='loom_quality'&&@json(old('operation_form'))!=='loom_quality_new'){syncLoomQualityOptions()}}
-
+@endif
 </script>
 @endsection
