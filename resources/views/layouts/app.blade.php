@@ -1640,6 +1640,18 @@
                 return;
             }
 
+            @if(request()->routeIs('bags.index'))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const bagsModeSwitch = document.getElementById('bags-mode-switch');
+                if (bagsModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    bagsModeSwitch.value = bagsModeSwitch.value === 'display' ? 'operator' : 'display';
+                    bagsModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
+
             const pressedSidebarShortcut = event.code.replace(/^(Digit|Numpad|Key)/, '').toLowerCase()
                 || (event.key === ')' ? '0' : event.key.toLowerCase());
             const isSidebarShortcut = event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey;
