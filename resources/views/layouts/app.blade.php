@@ -255,6 +255,8 @@
             color: #24333b !important;
             font-family: 'Segoe UI', Tahoma, sans-serif !important;
             font-size: 13px;
+            height: 100%;
+            overflow: hidden;
         }
 
         body.operator-console #appSidebar {
@@ -476,9 +478,13 @@
         }
 
         body.operator-console > .operator-app {
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
+            min-height: 0;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            padding-top: 74px;
         }
 
         body.operator-console > .operator-app > .operator-titlebar,
@@ -488,8 +494,12 @@
         }
 
         .operator-titlebar {
+            position: fixed !important;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 36 !important;
+            flex: 0 0 auto;
             min-height: 43px;
             display: flex;
             align-items: center;
@@ -549,8 +559,12 @@
         }
 
         .operator-menubar {
+            position: fixed !important;
             top: 43px;
+            left: 0;
+            right: 0;
             z-index: 35 !important;
+            flex: 0 0 auto;
             min-height: 31px;
             display: flex;
             align-items: center;
@@ -616,6 +630,7 @@
 
         .operator-bottom-actions {
             display: flex;
+            flex: 0 0 auto;
             flex-wrap: wrap;
             align-items: center;
             gap: 7px;
@@ -755,6 +770,7 @@
         .operator-workspace {
             min-height: 0;
             flex: 1 1 auto;
+            overflow: hidden;
         }
 
         body.operator-console #appSidebar {
@@ -766,7 +782,9 @@
         }
 
         body.operator-console > .operator-app > .operator-workspace > div.flex-1 {
-            min-height: calc(100vh - 74px);
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
         }
 
         @media (max-width: 1023px) {
@@ -1333,7 +1351,7 @@
                 <button class="operator-tool-link" type="button" onclick="openOperatorKeyboardGuide()">Keyboard Guide · Shift ×3</button>
             </nav>
 
-            <main class="flex-1 px-4 sm:px-8 py-6">
+            <main class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-8">
                 @yield('content')
             </main>
 
