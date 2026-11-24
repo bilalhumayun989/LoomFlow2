@@ -2,16 +2,22 @@
 
 @section('title', 'Loom Parts Store & Issuance')
 
+@php
+    $partsMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $activePartForm = old('operation_form') === 'issue_part' ? 'issue' : 'add';
+@endphp
+
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
+<div class="{{ $partsMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
+    @if($partsMode === 'display')
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
-        <a href="{{ route('parts.index') }}"
+        <a href="{{ route('parts.index', ['mode' => $partsMode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $page === 'dashboard'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -35,7 +41,7 @@
         <nav class="space-y-1.5" aria-label="Parts sections">
 
             {{-- Parts Inventory --}}
-            <a href="{{ route('parts.inventory') }}"
+            <a href="{{ route('parts.inventory', ['mode' => $partsMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'inventory'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -58,7 +64,7 @@
             </a>
 
             {{-- Issuance Log --}}
-            <a href="{{ route('parts.issuances') }}"
+            <a href="{{ route('parts.issuances', ['mode' => $partsMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'issuances'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -101,6 +107,7 @@
         @endif
 
         {{-- Quick Actions --}}
+        @if($partsMode === 'operator')
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
             <a href="#part-issue-entry"
@@ -125,7 +132,9 @@
                 Production Module
             </a>
         </div>
+        @endif
     </aside>
+    @endif
 
     {{-- ============================================================
          MAIN CONTENT
@@ -147,6 +156,9 @@
                 </p>
             </div>
             <div class="flex items-center gap-3 shrink-0">
+                @if($partsMode === 'operator')
+                <span class="rounded-xl bg-zinc-100 px-3 py-2 text-xs font-bold text-zinc-600">Operator entry</span>
+                @else
                 <a href="#part-issue-entry"
                         class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -157,13 +169,23 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     + Add New Part
                 </a>
+                @endif
             </div>
         </div>
 
+@if($partsMode === 'operator')
+<nav class="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Parts entry forms" role="tablist">
+    <span class="mr-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Entry form</span>
+    <button type="button" class="parts-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activePartForm === 'add' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-parts-form-tab="add" role="tab" aria-controls="part-add-entry" aria-selected="{{ $activePartForm === 'add' ? 'true' : 'false' }}">Add New Part <kbd class="ml-1 text-[10px]">Ctrl+1</kbd></button>
+    <button type="button" class="parts-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activePartForm === 'issue' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-parts-form-tab="issue" role="tab" aria-controls="part-issue-entry" aria-selected="{{ $activePartForm === 'issue' ? 'true' : 'false' }}">Issue Part to Loom <kbd class="ml-1 text-[10px]">Ctrl+2</kbd></button>
+</nav>
+@endif
+
+@if($partsMode === 'operator')
 {{-- ============================================================
      ADD PART TO STORE
 ============================================================ --}}
-<section id="part-add-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+<section id="part-add-entry" data-parts-form-panel="add" @if($activePartForm !== 'add') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
             <div>
@@ -244,7 +266,7 @@
 {{-- ============================================================
      ISSUE PART TO LOOM
 ============================================================ --}}
-<section id="part-issue-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+<section id="part-issue-entry" data-parts-form-panel="issue" @if($activePartForm !== 'issue') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
             <div>
@@ -319,7 +341,9 @@
         </form>
     </div>
 </section>
+@endif
 
+@if($partsMode === 'display')
         {{-- KPI Cards (dashboard only) --}}
         @if($page === 'dashboard')
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -388,7 +412,7 @@
                     </div>
                 </div>
                 @if($page === 'dashboard')
-                    <a href="{{ route('parts.inventory') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                    <a href="{{ route('parts.inventory', ['mode' => $partsMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
                 @endif
             </div>
 
@@ -484,7 +508,7 @@
                     </div>
                 </div>
                 @if($page === 'dashboard')
-                    <a href="{{ route('parts.issuances') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                    <a href="{{ route('parts.issuances', ['mode' => $partsMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
                 @endif
             </div>
 
@@ -538,6 +562,7 @@
         </div>
         @endif
 
+@endif
     </div>{{-- end main content --}}
 </div>{{-- end grid --}}
 
@@ -545,6 +570,40 @@
 @push('scripts')
 <script>
     let selectedPartPrice = 0;
+
+    @if($partsMode === 'operator')
+    function showPartsEntryForm(formName, focusInput = false) {
+        document.querySelectorAll('[data-parts-form-panel]').forEach((panel) => {
+            panel.hidden = panel.dataset.partsFormPanel !== formName;
+        });
+
+        document.querySelectorAll('[data-parts-form-tab]').forEach((tab) => {
+            const isSelected = tab.dataset.partsFormTab === formName;
+            tab.setAttribute('aria-selected', String(isSelected));
+            tab.classList.toggle('bg-zinc-900', isSelected);
+            tab.classList.toggle('text-white', isSelected);
+            tab.classList.toggle('bg-zinc-100', !isSelected);
+            tab.classList.toggle('text-zinc-700', !isSelected);
+        });
+
+        if (focusInput) {
+            document.querySelector(`[data-parts-form-panel="${formName}"] input:not([type="hidden"]), [data-parts-form-panel="${formName}"] select, [data-parts-form-panel="${formName}"] textarea`)?.focus();
+        }
+    }
+
+    document.querySelectorAll('[data-parts-form-tab]').forEach((tab) => {
+        tab.addEventListener('click', () => showPartsEntryForm(tab.dataset.partsFormTab, true));
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2'].includes(event.key)) {
+            return;
+        }
+
+        event.preventDefault();
+        showPartsEntryForm(event.key === '1' ? 'add' : 'issue', true);
+    });
+    @endif
 
     document.addEventListener('DOMContentLoaded', () => {
         handlePartSelectChange();
