@@ -578,6 +578,30 @@
             color: #153e43;
         }
 
+        .operator-mode-switch {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 7px;
+            margin-left: auto;
+            padding-left: 10px;
+            color: #526168;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .operator-mode-switch select {
+            min-height: 28px;
+            max-width: 180px;
+            border: 1px solid #9daaaf;
+            border-radius: 3px;
+            background: #fff;
+            padding: 3px 8px;
+            color: #153e43;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
         .operator-toolbar-menu {
             display: none;
             min-width: 32px;
@@ -1051,6 +1075,15 @@
             <a href="{{ route('sales.index') }}" @if(str_starts_with($currentRoute, 'sales')) aria-current="page" @endif>Sales</a>
             <a href="{{ route('invoices.index') }}" @if(str_starts_with($currentRoute, 'invoices') || str_starts_with($currentRoute, 'accounts') || str_starts_with($currentRoute, 'ledgers') || str_starts_with($currentRoute, 'expenses')) aria-current="page" @endif>Accounts</a>
             <a href="{{ route('factory.reports') }}" @if(str_starts_with($currentRoute, 'factory.reports')) aria-current="page" @endif>Reports</a>
+            @if($currentRoute === 'bags.index')
+                <form method="GET" action="{{ route('bags.index') }}" class="operator-mode-switch">
+                    <label for="bags-mode-switch">Bags view</label>
+                    <select id="bags-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(($mode ?? 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(($mode ?? 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @endif
         </nav>
 
         <!-- BACKDROP FOR MOBILE SIDEBAR -->
@@ -1236,6 +1269,8 @@
                 </div>
             </div>
         </aside>
+
+        @yield('workspace_sidebar')
 
         <!-- MAIN VIEWPORT CONTAINER (Scrolls independently) -->
         <div class="flex-1 flex flex-col min-w-0 min-h-screen">

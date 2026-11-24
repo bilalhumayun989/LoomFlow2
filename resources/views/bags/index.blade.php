@@ -2,22 +2,9 @@
 
 @section('title', 'Bags (Yarn) Management & Stock')
 
-@section('content')
-<div class="grid grid-cols-1 {{ $page === 'dashboard' && $mode === 'operator' ? '' : 'lg:grid-cols-[250px_minmax(0,1fr)]' }} gap-6 items-start">
-    @if(session('success'))
-        <div class="lg:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" role="status">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="lg:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900" role="alert">{{ session('error') }}</div>
-    @endif
-    @if($errors->any())
-        <div class="lg:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">
-            <p class="font-bold">Please correct these details:</p>
-            <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-        </div>
-    @endif
+@section('workspace_sidebar')
     @if($page !== 'dashboard' || $mode === 'display')
-    <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+    <aside class="hidden w-[300px] shrink-0 self-start rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24 lg:my-6 lg:ml-6 lg:mr-4 lg:block">
 
         {{-- Dashboard main link --}}
         <a href="{{ route('bags.index') }}"
@@ -114,46 +101,28 @@
 
         </nav>
 
-        @if($page !== 'dashboard' || $mode !== 'display')
-        {{-- Quick actions at bottom of sidebar --}}
-        <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
-            <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
-            <a href="#bag-purchase-entry"
-                    class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
-                <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Buy Bags
-            </a>
-            <a href="{{ route('bags.split') }}" class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
-                Split Existing Bags
-            </a>
-            <a href="#bag-issue-entry"
-                    class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
-                <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-                Issue Bags
-            </a>
-            <a href="#bag-return-entry"
-                    class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
-                <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
-                </svg>
-                Receive Return
-            </a>
-            <a href="#yarn-quality-entry"
-                    class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
-                <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Manage Yarn Qualities
-            </a>
-        </div>
-        @endif
     </aside>
     @endif
 
+@endsection
+
+@section('content')
+<div class="space-y-6">
+    @if(session('success'))
+        <div class="lg:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" role="status">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="lg:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900" role="alert">{{ session('error') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="lg:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">
+            <p class="font-bold">Please correct these details:</p>
+            <ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
     <div class="min-w-0 space-y-6">
 
+    @if($page !== 'dashboard')
     <!-- Header & Action Buttons -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-200">
         <div>
@@ -164,15 +133,6 @@
             <h1 class="text-2xl font-black text-zinc-900 tracking-tight">{{ $page === 'dashboard' ? 'Bags Dashboard' : ['purchases' => 'Bags Purchases', 'ledger' => 'Daily Stock Issuance', 'sizing' => 'Sizing Bag Consumption'][$page] }}</h1>
         </div>
 
-        @if($page === 'dashboard')
-        <form method="GET" action="{{ route('bags.index') }}" class="flex items-center gap-2">
-            <label for="bags-mode" class="text-xs font-bold text-zinc-600">View</label>
-            <select id="bags-mode" name="mode" onchange="this.form.submit()" class="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-800">
-                <option value="operator" @selected($mode === 'operator')>Operator</option>
-                <option value="display" @selected($mode === 'display')>LoomFlow Display</option>
-            </select>
-        </form>
-        @else
         <div class="flex flex-wrap items-center gap-2.5">
             <a href="#bag-purchase-entry" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -188,8 +148,8 @@
                 <span>Receive Bags Return</span>
             </a>
         </div>
-        @endif
     </div>
+    @endif
 
 @if($page !== 'dashboard' || $mode === 'operator')
 <!-- On-page purchase entry -->
