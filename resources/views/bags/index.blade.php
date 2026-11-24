@@ -152,8 +152,23 @@
     @endif
 
 @if($page !== 'dashboard' || $mode === 'operator')
+@php
+    $activeBagForm = match (old('purchase_form') === 'bag_purchase' ? 'purchase' : old('operation_form')) {
+        'bag_issue' => 'issue',
+        'bag_return' => 'return',
+        default => 'purchase',
+    };
+@endphp
+@if($page === 'dashboard' && $mode === 'operator')
+<nav class="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Bag entry forms" role="tablist">
+    <span class="mr-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Entry form</span>
+    <button type="button" class="bag-form-tab rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white" data-bag-form-tab="purchase" role="tab" aria-controls="bag-purchase-entry" aria-selected="true">Purchase <kbd class="ml-1 text-[10px] text-zinc-300">Ctrl+1</kbd></button>
+    <button type="button" class="bag-form-tab rounded-xl bg-zinc-100 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200" data-bag-form-tab="issue" role="tab" aria-controls="bag-issue-entry" aria-selected="false">Issue stock daily <kbd class="ml-1 text-[10px]">Ctrl+2</kbd></button>
+    <button type="button" class="bag-form-tab rounded-xl bg-zinc-100 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200" data-bag-form-tab="return" role="tab" aria-controls="bag-return-entry" aria-selected="false">Receive return <kbd class="ml-1 text-[10px]">Ctrl+3</kbd></button>
+</nav>
+@endif
 <!-- On-page purchase entry -->
-<section id="bag-purchase-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+<section id="bag-purchase-entry" data-bag-form-panel="purchase" @if($page === 'dashboard' && $mode === 'operator' && $activeBagForm !== 'purchase') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
             <div>
@@ -264,7 +279,7 @@
 </section>
 
 <!-- On-page stock issue entry -->
-<section id="bag-issue-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+<section id="bag-issue-entry" data-bag-form-panel="issue" @if($page === 'dashboard' && $mode === 'operator' && $activeBagForm !== 'issue') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
             <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
@@ -342,7 +357,7 @@
 </section>
 
 <!-- On-page return entry -->
-<section id="bag-return-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+<section id="bag-return-entry" data-bag-form-panel="return" @if($page === 'dashboard' && $mode === 'operator' && $activeBagForm !== 'return') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
     <div class="mx-auto max-w-5xl">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
             <h3 class="text-lg font-bold text-zinc-900 flex items-center gap-2">
@@ -401,6 +416,46 @@
 @if($page !== 'dashboard' || $mode === 'operator')
 <script>
     let purchaseSplitManuallyAdjusted = false;
+
+    @if($page === 'dashboard' && $mode === 'operator')
+    function showBagEntryForm(formName, focusInput = false) {
+        document.querySelectorAll('[data-bag-form-panel]').forEach((panel) => {
+            panel.hidden = panel.dataset.bagFormPanel !== formName;
+        });
+
+        document.querySelectorAll('[data-bag-form-tab]').forEach((tab) => {
+            const isSelected = tab.dataset.bagFormTab === formName;
+            tab.setAttribute('aria-selected', String(isSelected));
+            tab.classList.toggle('bg-zinc-900', isSelected);
+            tab.classList.toggle('text-white', isSelected);
+            tab.classList.toggle('bg-zinc-100', !isSelected);
+            tab.classList.toggle('text-zinc-700', !isSelected);
+        });
+
+        if (focusInput) {
+            document.querySelector(`[data-bag-form-panel="${formName}"] input:not([type="hidden"]), [data-bag-form-panel="${formName}"] select, [data-bag-form-panel="${formName}"] textarea`)?.focus();
+        }
+    }
+
+    document.querySelectorAll('[data-bag-form-tab]').forEach((tab) => {
+        tab.addEventListener('click', () => showBagEntryForm(tab.dataset.bagFormTab, true));
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (!event.ctrlKey || event.altKey || event.metaKey) {
+            return;
+        }
+
+        const formByShortcut = { '1': 'purchase', '2': 'issue', '3': 'return' };
+        const formName = formByShortcut[event.key];
+        if (!formName) {
+            return;
+        }
+
+        event.preventDefault();
+        showBagEntryForm(formName, true);
+    });
+    @endif
 
     function updateSizingDestination() {
         const quantity = parseFloat(document.getElementById('inpBagsToSizing').value) || 0;
