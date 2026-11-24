@@ -807,10 +807,19 @@
             align-self: flex-start;
         }
 
-        body.operator-console > .operator-app > .operator-workspace > div.flex-1 {
-            height: 100%;
+        body.operator-console:not(.bags-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.operator-console:not(.bags-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
+            flex: 1 1 0%;
             min-height: 0;
-            overflow: hidden;
+            overflow-y: auto;
+        }
+
+        body.operator-console:not(.bags-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
+            flex: 0 0 auto;
         }
 
         @media (max-width: 1023px) {
@@ -1382,7 +1391,7 @@
             </main>
 
             <!-- SUBTLE BOTTOM NOTE -->
-            <footer class="px-4 sm:px-8 py-6 text-center text-xs text-stone-400 border-t border-[#e2e8e0]">
+            <footer class="mt-auto shrink-0 px-4 sm:px-8 py-6 text-center text-xs text-stone-400 border-t border-[#e2e8e0]">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
                     <div>
                         <strong class="text-stone-700">LoomFlow</strong> &copy; {{ date('Y') }} &middot; Grey Fabric Weaving Mill Operations
