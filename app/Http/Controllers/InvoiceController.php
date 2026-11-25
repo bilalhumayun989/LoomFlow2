@@ -26,6 +26,10 @@ class InvoiceController extends Controller
 {
     public function index(): View
     {
+        if (request()->query('mode') !== 'display') {
+            return $this->renderPage('invoices', $this->invoiceQuery()->latest('invoice_date')->latest('id')->paginate(15), collect(), collect(), collect());
+        }
+
         return $this->renderPage('dashboard', $this->invoiceQuery()->latest('invoice_date')->latest('id')->limit(5)->get(), collect(), collect(), collect());
     }
 
