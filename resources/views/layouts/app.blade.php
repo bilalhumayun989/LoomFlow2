@@ -537,7 +537,8 @@
         }
 
         body.operator-console.finance-display-mode,
-        body.operator-console.ledger-report-page {
+        body.operator-console.ledger-report-page,
+        body.operator-console.factory-orders-display-mode {
             height: auto;
             min-height: 100%;
             overflow: auto;
@@ -565,6 +566,19 @@
         }
 
         body.operator-console.ledger-report-page > .operator-app > .operator-workspace > div.flex-1 > main {
+            flex: none;
+            overflow: visible;
+        }
+
+        body.operator-console.factory-orders-display-mode > .operator-app,
+        body.operator-console.factory-orders-display-mode > .operator-app > .operator-workspace,
+        body.operator-console.factory-orders-display-mode > .operator-app > .operator-workspace > div.flex-1 {
+            height: auto;
+            min-height: 100vh;
+            overflow: visible;
+        }
+
+        body.operator-console.factory-orders-display-mode > .operator-app > .operator-workspace > div.flex-1 > main {
             flex: none;
             overflow: visible;
         }
@@ -891,18 +905,18 @@
             align-self: flex-start;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page) > .operator-app > .operator-workspace > div.flex-1 {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
             display: flex;
             flex-direction: column;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page) > .operator-app > .operator-workspace > div.flex-1 > main {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
             flex: 1 1 0%;
             min-height: 0;
             overflow-y: auto;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
             flex: 0 0 auto;
         }
 
@@ -1150,7 +1164,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1212,7 +1226,15 @@
             <a href="{{ route('sales.index') }}" @if(str_starts_with($currentRoute, 'sales')) aria-current="page" @endif>Sales</a>
             <a href="{{ route('invoices.index') }}" @if(str_starts_with($currentRoute, 'invoices') || str_starts_with($currentRoute, 'accounts') || str_starts_with($currentRoute, 'ledgers') || str_starts_with($currentRoute, 'expenses')) aria-current="page" @endif>Accounts</a>
             <a href="{{ route('factory.reports') }}" @if(str_starts_with($currentRoute, 'factory.reports')) aria-current="page" @endif>Reports</a>
-            @if($currentRoute === 'bags.index')
+            @if($currentRoute === 'factory.orders')
+                <form method="GET" action="{{ route('factory.orders') }}" class="operator-mode-switch">
+                    <label for="factory-orders-mode-switch">Factory Orders view</label>
+                    <select id="factory-orders-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @elseif($currentRoute === 'bags.index')
                 <form method="GET" action="{{ route('bags.index') }}" class="operator-mode-switch">
                     <label for="bags-mode-switch">Bags view</label>
                     <select id="bags-mode-switch" name="mode" onchange="this.form.submit()">
@@ -1819,6 +1841,18 @@
                     event.preventDefault();
                     financeModeSwitch.value = financeModeSwitch.value === 'display' ? 'operator' : 'display';
                     financeModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
+
+            @if(request()->routeIs('factory.orders'))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const factoryOrdersModeSwitch = document.getElementById('factory-orders-mode-switch');
+                if (factoryOrdersModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    factoryOrdersModeSwitch.value = factoryOrdersModeSwitch.value === 'display' ? 'operator' : 'display';
+                    factoryOrdersModeSwitch.form?.requestSubmit();
                 }
                 return;
             }
