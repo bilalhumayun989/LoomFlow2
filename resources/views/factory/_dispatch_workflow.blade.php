@@ -1,9 +1,9 @@
 <style>
-    #parchi-workflow section#kachi,
-    #parchi-workflow section#pakki,
-    #parchi-workflow section#returns,
-    #parchi-workflow section#disposition,
-    #parchi-workflow section#own-sale { display: block; }
+    #parchi-workflow section[data-sales-form-panel]:not([hidden]) { display: block; }
+    #parchi-workflow section[hidden] { display: none !important; }
+    #parchi-workflow > .grid[hidden] { display: none !important; }
+    #parchi-workflow > header,
+    #parchi-workflow > section:not([data-sales-form-panel]) { display: none; }
 </style>
 <div class="max-w-7xl mx-auto space-y-6 pb-12" id="parchi-workflow">
     <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -17,7 +17,7 @@
     <div class="grid lg:grid-cols-2 gap-6">
         
         <!-- 1. NEW KACHI PARCHI -->
-        <section class="card p-6 space-y-4 shadow-2xs" id="kachi">
+        <section class="card p-6 space-y-4 shadow-2xs" id="kachi" data-sales-form-panel="kachi" @if(($activeSalesForm ?? null) !== 'kachi') hidden @endif>
             <div class="pb-3 border-b border-[#e2e8e0]">
                 <h2 class="font-extrabold text-base text-[#133e2b]">1. New Kachi Parchi (Job Work)</h2>
                 <p class="text-xs text-stone-500">Dispatch checked Thaans to the buyer/customer.</p>
@@ -86,7 +86,7 @@
         </section>
 
         <!-- 2. RECEIVE PAKKI PARCHI & GENERATE BILL -->
-        <section class="card p-6 space-y-4 shadow-2xs" id="pakki">
+        <section class="card p-6 space-y-4 shadow-2xs" id="pakki" data-sales-form-panel="pakki" @if(($activeSalesForm ?? null) !== 'pakki') hidden @endif>
             <div class="pb-3 border-b border-[#e2e8e0]">
                 <h2 class="font-extrabold text-base text-[#133e2b]">2. Receive Pakki Parchi &amp; Generate Bill</h2>
                 <p class="text-xs text-stone-500">One Pakki per Kachi. Invoice is created automatically for accepted metres &times; picks &times; per-pick rate.</p>
@@ -187,7 +187,7 @@
     <div class="grid lg:grid-cols-2 gap-6">
         
         <!-- 3. RECORD REJECTED THAAN RETURN -->
-        <section class="card p-6 space-y-4 shadow-2xs" id="returns">
+        <section class="card p-6 space-y-4 shadow-2xs" id="returns" data-sales-form-panel="returns" @if(($activeSalesForm ?? null) !== 'returns') hidden @endif>
             <div class="pb-3 border-b border-[#e2e8e0]">
                 <h2 class="text-base font-extrabold text-[#133e2b]">3. Record Rejected Thaan Return</h2>
                 <p class="text-xs text-stone-500">Customer sends complete Thaans with your original markings. Original lengths are retained.</p>
@@ -236,7 +236,7 @@
         </section>
 
         <!-- 4. DECIDE REJECTED FABRIC USE -->
-        <section class="card p-6 space-y-4 shadow-2xs" id="disposition">
+        <section class="card p-6 space-y-4 shadow-2xs" id="disposition" data-sales-form-panel="disposition" @if(($activeSalesForm ?? null) !== 'disposition') hidden @endif>
             <div class="pb-3 border-b border-[#e2e8e0]">
                 <h2 class="text-base font-extrabold text-[#133e2b]">4. Decide Rejected Fabric Use</h2>
                 <p class="text-xs text-stone-500">Resend as A-category, return to party, settle and keep, approved external sale, or carry forward.</p>
@@ -303,7 +303,7 @@
     </div>
 
     <!-- OWN MANUFACTURING SALE -->
-    <section class="card p-6 space-y-4 shadow-2xs" id="own-sale">
+    <section class="card p-6 space-y-4 shadow-2xs" id="own-sale" data-sales-form-panel="own-sale" @if(($activeSalesForm ?? null) !== 'own-sale') hidden @endif>
         <div class="pb-3 border-b border-[#e2e8e0]">
             <h2 class="text-base font-extrabold text-[#133e2b]">Own Manufacturing &mdash; Sell Checked A-Grade Thaans</h2>
             <p class="text-xs text-stone-500">Sell self-manufactured stock directly with instant sales slip generation.</p>

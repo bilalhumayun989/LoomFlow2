@@ -23,30 +23,32 @@ use Illuminate\View\View;
 
 class SalesController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $sales = Sale::with('contract')->latest('sale_date')->latest('id')->limit(5)->get();
         $contracts = SalesContract::latest('start_date')->latest('id')->limit(5)->get();
         $page = 'dashboard';
 
-        return $this->renderPage($page, $sales, $contracts);
+        return $this->renderPage($page, $sales, $contracts, $request->query('mode') !== 'display');
     }
 
-    public function slips(): View
+    public function slips(Request $request): View
     {
         return $this->renderPage(
             'slips',
             Sale::with('contract')->latest('sale_date')->latest('id')->paginate(15),
-            collect()
+            collect(),
+            $request->query('mode') !== 'display'
         );
     }
 
-    public function contracts(): View
+    public function contracts(Request $request): View
     {
         return $this->renderPage(
             'contracts',
             collect(),
-            SalesContract::latest('start_date')->latest('id')->paginate(15)
+            SalesContract::latest('start_date')->latest('id')->paginate(15),
+            $request->query('mode') !== 'display'
         );
     }
 
@@ -57,7 +59,8 @@ class SalesController extends Controller
     private function renderPage(
         string $page,
         Collection|LengthAwarePaginator $sales,
-        Collection|LengthAwarePaginator $contracts
+        Collection|LengthAwarePaginator $contracts,
+        bool $includeOperatorInputs
     ): View {
         $customers = collect();
         $fabrics = collect();
@@ -71,11 +74,11 @@ class SalesController extends Controller
         $kachis = collect();
         $pendingKachis = collect();
         $rejectedKachis = collect();
-        if (in_array($page, ['dashboard', 'contracts', 'slips'], true)) {
+        if ($includeOperatorInputs || in_array($page, ['dashboard', 'contracts', 'slips'], true)) {
             $customers = Customer::where('status', 'active')->orderBy('name')->get();
         }
 
-        if (in_array($page, ['dashboard', 'contracts'], true)) {
+        if ($includeOperatorInputs || in_array($page, ['dashboard', 'contracts'], true)) {
             $yarnQualities = YarnQuality::orderBy('name')->get();
             $contractOrderNumbers = WorkOrder::whereNotNull('sales_contract_id')
                 ->pluck('order_no', 'sales_contract_id');
@@ -89,20 +92,20 @@ class SalesController extends Controller
                 ->keyBy('sales_contract_id');
         }
 
-        if (in_array($page, ['dashboard', 'slips'], true)) {
+        if ($includeOperatorInputs || in_array($page, ['dashboard', 'slips'], true)) {
             $openMarketFabrics = FabricStock::query()
                 ->where('available_open_meters', '>', 0)
                 ->orderBy('quality_name')
                 ->get();
         }
 
-        if ($page === 'contracts') {
+        if ($includeOperatorInputs || $page === 'contracts') {
             $fabrics = FabricStock::orderBy('quality_name')->get();
             $partas = PartaRecord::whereIn('fabric_stock_id', $fabrics->modelKeys())
                 ->orderByDesc('version')->get()->unique('fabric_stock_id')->keyBy('fabric_stock_id');
         }
 
-        if ($page === 'dashboard') {
+        if ($includeOperatorInputs || $page === 'dashboard') {
             $jobOrders = WorkOrder::with(['fabricStock', 'parta', 'customer', 'contract'])
                 ->where('type', 'job')->whereIn('status', ['active', 'fulfilled'])->orderBy('order_no')->get();
             $rolls = ThaanRoll::with('order')->whereIn('status', ['ready', 'returned_ready', 'returned_hold', 'dispatched'])->orderByDesc('id')->get();

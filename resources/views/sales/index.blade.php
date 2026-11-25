@@ -2,16 +2,31 @@
 
 @section('title', 'Sales Slips & Contract Management')
 
+@php
+    $salesMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $activeSalesForm = match (old('operation_form')) {
+        'sales_kachi' => 'kachi',
+        'sales_pakki' => 'pakki',
+        'sales_return' => 'returns',
+        'sales_disposition' => 'disposition',
+        'sales_own_sale' => 'own-sale',
+        'sales_slip' => 'slip',
+        'sales_contract' => 'contract',
+        default => 'kachi',
+    };
+@endphp
+
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
+<div class="{{ $salesMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
+    @if($salesMode === 'display')
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
-        <a href="{{ route('sales.index') }}"
+        <a href="{{ route('sales.index', ['mode' => $salesMode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $page === 'dashboard'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -35,7 +50,7 @@
         <nav class="space-y-1.5" aria-label="Sales sections">
 
             {{-- Sales Slips --}}
-            <a href="{{ route('sales.slips') }}"
+            <a href="{{ route('sales.slips', ['mode' => $salesMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'slips'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -58,7 +73,7 @@
             </a>
 
             {{-- Contracts --}}
-            <a href="{{ route('sales.contracts') }}"
+            <a href="{{ route('sales.contracts', ['mode' => $salesMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'contracts'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -114,6 +129,7 @@
             </a>
         </div>
     </aside>
+    @endif
 
     {{-- ============================================================
          MAIN CONTENT
@@ -128,52 +144,90 @@
                     <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Module 05</span>
                 </div>
                 <h1 class="text-2xl font-black text-zinc-900 tracking-tight">
+                    @if($salesMode === 'operator') Sales Operator @else
                     {{ ['dashboard' => 'Sales Dashboard', 'slips' => 'Sales Slips & Invoices', 'contracts' => 'Multi-Quality Buyer Contracts'][$page] }}
+                    @endif
                 </h1>
                 <p class="text-xs text-zinc-400 mt-0.5">
+                    @if($salesMode === 'operator') Choose one entry form. Use Ctrl+1 through Ctrl+7 to switch forms. @else
                     {{ ['dashboard' => 'Open market sales, contract deliveries, and full revenue overview.', 'slips' => 'All fabric dispatch invoices — open market and contract sales.', 'contracts' => 'Long-term buyer contracts with delivery tracking and remaining meters.'][$page] }}
+                    @endif
                 </p>
             </div>
             <div class="flex flex-wrap gap-2 shrink-0">
-                @if($page === 'dashboard')
-                <a href="#kachi" class="rounded-xl bg-zinc-900 px-3 py-2 text-xs font-bold text-white">Kachi Parchi</a>
-                <a href="#pakki" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Pakki Parchi</a>
-                <a href="#returns" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Returns</a>
-                <a href="#disposition" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Disposition</a>
-                <a href="#own-sale" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">Own Fabric Sale</a>
-                @endif
-                @if(in_array($page, ['dashboard', 'slips'], true))
-                <a href="#sales-slip-entry" class="rounded-xl bg-white px-3 py-2 text-xs font-bold text-zinc-700 border border-zinc-300">New Sales Slip</a>
-                @endif
-                @if($page === 'contracts')
-                    <a href="#sales-contract-entry" class="rounded-xl bg-zinc-900 px-3 py-2 text-xs font-bold text-white">Create a buyer contract</a>
+                @if($salesMode === 'operator')
+                <span class="rounded-xl bg-zinc-100 px-3 py-2 text-xs font-bold text-zinc-600">Operator entry · seven workflows</span>
                 @endif
             </div>
         </div>
 
-        @if($page === 'dashboard')
-        @include('factory._dispatch_workflow')
-        @endif
+        @if($salesMode === 'operator')
+        <nav class="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Sales entry forms" role="tablist">
+            <span class="mr-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Entry form</span>
+            @foreach([['kachi', 'Kachi Parchi'], ['pakki', 'Pakki Parchi'], ['returns', 'Returns'], ['disposition', 'Disposition'], ['own-sale', 'Own Fabric Sale'], ['slip', 'Sales Slip'], ['contract', 'Buyer Contract']] as $index => [$form, $label])
+            <button type="button" class="sales-form-tab rounded-xl px-3 py-2 text-xs font-bold {{ $activeSalesForm === $form ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-sales-form-tab="{{ $form }}" role="tab" aria-controls="{{ ['kachi' => 'kachi', 'pakki' => 'pakki', 'returns' => 'returns', 'disposition' => 'disposition', 'own-sale' => 'own-sale', 'slip' => 'sales-slip-entry', 'contract' => 'sales-contract-entry'][$form] }}" aria-selected="{{ $activeSalesForm === $form ? 'true' : 'false' }}">{{ $label }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $index + 1 }}</kbd></button>
+            @endforeach
+        </nav>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                const operationForm = @json(old('operation_form'));
-                const sectionId = {
-                    sales_kachi: 'kachi',
-                    sales_pakki: 'pakki',
-                    sales_return: 'returns',
-                    sales_disposition: 'disposition',
-                    sales_own_sale: 'own-sale',
-                    sales_contract: 'sales-contract-entry',
-                    sales_slip: 'sales-slip-entry',
-                }[operationForm];
-                if (sectionId) {
-                    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                const showSalesForm = (formName, focusInput = false) => {
+                    document.querySelectorAll('[data-sales-form-panel]').forEach((panel) => {
+                        panel.hidden = panel.dataset.salesFormPanel !== formName;
+                    });
+
+                    document.querySelectorAll('#parchi-workflow > .grid').forEach((group) => {
+                        const hasActivePanel = Boolean(group.querySelector('[data-sales-form-panel]:not([hidden])'));
+                        group.hidden = !hasActivePanel;
+                        group.style.display = hasActivePanel ? '' : 'none';
+                    });
+
+                    document.querySelectorAll('[data-sales-form-tab]').forEach((tab) => {
+                        const isSelected = tab.dataset.salesFormTab === formName;
+                        tab.setAttribute('aria-selected', String(isSelected));
+                        tab.classList.toggle('bg-zinc-900', isSelected);
+                        tab.classList.toggle('text-white', isSelected);
+                        tab.classList.toggle('bg-zinc-100', !isSelected);
+                        tab.classList.toggle('text-zinc-700', !isSelected);
+                    });
+
+                    if (focusInput) {
+                        document.querySelector(`[data-sales-form-panel="${formName}"] input:not([type="hidden"]), [data-sales-form-panel="${formName}"] select, [data-sales-form-panel="${formName}"] textarea`)?.focus();
+                    }
+                };
+
+                document.querySelectorAll('[data-sales-form-tab]').forEach((tab) => {
+                    tab.addEventListener('click', () => showSalesForm(tab.dataset.salesFormTab, true));
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3', '4', '5', '6', '7'].includes(event.key)) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const formByShortcut = ['kachi', 'pakki', 'returns', 'disposition', 'own-sale', 'slip', 'contract'];
+                    showSalesForm(formByShortcut[Number(event.key) - 1], true);
+                });
+
+                showSalesForm(@json($activeSalesForm));
             });
         </script>
+        @endif
 
-        @if(in_array($page, ['dashboard', 'slips'], true))
-        <section id="sales-slip-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+        @if($salesMode === 'operator')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelector('[data-sales-form-panel="{{ $activeSalesForm }}"] input:not([type="hidden"]), [data-sales-form-panel="{{ $activeSalesForm }}"] select, [data-sales-form-panel="{{ $activeSalesForm }}"] textarea')?.focus();
+            });
+        </script>
+        @endif
+
+        @if($salesMode === 'operator')
+        @include('factory._dispatch_workflow')
+        @endif
+
+        @if($salesMode === 'operator')
+        <section id="sales-slip-entry" data-sales-form-panel="slip" @if($activeSalesForm !== 'slip') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
             <div class="mb-4">
                 <h2 class="text-base font-extrabold text-zinc-900">Create a sales slip</h2>
                 <p class="mt-1 text-xs text-zinc-500">Record an open-market sale from available fabric stock.</p>
@@ -250,7 +304,7 @@
         @endif
 
         {{-- KPI Cards (dashboard only) --}}
-        @if($page === 'dashboard')
+        @if($salesMode === 'display' && $page === 'dashboard')
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="rounded-2xl p-4 border border-zinc-300 bg-zinc-50 shadow-sm">
                 <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-600 flex items-center justify-between">
@@ -287,7 +341,7 @@
         {{-- ============================================================
              SECTION 1 — Sales Slips Table
         ============================================================ --}}
-        @if(in_array($page, ['dashboard', 'slips'], true))
+        @if($salesMode === 'display' && in_array($page, ['dashboard', 'slips'], true))
         <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
 
             <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50">
@@ -392,9 +446,9 @@
         {{-- ============================================================
              SECTION 2 — Contracts Cards
         ============================================================ --}}
-        @if(in_array($page, ['dashboard', 'contracts'], true))
-        @if($page === 'contracts')
-        <section id="sales-contract-entry" class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+        @if($salesMode === 'operator' || in_array($page, ['dashboard', 'contracts'], true))
+        @if($salesMode === 'operator')
+        <section id="sales-contract-entry" data-sales-form-panel="contract" @if($activeSalesForm !== 'contract') hidden @endif class="scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
             <div class="mb-4">
                 <h2 class="text-base font-extrabold text-zinc-900">Create a buyer contract</h2>
                 <p class="mt-1 text-xs text-zinc-500">Conversion contracts can be linked to a job work order in Factory → Orders. Grey Sale contracts reserve finished stock for sales.</p>
@@ -695,10 +749,11 @@
             </script>
         </section>
         @endif
+        @if($salesMode === 'operator')
         <script>
             (() => {
-                const qualitySelect = document.querySelector('[name="fabric_stock_id"]');
-                const customerSelect = document.querySelector('[name="customer_id"]');
+                const qualitySelect = document.querySelector('.contract-form [name="fabric_stock_id"]');
+                const customerSelect = document.querySelector('.contract-form [name="customer_id"]');
                 const fields = {
                     read: 'read', pick: 'pick', warpCount: 'warp_count',
                     weftCount: 'weft_count', width: 'width',
@@ -755,18 +810,21 @@
                     const option = qualitySelect?.selectedOptions[0];
                     if (!option) return;
                     Object.entries(fields).forEach(([dataKey, fieldName]) => {
-                        const input = document.querySelector(`[name="${fieldName}"]`);
+                        const input = document.querySelector(`.contract-form [name="${fieldName}"]`);
                         if (input && option.dataset[dataKey]) input.value = option.dataset[dataKey];
                     });
                     window.calculateContractPreview();
                 };
                 qualitySelect?.addEventListener('change', fillParta);
                 customerSelect?.addEventListener('change', updateBuyerSummary);
-                if (qualitySelect?.value && !document.querySelector('[name="read"]').value) fillParta();
+                if (qualitySelect?.value && !document.querySelector('.contract-form [name="read"]')?.value) fillParta();
                 updateBuyerSummary();
                 window.calculateContractPreview();
             })();
         </script>
+        @endif
+        @endif
+        @if($salesMode === 'display' && in_array($page, ['dashboard', 'contracts'], true))
         <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
 
             <div class="flex items-center justify-between gap-4 px-6 py-5 border-b border-zinc-100 bg-gradient-to-r from-zinc-50 via-white to-zinc-50">
