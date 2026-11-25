@@ -5,11 +5,15 @@
 @php
     $financeMode = request()->query('mode') === 'display' ? 'display' : 'operator';
     $invoiceOperatorTabs = [
-        ['invoices', 'Create Invoice', 'invoices.invoices'],
-        ['payments', 'Receive Payment', 'invoices.payments'],
-        ['customers', 'Customer Records', 'invoices.customers'],
-        ['accounts', 'Cash / Bank Accounts', 'invoices.accounts'],
+        ['invoices', 'Create Invoice', 'invoices.invoices', '1', []],
+        ['payments', 'Receive Payment', 'invoices.payments', '2', []],
+        ['customers', 'Customer Records', 'invoices.customers', '3', []],
+        ['accounts', 'Add Cash / Bank Account', 'invoices.accounts', '4', ['entry' => 'account']],
+        ['accounts', 'Record Deposit / Withdrawal', 'invoices.accounts', '5', ['entry' => 'transaction']],
     ];
+    $activeOperatorAction = $page === 'accounts'
+        ? (request()->query('entry') === 'transaction' ? 'transaction' : 'account')
+        : $page;
 @endphp
 
 @section('content')
@@ -202,16 +206,17 @@
 
         @if($financeMode === 'operator')
         <nav class="flex flex-wrap gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Invoice operator pages">
-            @foreach($invoiceOperatorTabs as $index => [$tabPage, $label, $routeName])
-            <a href="{{ route($routeName, ['mode' => 'operator']) }}" data-invoice-operator-shortcut="{{ $index + 1 }}" @class(['rounded-xl px-4 py-2 text-xs font-bold transition', 'bg-zinc-900 text-white' => $page === $tabPage, 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' => $page !== $tabPage]) @if($page === $tabPage) aria-current="page" @endif>
-                {{ $label }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $index + 1 }}</kbd>
+            @foreach($invoiceOperatorTabs as [$tabPage, $label, $routeName, $shortcut, $query])
+            @php($isActiveTab = $page === $tabPage && ($tabPage !== 'accounts' || $activeOperatorAction === ($query['entry'] ?? 'account')))
+            <a href="{{ route($routeName, ['mode' => 'operator'] + $query) }}" data-invoice-operator-shortcut="{{ $shortcut }}" @class(['rounded-xl px-4 py-2 text-xs font-bold transition', 'bg-zinc-900 text-white' => $isActiveTab, 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' => !$isActiveTab]) @if($isActiveTab) aria-current="page" @endif>
+                {{ $label }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $shortcut }}</kbd>
             </a>
             @endforeach
         </nav>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 document.addEventListener('keydown', (event) => {
-                    if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3', '4'].includes(event.key)) return;
+                    if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3', '4', '5'].includes(event.key)) return;
                     const tab = document.querySelector(`[data-invoice-operator-shortcut="${event.key}"]`);
                     if (tab instanceof HTMLAnchorElement) {
                         event.preventDefault();
@@ -326,18 +331,20 @@
 
         @if($page === 'accounts')
             @if($financeMode === 'operator')
-            <div class="grid gap-5">
+                @if($activeOperatorAction === 'account')
                 <section id="finance-entry-account" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Add Cash / Bank Account</h2><form method="POST" action="{{ route('invoices.account.store') }}" class="mt-4 space-y-3">@csrf<input type="hidden" name="operation_form" value="account">
                     <label class="block text-xs font-semibold text-zinc-600">Account name<input name="name" required placeholder="e.g. HBL Current Account" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
                     <div class="grid grid-cols-2 gap-3"><label class="text-xs font-semibold text-zinc-600">Type<select name="type" class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="bank">Bank</option><option value="cash">Cash</option></select></label><label class="text-xs font-semibold text-zinc-600">Account / last digits<input name="account_number" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label></div>
                     <label class="block text-xs font-semibold text-zinc-600">Opening balance (Rs.)<input name="opening_balance" type="number" min="0" step="0.01" value="0" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><button class="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-bold text-white">Save Account</button>
                 </form></section>
+                @endif
+                @if($activeOperatorAction === 'transaction')
                 <section id="finance-entry-transaction" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Record Deposit / Withdrawal</h2><p class="mt-1 text-xs text-zinc-500">Customer receipts are added automatically. Use this form for other account movements.</p><form method="POST" action="{{ route('invoices.account-transaction.store') }}" class="mt-4 space-y-3">@csrf<input type="hidden" name="operation_form" value="transaction">
                     <label class="block text-xs font-semibold text-zinc-600">Account<select name="financial_account_id" required class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="">Choose account</option>@foreach($activeAccounts as $account)<option value="{{ $account->id }}">{{ ucfirst($account->type) }} · {{ $account->name }}</option>@endforeach</select></label>
                     <div class="grid grid-cols-2 gap-3"><label class="text-xs font-semibold text-zinc-600">Direction<select name="direction" class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="in">Money in</option><option value="out">Money out</option></select></label><label class="text-xs font-semibold text-zinc-600">Date<input name="transaction_date" type="date" required value="{{ today()->toDateString() }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label></div>
                     <label class="block text-xs font-semibold text-zinc-600">Amount (Rs.)<input name="amount" type="number" min="0.01" step="0.01" required class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><label class="block text-xs font-semibold text-zinc-600">Description<input name="description" required class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><label class="block text-xs font-semibold text-zinc-600">Reference<input name="reference" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><button class="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-bold text-white">Post Transaction</button>
                 </form></section>
-            </div>
+                @endif
             @endif
             @if($financeMode === 'display')
             <section class="space-y-4">@forelse($accounts as $account)@php($balance = (float) $account->opening_balance + (float) ($account->money_in ?? 0) - (float) ($account->money_out ?? 0))<article class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm"><div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 bg-zinc-50 px-5 py-4"><div><span class="rounded-full bg-zinc-200 px-2 py-1 text-[10px] font-bold uppercase">{{ $account->type }}</span><h2 class="mt-2 font-extrabold">{{ $account->name }}</h2><p class="text-[10px] text-zinc-500">{{ $account->account_number ?: 'Account number not recorded' }}</p></div><div class="text-right"><div class="text-[10px] uppercase tracking-wider text-zinc-500">Current balance</div><div class="font-mono text-xl font-black {{ $balance < 0 ? 'text-red-700' : 'text-zinc-900' }}">Rs. {{ number_format($balance, 2) }}</div></div></div><div class="grid grid-cols-3 gap-2 border-b border-zinc-100 px-5 py-3 text-xs"><div>Opening <strong class="ml-1 font-mono">{{ number_format((float) $account->opening_balance, 2) }}</strong></div><div>Money in <strong class="ml-1 font-mono">{{ number_format((float) ($account->money_in ?? 0), 2) }}</strong></div><div>Money out <strong class="ml-1 font-mono">{{ number_format((float) ($account->money_out ?? 0), 2) }}</strong></div></div><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-[10px] uppercase text-zinc-400"><tr><th class="px-5 py-2">Date</th><th class="px-5 py-2">Description</th><th class="px-5 py-2">Reference</th><th class="px-5 py-2 text-right">Direction / Amount</th></tr></thead><tbody class="divide-y divide-zinc-100">@forelse($account->transactions as $transaction)<tr><td class="px-5 py-2">{{ $transaction->transaction_date->format('d M Y') }}</td><td class="px-5 py-2">{{ $transaction->description }}</td><td class="px-5 py-2">{{ $transaction->reference ?: '—' }}</td><td class="px-5 py-2 text-right font-mono {{ $transaction->direction === 'in' ? 'text-emerald-700' : 'text-red-700' }}">{{ $transaction->direction === 'in' ? '+' : '−' }} Rs. {{ number_format((float) $transaction->amount, 2) }}</td></tr>@empty<tr><td colspan="4" class="px-5 py-5 text-center text-zinc-400">No account movements recorded yet.</td></tr>@endforelse</tbody></table></div></article>@empty<div class="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500">Add your cash or bank account to start recording receipts and account balances.</div>@endforelse</section>
