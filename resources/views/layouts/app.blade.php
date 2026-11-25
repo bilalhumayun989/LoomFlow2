@@ -538,7 +538,8 @@
 
         body.operator-console.finance-display-mode,
         body.operator-console.ledger-report-page,
-        body.operator-console.factory-orders-display-mode {
+        body.operator-console.factory-orders-display-mode,
+        body.operator-console.factory-checking-display-mode {
             height: auto;
             min-height: 100%;
             overflow: auto;
@@ -579,6 +580,19 @@
         }
 
         body.operator-console.factory-orders-display-mode > .operator-app > .operator-workspace > div.flex-1 > main {
+            flex: none;
+            overflow: visible;
+        }
+
+        body.operator-console.factory-checking-display-mode > .operator-app,
+        body.operator-console.factory-checking-display-mode > .operator-app > .operator-workspace,
+        body.operator-console.factory-checking-display-mode > .operator-app > .operator-workspace > div.flex-1 {
+            height: auto;
+            min-height: 100vh;
+            overflow: visible;
+        }
+
+        body.operator-console.factory-checking-display-mode > .operator-app > .operator-workspace > div.flex-1 > main {
             flex: none;
             overflow: visible;
         }
@@ -905,18 +919,18 @@
             align-self: flex-start;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
             display: flex;
             flex-direction: column;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
             flex: 1 1 0%;
             min-height: 0;
             overflow-y: auto;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
             flex: 0 0 auto;
         }
 
@@ -1164,7 +1178,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} {{ request()->routeIs('factory.checking') && request()->query('mode') === 'display' ? 'factory-checking-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1230,6 +1244,14 @@
                 <form method="GET" action="{{ route('factory.orders') }}" class="operator-mode-switch">
                     <label for="factory-orders-mode-switch">Factory Orders view</label>
                     <select id="factory-orders-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @elseif($currentRoute === 'factory.checking')
+                <form method="GET" action="{{ route('factory.checking') }}" class="operator-mode-switch">
+                    <label for="factory-checking-mode-switch">Factory Checking view</label>
+                    <select id="factory-checking-mode-switch" name="mode" onchange="this.form.submit()">
                         <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
                         <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
                     </select>
@@ -1853,6 +1875,18 @@
                     event.preventDefault();
                     factoryOrdersModeSwitch.value = factoryOrdersModeSwitch.value === 'display' ? 'operator' : 'display';
                     factoryOrdersModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
+
+            @if(request()->routeIs('factory.checking'))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const factoryCheckingModeSwitch = document.getElementById('factory-checking-mode-switch');
+                if (factoryCheckingModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    factoryCheckingModeSwitch.value = factoryCheckingModeSwitch.value === 'display' ? 'operator' : 'display';
+                    factoryCheckingModeSwitch.form?.requestSubmit();
                 }
                 return;
             }

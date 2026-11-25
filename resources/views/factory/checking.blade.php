@@ -1,19 +1,32 @@
 @extends('layouts.app')
 @section('title', 'Checking and Thaan Stock')
+@php
+    $factoryCheckingMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+@endphp
 @section('content')
 <div class="max-w-7xl mx-auto space-y-6 pb-12">
     <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#15803d]">QUALITY CONTROL &amp; INVENTORY</span>
             <h1 class="text-2xl sm:text-3xl font-black text-[#133e2b] tracking-tight">Checking &amp; Thaan Register</h1>
-            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">Only checked and measured fabric enters stock. Meter readings remain provisional.</p>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">{{ $factoryCheckingMode === 'operator' ? 'Record measured Thaans against the matching order, loom, and production date.' : 'Review checked fabric stock, loom assignments, and provisional production readings.' }}</p>
         </div>
     </header>
 
-    <div class="grid lg:grid-cols-5 gap-6">
+    @if($factoryCheckingMode === 'operator')
+        @if(session('success'))<div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ session('success') }}</div>@endif
+        @if(session('error'))<div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{{ session('error') }}</div>@endif
+        @if($errors->any())<div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><p class="font-bold">Please check these entries:</p><ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        <nav aria-label="Checking entry form" class="rounded-2xl border border-stone-200 bg-white p-3 shadow-sm">
+            <button type="button" id="checking-entry-shortcut" class="rounded-xl bg-[#133e2b] px-4 py-2 text-xs font-bold text-white">Enter Checking Report <kbd class="ml-1 text-[10px]">Ctrl+1</kbd></button>
+        </nav>
+    @endif
+
+    @if($factoryCheckingMode === 'operator')
+    <div class="space-y-6">
         
         <!-- ENTER OFFICE CHECKING REPORT (3 Cols) -->
-        <section class="card p-6 lg:col-span-3 space-y-4 shadow-2xs">
+        <section class="card p-6 space-y-4 shadow-2xs" id="checking-entry">
             <div class="pb-3 border-b border-[#e2e8e0]">
                 <h2 class="font-extrabold text-base text-[#133e2b]">Enter Office Checking Report</h2>
                 <p class="text-xs text-stone-500">Choose own or job work, link the order or contract, and record each Thaan marking and measured length into that order's fabric quality stock.</p>
@@ -115,9 +128,12 @@
                 </button>
             </form>
         </section>
+    </div>
+    @endif
 
+    @if($factoryCheckingMode === 'display')
         <!-- ACTIVE LOOM QUALITY MAPPING (2 Cols) -->
-        <section class="card p-6 lg:col-span-2 space-y-4 shadow-2xs">
+        <section class="card p-6 space-y-4 shadow-2xs">
             <div class="pb-3 border-b border-[#e2e8e0]">
                 <h2 class="font-extrabold text-base text-[#133e2b]">Active Loom &rarr; Quality</h2>
             <p class="text-xs text-stone-500">Each checking entry must match the order assigned to the loom on the selected date.</p>
@@ -147,8 +163,6 @@
             </div>
             <p class="text-[11px] text-stone-400">One loom can work on only one contract per day. Switching contracts is handled in the order allocation screen.</p>
         </section>
-
-    </div>
 
     <!-- CHECKED THAAN STOCK HISTORY -->
     <section class="card p-6 space-y-4 shadow-2xs">
@@ -257,10 +271,21 @@
             </table>
         </div>
     </section>
+    @endif
 </div>
 
+@if($factoryCheckingMode === 'operator')
 <script>
 (function(){
+    document.getElementById('checking-entry-shortcut')?.addEventListener('click', () => {
+        document.querySelector('#checking-form select, #checking-form input')?.focus();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key === '1') {
+            event.preventDefault();
+            document.querySelector('#checking-form select, #checking-form input')?.focus();
+        }
+    });
     let n = 1;
     const table = document.querySelector('#roll-table tbody');
     const workType = document.getElementById('checking-work-type');
@@ -371,4 +396,5 @@
     recalc();
 })();
 </script>
+@endif
 @endsection
