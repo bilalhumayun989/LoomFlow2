@@ -2,16 +2,27 @@
 
 @section('title', 'Loom-wise Production & Leakage Analysis')
 
+@php
+    $productionMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $productionReportTabs = [
+        ['dashboard', 'production.index', 'Production Dashboard'],
+        ['loom-summary', 'production.loom-summary', 'Loom-wise Summary'],
+        ['leakage', 'production.leakage', 'Production Leakage'],
+        ['history', 'production.history', 'Production History'],
+    ];
+@endphp
+
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
+<div class="{{ $productionMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'mx-auto max-w-7xl' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
+    @if($productionMode === 'display')
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
-        <a href="{{ route('production.index') }}"
+        <a href="{{ route('production.index', ['mode' => $productionMode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $page === 'dashboard'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -35,7 +46,7 @@
         <nav class="space-y-1.5" aria-label="Production sections">
 
             {{-- Loom-wise Summary --}}
-            <a href="{{ route('production.loom-summary') }}"
+            <a href="{{ route('production.loom-summary', ['mode' => $productionMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'loom-summary'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -58,7 +69,7 @@
             </a>
 
             {{-- Production Leakage --}}
-            <a href="{{ route('production.leakage') }}"
+            <a href="{{ route('production.leakage', ['mode' => $productionMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'leakage' ? 'bg-zinc-900 text-zinc-50 shadow-sm' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {{ $page === 'leakage' ? 'bg-zinc-700' : 'bg-zinc-100' }}">
@@ -76,7 +87,7 @@
             </a>
 
             {{-- Production History --}}
-            <a href="{{ route('production.history') }}"
+            <a href="{{ route('production.history', ['mode' => $productionMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'history'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -126,13 +137,6 @@
         {{-- Quick Actions --}}
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
-            <button type="button" onclick="openModal('modalRecordProduction')"
-                    class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
-                <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Record Production
-            </button>
             <a href="{{ route('sizing.index') }}"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,6 +155,7 @@
             </a>
         </div>
     </aside>
+    @endif
 
     {{-- ============================================================
          MAIN CONTENT
@@ -165,20 +170,14 @@
                     <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Module 06</span>
                 </div>
                 <h1 class="text-2xl font-black text-zinc-900 tracking-tight">
-                    {{ ['dashboard' => 'Production Dashboard', 'loom-summary' => 'Loom-wise Production Summary', 'leakage' => 'Production Leakage', 'history' => 'Production History Log'][$page] }}
+                    {{ $productionMode === 'operator' ? 'Record Loom Shift Production' : ['dashboard' => 'Production Dashboard', 'loom-summary' => 'Loom-wise Production Summary', 'leakage' => 'Production Leakage', 'history' => 'Production History Log'][$page] }}
                 </h1>
                 <p class="text-xs text-zinc-400 mt-0.5">
-                    {{ ['dashboard' => 'Shift production, beam consumption, leakage waste, and efficiency overview.', 'loom-summary' => 'Per-loom breakdown of fabric output, beam consumed, and leakage loss.', 'leakage' => 'Sizing beam expected meters compared with actual woven meters.', 'history' => 'Complete shift-by-shift production log with meter counters and leakage data.'][$page] }}
+                    {{ $productionMode === 'operator' ? 'Enter one loom shift at a time; output, shortage, and efficiency are calculated as you work.' : ['dashboard' => 'Shift production, beam consumption, leakage waste, and efficiency overview.', 'loom-summary' => 'Per-loom breakdown of fabric output, beam consumed, and leakage loss.', 'leakage' => 'Sizing beam expected meters compared with actual woven meters.', 'history' => 'Complete shift-by-shift production log with meter counters and leakage data.'][$page] }}
                 </p>
             </div>
+            @if($productionMode === 'display')
             <div class="flex items-center gap-3 shrink-0">
-                <button type="button" onclick="openModal('modalRecordProduction')"
-                        class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    + Record Loom Production
-                </button>
                 <a href="{{ route('sizing.index') }}"
                    class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,8 +187,34 @@
                     Active Beams
                 </a>
             </div>
+            @endif
         </div>
 
+        @if($productionMode === 'operator')
+        <nav aria-label="Production entry form" class="rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm">
+            <button type="button" id="production-entry-shortcut" class="rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white">Record Loom Production <kbd class="ml-1 text-[10px]">Ctrl+1</kbd></button>
+        </nav>
+        @if(session('success'))<div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ session('success') }}</div>@endif
+        @if($errors->any())<div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><p class="font-bold">Please check these entries:</p><ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        @else
+        <nav class="flex flex-wrap gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Production reports">
+            @foreach($productionReportTabs as $index => [$tabPage, $routeName, $label])
+                <a href="{{ route($routeName, ['mode' => 'display']) }}" data-production-report-shortcut="{{ $index + 1 }}" @class(['rounded-xl px-4 py-2 text-xs font-bold transition', 'bg-zinc-900 text-white' => $page === $tabPage, 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' => $page !== $tabPage]) @if($page === $tabPage) aria-current="page" @endif>{{ $label }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $index + 1 }}</kbd></a>
+            @endforeach
+        </nav>
+        <script>
+            document.addEventListener('keydown', (event) => {
+                if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3', '4'].includes(event.key)) return;
+                const tab = document.querySelector(`[data-production-report-shortcut="${event.key}"]`);
+                if (tab instanceof HTMLAnchorElement) {
+                    event.preventDefault();
+                    window.location.assign(tab.href);
+                }
+            });
+        </script>
+        @endif
+
+        @if($productionMode === 'display')
         <?php if ($page === 'leakage') { ?>
             <section class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -343,7 +368,7 @@
                     </div>
                 </div>
                 @if($page === 'dashboard')
-                    <a href="{{ route('production.loom-summary') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                    <a href="{{ route('production.loom-summary', ['mode' => $productionMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
                 @else
                     <span class="text-xs text-zinc-400 font-mono">{{ $loomWiseStats->count() }} looms</span>
                 @endif
@@ -434,10 +459,11 @@
                 </div>
                 <div class="flex items-center gap-3">
                     @if($page === 'dashboard')
-                        <a href="{{ route('production.history') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
+                        <a href="{{ route('production.history', ['mode' => $productionMode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">View all &rarr;</a>
                     @else
                         {{-- Filters for history page --}}
                         <form method="GET" action="{{ route('production.history') }}" class="flex items-center gap-2">
+                            <input type="hidden" name="mode" value="{{ $productionMode }}">
                             <select name="loom_no" onchange="this.form.submit()"
                                     class="bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-1.5 text-xs text-zinc-900">
                                 <option value="">All Looms</option>
@@ -449,7 +475,7 @@
                                    onchange="this.form.submit()"
                                    class="bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-1.5 text-xs text-zinc-900">
                             @if(request('loom_no') || request('date'))
-                                <a href="{{ route('production.history') }}"
+                                <a href="{{ route('production.history', ['mode' => $productionMode]) }}"
                                    class="px-2.5 py-1.5 rounded-xl bg-zinc-100 text-zinc-500 hover:text-zinc-900 text-xs">Clear</a>
                             @endif
                         </form>
@@ -534,16 +560,18 @@
         </div>
         @endif
 
+        @endif
     </div>{{-- end main --}}
 </div>{{-- end grid --}}
 
 
 {{-- ============================================================
-     MODAL: RECORD LOOM PRODUCTION
+     OPERATOR: RECORD LOOM PRODUCTION
 ============================================================ --}}
-<div id="modalRecordProduction" class="fixed inset-0 z-50 hidden bg-zinc-950/60 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
-    <div class="mx-auto my-3 sm:my-6 w-full max-w-5xl overflow-y-auto rounded-3xl border border-zinc-200 bg-white shadow-2xl">
-        <div class="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-100 bg-white/95 px-6 py-4 backdrop-blur">
+@if($productionMode === 'operator')
+<section id="production-entry" class="card mx-auto w-full max-w-7xl p-6 shadow-sm">
+    <div class="mx-auto w-full max-w-5xl">
+        <div class="flex items-center justify-between border-b border-zinc-100 px-1 pb-4">
             <div class="flex items-center gap-3">
                 <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-900">
                     <svg class="h-5 w-5 text-zinc-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -555,11 +583,6 @@
                     <p class="text-xs text-zinc-400">Output, beam consumed, leakage & efficiency — calculated live</p>
                 </div>
             </div>
-            <button type="button" onclick="closeModal('modalRecordProduction')" class="text-zinc-400 hover:text-zinc-900 p-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
         </div>
 
         <form action="{{ route('production.store') }}" method="POST" class="px-5 py-5 sm:px-8 space-y-5">
@@ -705,8 +728,6 @@
             </div>
 
             <div class="pt-3 border-t border-zinc-100 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalRecordProduction')"
-                        class="px-4 py-2 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-semibold">Cancel</button>
                 <button type="submit" id="btnSubmitProduction"
                         class="px-6 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 text-xs font-black shadow-sm opacity-50 cursor-not-allowed"
                         disabled>
@@ -715,10 +736,22 @@
             </div>
         </form>
     </div>
-</div>
+</section>
+@endif
 
+@if($productionMode === 'operator')
 @push('scripts')
 <script>
+    document.getElementById('production-entry-shortcut')?.addEventListener('click', () => {
+        document.querySelector('#production-entry input, #production-entry select')?.focus();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key === '1') {
+            event.preventDefault();
+            document.querySelector('#production-entry input, #production-entry select')?.focus();
+        }
+    });
+
     function handleBeamSelected() {
         const select = document.getElementById('selectProdBeam');
         const opt = select.options[select.selectedIndex];
@@ -776,4 +809,5 @@
     }
 </script>
 @endpush
+@endif
 @endsection
