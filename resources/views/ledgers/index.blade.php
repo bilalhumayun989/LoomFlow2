@@ -3,16 +3,25 @@
 @section('title', 'Ledgers & Audit Statements')
 
 @php
-    $financeMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $financeMode = 'display';
+    $ledgerTabs = [
+        'all' => 'General Ledger',
+        'parties' => 'Party Ledgers',
+        'expenses' => 'Expense Ledger',
+        'cash_bank' => 'Cash & Bank',
+        'inventory' => 'Inventory Ledger',
+        'income' => 'Income Ledger',
+        'equity' => 'Equity Ledger',
+    ];
 @endphp
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
+<div class="mx-auto max-w-7xl">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
-    <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+    <aside class="hidden" aria-hidden="true">
 
         {{-- General Ledger — main dashboard link --}}
         <a href="{{ route('ledgers.index', ['mode' => $financeMode]) }}"
@@ -125,6 +134,28 @@
         </div>
     </aside>
 
+    <nav class="mb-6 flex flex-wrap gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Ledger reports">
+        @foreach($ledgerTabs as $ledgerKey => $ledgerLabel)
+            @php($shortcut = $loop->iteration)
+            <a href="{{ $ledgerKey === 'all' ? route('ledgers.index') : route('ledgers.index', ['ledger' => $ledgerKey]) }}"
+               data-ledger-shortcut="{{ $shortcut }}"
+               @class(['rounded-xl px-4 py-2 text-xs font-bold transition', 'bg-zinc-900 text-white' => $activeLedger === $ledgerKey, 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' => $activeLedger !== $ledgerKey])
+               @if($activeLedger === $ledgerKey) aria-current="page" @endif>
+                {{ $ledgerLabel }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $shortcut }}</kbd>
+            </a>
+        @endforeach
+    </nav>
+    <script>
+        document.addEventListener('keydown', (event) => {
+            if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3', '4', '5', '6', '7'].includes(event.key)) return;
+            const tab = document.querySelector(`[data-ledger-shortcut="${event.key}"]`);
+            if (tab instanceof HTMLAnchorElement) {
+                event.preventDefault();
+                window.location.assign(tab.href);
+            }
+        });
+    </script>
+
     {{-- ============================================================
          MAIN CONTENT
     ============================================================ --}}
@@ -216,7 +247,6 @@
 
                 {{-- Filter form --}}
                 <form method="GET" action="{{ route('ledgers.index') }}" class="flex flex-wrap items-center gap-2">
-                    <input type="hidden" name="mode" value="{{ $financeMode }}">
                     {{-- Keep active ledger type --}}
                     @if($activeLedger !== 'all')
                         <input type="hidden" name="ledger" value="{{ $activeLedger }}">
@@ -267,7 +297,7 @@
                     </button>
 
                     @if(($filters['party_name'] ?? null) || ($filters['customer_id'] ?? null) || ($filters['party_type'] ?? null) || ($filters['from'] ?? null) || ($filters['to'] ?? null))
-                        <a href="{{ route('ledgers.index', ['ledger' => $activeLedger === 'all' ? null : $activeLedger, 'mode' => $financeMode]) }}"
+                        <a href="{{ route('ledgers.index', ['ledger' => $activeLedger === 'all' ? null : $activeLedger]) }}"
                            class="px-2.5 py-1.5 rounded-xl bg-zinc-100 text-zinc-500 hover:text-zinc-900 text-xs font-semibold transition-colors">
                             Clear
                         </a>
