@@ -1224,6 +1224,32 @@
         
         @php
             $currentRoute = Route::currentRouteName() ?? '';
+            $hasOperatorCtrlOneShortcut = match (true) {
+                $currentRoute === 'factory.orders' => true,
+                $currentRoute === 'factory.checking' => true,
+                $currentRoute === 'factory.reports' => true,
+                $currentRoute === 'bags.index' => request()->query('mode', 'operator') === 'operator',
+                $currentRoute === 'sizing.index' => request()->query('mode', 'operator') === 'operator',
+                $currentRoute === 'parts.index' => request()->query('mode', 'operator') === 'operator',
+                $currentRoute === 'fabric.index' => request()->query('mode', 'operator') === 'operator',
+                $currentRoute === 'sales.index' => request()->query('mode', 'operator') === 'operator',
+                $currentRoute === 'invoices.invoices' => request()->query('mode', 'operator') === 'operator',
+                $currentRoute === 'production.index' => request()->query('mode', 'operator') === 'operator',
+                default => false,
+            };
+            $operatorCtrlOneAction = match ($currentRoute) {
+                'factory.orders' => request()->query('entry') === 'order' ? 'Open Create Production Order' : 'Open Save Quality Parta',
+                'factory.checking' => 'Focus the checking entry form',
+                'factory.reports' => 'Focus Loom Downtime / Maintenance',
+                'bags.index' => 'Open Bag Purchase',
+                'sizing.index' => 'Open New Sizing Slip Entry',
+                'parts.index' => 'Open Add New Part',
+                'fabric.index' => 'Open Fabric Stock Entry',
+                'sales.index' => 'Open the first Sales entry form',
+                'invoices.invoices' => 'Open Create Invoice',
+                'production.index' => 'Focus Record Loom Production',
+                default => '',
+            };
             
             // Breadcrumb detection matching previous module names
             $pageTitle = 'Main Hub / Boxes';
@@ -1629,6 +1655,12 @@
                 <table class="operator-guide-table">
                     <thead><tr><th>Keys</th><th>Action</th></tr></thead>
                     <tbody>
+                        @if(request()->routeIs('factory.orders', 'factory.checking', 'factory.reports', 'bags.*', 'sizing.*', 'parts.*', 'fabric.*', 'sales.*', 'invoices.*', 'accounts.*', 'expenses.*', 'production.*'))
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Q</kbd></td><td>Switch between Operator and LoomFlow Display</td></tr>
+                        @endif
+                        @if($hasOperatorCtrlOneShortcut)
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>1</kbd></td><td>{{ $operatorCtrlOneAction }}</td></tr>
+                        @endif
                         <tr><td><kbd>Alt</kbd> + <kbd>1</kbd></td><td>Open Checking / Thaan Entry</td></tr>
                         <tr><td><kbd>Alt</kbd> + <kbd>2</kbd></td><td>Open Production</td></tr>
                         <tr><td><kbd>Alt</kbd> + <kbd>3</kbd></td><td>Open Kachi / Pakki Parchis</td></tr>
