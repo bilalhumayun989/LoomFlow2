@@ -4,10 +4,10 @@
 
 @section('workspace_sidebar')
     @if($page !== 'dashboard' || $mode === 'display')
-    <aside class="hidden w-[300px] shrink-0 self-start rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24 lg:my-6 lg:ml-6 lg:mr-4 lg:block">
+    <aside class="hidden w-[250px] shrink-0 self-start rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24 lg:my-6 lg:ml-6 lg:mr-4 lg:block">
 
         {{-- Dashboard main link --}}
-        <a href="{{ route('bags.index') }}"
+        <a href="{{ route('bags.index', ['mode' => $mode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $page === 'dashboard'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -31,7 +31,7 @@
         <nav class="space-y-1.5" aria-label="Bags sections">
 
             {{-- Purchases --}}
-            <a href="{{ route('bags.purchases') }}"
+            <a href="{{ route('bags.purchases', ['mode' => $mode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'purchases'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -54,7 +54,7 @@
             </a>
 
             {{-- Daily Issuance --}}
-            <a href="{{ route('bags.ledger') }}"
+            <a href="{{ route('bags.ledger', ['mode' => $mode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'ledger'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -77,7 +77,7 @@
             </a>
 
             {{-- Sizing Consumption --}}
-            <a href="{{ route('bags.sizing-usage') }}"
+            <a href="{{ route('bags.sizing-usage', ['mode' => $mode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'sizing'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -122,7 +122,7 @@
     @endif
     <div class="min-w-0 space-y-6">
 
-    @if($page !== 'dashboard')
+    @if($page !== 'dashboard' || $mode === 'display')
     <!-- Header & Action Buttons -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-200">
         <div>
@@ -134,6 +134,16 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            @if($mode === 'display')
+                @if($page === 'dashboard')
+                <a href="{{ route('sizing.index', ['mode' => 'display']) }}" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Open Sizing</span>
+                </a>
+                @else
+                <a href="{{ route('bags.index', ['mode' => 'display']) }}" class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors">Bags Dashboard</a>
+                @endif
+            @else
             <a href="#bag-purchase-entry" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-extrabold text-xs shadow-sm transition-all flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>Buy Bags</span>
@@ -147,11 +157,12 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/></svg>
                 <span>Receive Bags Return</span>
             </a>
+            @endif
         </div>
     </div>
     @endif
 
-@if($page !== 'dashboard' || $mode === 'operator')
+@if($mode === 'operator')
 @php
     $activeBagForm = $errors->has('name') ? 'quality' : match (old('purchase_form') === 'bag_purchase' ? 'purchase' : old('operation_form')) {
         'bag_issue' => 'issue',
@@ -540,10 +551,10 @@
     <!-- KPI Metric Cards -->
     @if ($page === 'dashboard' && $mode === 'display')
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div class="glass-card rounded-2xl p-4 border border-zinc-200">
-            <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 flex items-center justify-between">
+        <div class="glass-card rounded-2xl p-4 border border-zinc-300 bg-zinc-50">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-700 flex items-center justify-between">
                 <span>Total Bags Purchased</span>
-                <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+                <span class="w-2 h-2 rounded-full bg-zinc-700"></span>
             </div>
             <div class="text-2xl font-black text-zinc-900 mt-1">{{ number_format($totalPurchased) }} <span class="text-xs font-normal text-zinc-400">bags</span></div>
             <div class="text-[11px] text-zinc-400 mt-1 font-mono">Rs. {{ number_format($totalYarnInvestment, 0) }}</div>
@@ -558,10 +569,10 @@
             <div class="text-[11px] text-zinc-500 mt-1">Ready in Mill Godown</div>
         </div>
 
-        <div class="glass-card rounded-2xl p-4 border border-zinc-300 bg-zinc-50">
-            <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-700 flex items-center justify-between">
+        <div class="glass-card rounded-2xl p-4 border border-zinc-200">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 flex items-center justify-between">
                 <span>With Sizing Persons</span>
-                <span class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
             </div>
             <div class="text-2xl font-black text-zinc-900 mt-1">{{ number_format((float) $sizingStockRemaining, 2) }} <span class="text-xs font-normal text-zinc-400">bags</span></div>
             <div class="text-[11px] text-zinc-500 mt-1">Allocated to Sizing Mills</div>
@@ -630,7 +641,7 @@
                 </div>
             </div>
             @if($page === 'dashboard')
-                <a href="{{ route('bags.purchases') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">
+                <a href="{{ route('bags.purchases', ['mode' => $mode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">
                     View all &rarr;
                 </a>
             @endif
@@ -704,7 +715,7 @@
                 </div>
             </div>
             @if($page === 'dashboard')
-                <a href="{{ route('bags.ledger') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">
+                <a href="{{ route('bags.ledger', ['mode' => $mode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">
                     View all &rarr;
                 </a>
             @endif
@@ -794,11 +805,11 @@
             </div>
             <div class="flex items-center gap-3">
                 @if($page === 'dashboard')
-                    <a href="{{ route('bags.sizing-usage') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">
+                    <a href="{{ route('bags.sizing-usage', ['mode' => $mode]) }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors">
                         View all &rarr;
                     </a>
                 @endif
-                <a href="{{ route('sizing.index') }}" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-bold text-[11px] transition-colors">
+                <a href="{{ route('sizing.index', ['mode' => $mode]) }}" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-700 text-zinc-50 font-bold text-[11px] transition-colors">
                     Open Sizing &rarr;
                 </a>
             </div>
