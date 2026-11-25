@@ -2,11 +2,15 @@
 
 @section('title', $accountParty->name.' Account')
 
+@php
+    $financeMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+@endphp
+
 @section('content')
 <div class="mx-auto max-w-7xl space-y-6">
     <header class="flex flex-col gap-4 border-b border-zinc-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <a href="{{ route('accounts.index') }}" class="text-xs font-bold text-zinc-500 hover:text-zinc-900">← All accounts</a>
+            <a href="{{ route('accounts.index', ['mode' => $financeMode]) }}" class="text-xs font-bold text-zinc-500 hover:text-zinc-900">← All accounts</a>
             <span class="mt-3 block text-[10px] font-extrabold uppercase tracking-[0.18em] text-zinc-500">{{ ucfirst($accountType) }} account</span>
             <h1 class="mt-1 text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl">{{ $accountParty->name }}</h1>
             <p class="mt-1 text-sm text-zinc-500">{{ $accountParty->phone ?: 'No phone recorded' }}{{ $accountParty->email ? ' · '.$accountParty->email : '' }}</p>
@@ -17,7 +21,15 @@
         </article>
     </header>
 
-    <section class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    @if($financeMode === 'operator')
+    <nav class="flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Account entry forms" role="tablist">
+        <button type="button" class="rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white" aria-selected="true" aria-controls="party-payment-entry">{{ $accountType === 'customer' ? 'Record Customer Payment' : 'Record Supplier Payment' }} <kbd class="ml-1 text-[10px]">Ctrl+1</kbd></button>
+    </nav>
+        <script>document.addEventListener('keydown', (event) => { if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key === '1') { event.preventDefault(); document.querySelector('#party-payment-entry input:not([type="hidden"]), #party-payment-entry select')?.focus(); } });</script>
+    @endif
+
+    @if($financeMode === 'operator')
+    <section id="party-payment-entry" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
         <div class="mb-4">
             <h2 class="text-sm font-extrabold text-zinc-900">{{ $accountType === 'customer' ? 'Record customer payment' : 'Record supplier payment' }}</h2>
             <p class="mt-1 text-xs text-zinc-500">{{ $accountType === 'customer' ? 'Record money received from this customer. The payment will reduce their receivable balance.' : 'Record money paid to this supplier. The payment will reduce their payable balance.' }}</p>
@@ -72,7 +84,9 @@
             </form>
         @endif
     </section>
+    @endif
 
+    @if($financeMode === 'display')
     @if($accountType === 'customer')
         <section class="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <article class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
@@ -134,5 +148,6 @@
             @endforelse
         </tbody></table></div>
     </article>
+    @endif
 </div>
 @endsection

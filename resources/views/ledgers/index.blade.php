@@ -2,6 +2,10 @@
 
 @section('title', 'Ledgers & Audit Statements')
 
+@php
+    $financeMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+@endphp
+
 @section('content')
 <div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
 
@@ -11,7 +15,7 @@
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- General Ledger — main dashboard link --}}
-        <a href="{{ route('ledgers.index') }}"
+        <a href="{{ route('ledgers.index', ['mode' => $financeMode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $activeLedger === 'all'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -46,7 +50,7 @@
             @endphp
 
             @foreach($navItems as $key => $item)
-                <a href="{{ route('ledgers.index', ['ledger' => $key]) }}"
+                    <a href="{{ route('ledgers.index', ['ledger' => $key, 'mode' => $financeMode]) }}"
                    class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                           {{ $activeLedger === $key
                                ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -102,7 +106,7 @@
                 </svg>
                 Sales Module
             </a>
-            <a href="{{ route('invoices.index') }}"
+            <a href="{{ route('invoices.index', ['mode' => $financeMode]) }}"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -110,7 +114,7 @@
                 </svg>
                 Invoices Module
             </a>
-            <a href="{{ route('expenses.index') }}"
+            <a href="{{ route('expenses.index', ['mode' => $financeMode]) }}"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -212,6 +216,7 @@
 
                 {{-- Filter form --}}
                 <form method="GET" action="{{ route('ledgers.index') }}" class="flex flex-wrap items-center gap-2">
+                    <input type="hidden" name="mode" value="{{ $financeMode }}">
                     {{-- Keep active ledger type --}}
                     @if($activeLedger !== 'all')
                         <input type="hidden" name="ledger" value="{{ $activeLedger }}">
@@ -262,7 +267,7 @@
                     </button>
 
                     @if(($filters['party_name'] ?? null) || ($filters['customer_id'] ?? null) || ($filters['party_type'] ?? null) || ($filters['from'] ?? null) || ($filters['to'] ?? null))
-                        <a href="{{ route('ledgers.index', $activeLedger === 'all' ? [] : ['ledger' => $activeLedger]) }}"
+                        <a href="{{ route('ledgers.index', ['ledger' => $activeLedger === 'all' ? null : $activeLedger, 'mode' => $financeMode]) }}"
                            class="px-2.5 py-1.5 rounded-xl bg-zinc-100 text-zinc-500 hover:text-zinc-900 text-xs font-semibold transition-colors">
                             Clear
                         </a>

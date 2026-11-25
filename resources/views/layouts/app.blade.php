@@ -518,6 +518,12 @@
             display: none !important;
         }
 
+        body.operator-console.finance-display-mode main form[method="POST"],
+        body.operator-console.finance-display-mode main button,
+        body.operator-console.finance-display-mode main a[href*="#"] {
+            display: none !important;
+        }
+
         body.operator-console.bags-display-mode > .operator-app {
             height: auto;
             min-height: 100vh;
@@ -528,6 +534,25 @@
             height: auto;
             min-height: 100%;
             overflow: auto;
+        }
+
+        body.operator-console.finance-display-mode {
+            height: auto;
+            min-height: 100%;
+            overflow: auto;
+        }
+
+        body.operator-console.finance-display-mode > .operator-app,
+        body.operator-console.finance-display-mode > .operator-app > .operator-workspace,
+        body.operator-console.finance-display-mode > .operator-app > .operator-workspace > div.flex-1 {
+            height: auto;
+            min-height: 100vh;
+            overflow: visible;
+        }
+
+        body.operator-console.finance-display-mode > .operator-app > .operator-workspace > div.flex-1 > main {
+            flex: none;
+            overflow: visible;
         }
 
         body.operator-console.sales-display-mode > .operator-app,
@@ -852,18 +877,18 @@
             align-self: flex-start;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
             display: flex;
             flex-direction: column;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
             flex: 1 1 0%;
             min-height: 0;
             overflow-y: auto;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
             flex: 0 0 auto;
         }
 
@@ -1111,7 +1136,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'ledgers.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1209,6 +1234,14 @@
                 <form method="GET" action="{{ request()->url() }}" class="operator-mode-switch">
                     <label for="sales-mode-switch">Sales view</label>
                     <select id="sales-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @elseif(str_starts_with($currentRoute, 'invoices') || str_starts_with($currentRoute, 'accounts') || str_starts_with($currentRoute, 'ledgers') || str_starts_with($currentRoute, 'expenses'))
+                <form method="GET" action="{{ request()->url() }}" class="operator-mode-switch">
+                    <label for="finance-mode-switch">Finance view</label>
+                    <select id="finance-mode-switch" name="mode" onchange="this.form.submit()">
                         <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
                         <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
                     </select>
@@ -1760,6 +1793,18 @@
                     event.preventDefault();
                     salesModeSwitch.value = salesModeSwitch.value === 'display' ? 'operator' : 'display';
                     salesModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
+
+            @if(request()->routeIs('invoices.*', 'accounts.*', 'ledgers.*', 'expenses.*'))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const financeModeSwitch = document.getElementById('finance-mode-switch');
+                if (financeModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    financeModeSwitch.value = financeModeSwitch.value === 'display' ? 'operator' : 'display';
+                    financeModeSwitch.form?.requestSubmit();
                 }
                 return;
             }

@@ -2,12 +2,23 @@
 
 @section('title', 'Invoices, Customers & Accounts')
 
+@php
+    $financeMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $invoiceOperatorTabs = [
+        ['invoices', 'Create Invoice', 'invoices.invoices'],
+        ['payments', 'Receive Payment', 'invoices.payments'],
+        ['customers', 'Customer Records', 'invoices.customers'],
+        ['accounts', 'Cash / Bank Accounts', 'invoices.accounts'],
+    ];
+@endphp
+
 @section('content')
-<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[250px_minmax(0,1fr)]">
+<div class="{{ $financeMode === 'display' ? 'grid grid-cols-1 items-start gap-6 lg:grid-cols-[250px_minmax(0,1fr)]' : 'mx-auto max-w-7xl' }}">
+    @if($financeMode === 'display')
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
-        <a href="{{ route('invoices.index') }}"
+        <a href="{{ route('invoices.index', ['mode' => $financeMode]) }}"
            class="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all
                   {{ $page === 'dashboard'
                        ? 'bg-zinc-900 text-zinc-50 shadow-md'
@@ -31,7 +42,7 @@
         <nav class="space-y-1.5" aria-label="Invoice sections">
 
             {{-- Invoice Register --}}
-            <a href="{{ route('invoices.invoices') }}"
+            <a href="{{ route('invoices.invoices', ['mode' => $financeMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'invoices'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -54,7 +65,7 @@
             </a>
 
             {{-- Customers --}}
-            <a href="{{ route('invoices.customers') }}"
+            <a href="{{ route('invoices.customers', ['mode' => $financeMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'customers'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -77,7 +88,7 @@
             </a>
 
             {{-- Payments Received --}}
-            <a href="{{ route('invoices.payments') }}"
+            <a href="{{ route('invoices.payments', ['mode' => $financeMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'payments'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -100,7 +111,7 @@
             </a>
 
             {{-- Cash & Bank --}}
-            <a href="{{ route('invoices.accounts') }}"
+            <a href="{{ route('invoices.accounts', ['mode' => $financeMode]) }}"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all
                       {{ $page === 'accounts'
                            ? 'bg-zinc-900 text-zinc-50 shadow-sm'
@@ -146,16 +157,17 @@
         @endif
 
         {{-- Quick Actions --}}
+        @if($financeMode === 'operator')
         <div class="mt-5 pt-4 border-t border-zinc-100 space-y-1.5">
             <div class="px-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Actions</div>
-            <a href="{{ route('invoices.invoices') }}#invoice-entry"
+            <a href="{{ route('invoices.invoices', ['mode' => $financeMode]) }}#invoice-entry"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Create Invoice
             </a>
-            <a href="{{ route('invoices.payments') }}#payment-entry"
+            <a href="{{ route('invoices.payments', ['mode' => $financeMode]) }}#payment-entry"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -172,41 +184,75 @@
                 Sales Module
             </a>
         </div>
+        @endif
     </aside>
+    @endif
 
     <main class="min-w-0 space-y-6">
         <div class="flex flex-col justify-between gap-4 border-b border-zinc-200 pb-4 sm:flex-row sm:items-end">
             <div><div class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Module 07 · Billing & Receipts</div><h1 class="mt-1 text-2xl font-black tracking-tight text-zinc-900">{{ ['dashboard' => 'Invoices Dashboard', 'invoices' => 'Invoice Register', 'customers' => 'Customers', 'payments' => 'Payments Received', 'accounts' => 'Cash & Bank Accounts'][$page] }}</h1></div>
             <div class="flex flex-wrap gap-2">
-                @if(in_array($page, ['dashboard', 'invoices'], true))<a href="{{ route('invoices.invoices') }}#invoice-entry" class="rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white">Create Invoice</a>@endif
-                @if(in_array($page, ['dashboard', 'payments'], true))<a href="{{ route('invoices.payments') }}#payment-entry" class="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-xs font-bold text-zinc-700">Receive Payment</a>@endif
+                @if($financeMode === 'display' && in_array($page, ['dashboard', 'invoices'], true))<a href="{{ route('invoices.invoices', ['mode' => $financeMode]) }}#invoice-entry" class="rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white">Create Invoice</a>@endif
+                @if($financeMode === 'display' && in_array($page, ['dashboard', 'payments'], true))<a href="{{ route('invoices.payments', ['mode' => $financeMode]) }}#payment-entry" class="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-xs font-bold text-zinc-700">Receive Payment</a>@endif
             </div>
         </div>
 
         @if(session('success'))<div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><p class="font-bold">Please check these entries:</p><ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
-        @if($page === 'dashboard')
+        @if($financeMode === 'operator')
+        <nav class="flex flex-wrap gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Invoice operator pages">
+            @foreach($invoiceOperatorTabs as $index => [$tabPage, $label, $routeName])
+            <a href="{{ route($routeName, ['mode' => 'operator']) }}" data-invoice-operator-shortcut="{{ $index + 1 }}" @class(['rounded-xl px-4 py-2 text-xs font-bold transition', 'bg-zinc-900 text-white' => $page === $tabPage, 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' => $page !== $tabPage]) @if($page === $tabPage) aria-current="page" @endif>
+                {{ $label }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $index + 1 }}</kbd>
+            </a>
+            @endforeach
+        </nav>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.addEventListener('keydown', (event) => {
+                    if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3', '4'].includes(event.key)) return;
+                    const tab = document.querySelector(`[data-invoice-operator-shortcut="${event.key}"]`);
+                    if (tab instanceof HTMLAnchorElement) {
+                        event.preventDefault();
+                        window.location.assign(tab.href);
+                    }
+                });
+            });
+        </script>
+        @endif
+
+        @if($page === 'dashboard' && $financeMode === 'display')
             <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ([['Invoices Issued', $totalInvoiced], ['Payments Allocated', $totalReceived], ['Outstanding Balance', $totalDue], ['Cash / Bank Balance', $totalAccountBalance]] as [$label, $value])
                     <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm"><div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ $label }}</div><div class="mt-2 font-mono text-xl font-black text-zinc-900">Rs. {{ number_format($value, 2) }}</div></div>
                 @endforeach
             </section>
             <section class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-                <div class="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-5 py-4"><div><h2 class="text-sm font-extrabold">Recent Invoices</h2><p class="mt-1 text-[10px] text-zinc-500">Billing linked to sales slips and contracts</p></div><a class="text-xs font-bold text-zinc-600" href="{{ route('invoices.invoices') }}">View register →</a></div>
+                <div class="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-5 py-4"><div><h2 class="text-sm font-extrabold">Recent Invoices</h2><p class="mt-1 text-[10px] text-zinc-500">Billing linked to sales slips and contracts</p></div><a class="text-xs font-bold text-zinc-600" href="{{ route('invoices.invoices', ['mode' => $financeMode]) }}">View register →</a></div>
                 @include('invoices.partials.invoice-table', ['rows' => $invoices, 'compact' => true])
             </section>
             <div class="grid gap-4 md:grid-cols-2">
-                <a href="{{ route('invoices.customers') }}" class="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-zinc-400"><h2 class="font-extrabold">Customer records</h2><p class="mt-1 text-xs text-zinc-500">Maintain buyers and review invoiced and received totals.</p></a>
-                <a href="{{ route('invoices.accounts') }}" class="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-zinc-400"><h2 class="font-extrabold">Cash & bank accounts</h2><p class="mt-1 text-xs text-zinc-500">Record the receiving account, receipts, deposits and withdrawals.</p></a>
+                <a href="{{ route('invoices.customers', ['mode' => $financeMode]) }}" class="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-zinc-400"><h2 class="font-extrabold">Customer records</h2><p class="mt-1 text-xs text-zinc-500">Maintain buyers and review invoiced and received totals.</p></a>
+                <a href="{{ route('invoices.accounts', ['mode' => $financeMode]) }}" class="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-zinc-400"><h2 class="font-extrabold">Cash & bank accounts</h2><p class="mt-1 text-xs text-zinc-500">Record the receiving account, receipts, deposits and withdrawals.</p></a>
             </div>
         @endif
 
+        @if($page === 'dashboard' && $financeMode === 'operator')
+            <nav class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Finance entry pages">
+                <a class="rounded-2xl border border-zinc-200 bg-white p-4 font-bold" href="{{ route('invoices.invoices', ['mode' => 'operator']) }}">Create invoice</a>
+                <a class="rounded-2xl border border-zinc-200 bg-white p-4 font-bold" href="{{ route('invoices.customers', ['mode' => 'operator']) }}">Add customer</a>
+                <a class="rounded-2xl border border-zinc-200 bg-white p-4 font-bold" href="{{ route('invoices.payments', ['mode' => 'operator']) }}">Receive payment</a>
+                <a class="rounded-2xl border border-zinc-200 bg-white p-4 font-bold" href="{{ route('invoices.accounts', ['mode' => 'operator']) }}">Manage cash and bank accounts</a>
+            </nav>
+        @endif
+
         @if($page === 'invoices')
-            <section id="invoice-entry" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+            @if($financeMode === 'operator')
+            <section id="invoice-entry" data-finance-form-panel="invoice" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <h2 class="text-sm font-extrabold">Create Invoice</h2><p class="mt-1 text-xs text-zinc-500">Link a sales slip or contract; manual line items are available for contract billing.</p>
                 @if($activeCustomers->isEmpty())<p class="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-800">Add a customer first, then create the invoice.</p>@endif
-                <form method="POST" action="{{ route('invoices.store') }}" class="mt-4 space-y-4">@csrf
+                <form method="POST" action="{{ route('invoices.store') }}" class="mt-4 space-y-4">@csrf<input type="hidden" name="operation_form" value="invoice">
                     <div class="grid gap-3 md:grid-cols-3">
                         <label class="text-xs font-semibold text-zinc-600">Invoice number<input name="invoice_no" required value="{{ old('invoice_no', 'INV-'.now()->format('ymdHis')) }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 font-mono text-sm"></label>
                         <label class="text-xs font-semibold text-zinc-600">Customer *<select id="invoiceCustomer" name="customer_id" required class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="">Choose customer</option>@foreach($activeCustomers as $customer)<option value="{{ $customer->id }}" data-customer-name="{{ $customer->name }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}{{ $customer->phone ? ' · '.$customer->phone : '' }}</option>@endforeach</select></label>
@@ -231,11 +277,15 @@
                     <div class="flex justify-end"><button @disabled($activeCustomers->isEmpty()) class="rounded-xl bg-zinc-900 px-5 py-2.5 text-xs font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40">Issue Invoice</button></div>
                 </form>
             </section>
+            @endif
+            @if($financeMode === 'display')
             <section class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm"><div class="border-b border-zinc-100 bg-zinc-50 px-5 py-4"><h2 class="text-sm font-extrabold">All Invoices</h2></div>@include('invoices.partials.invoice-table', ['rows' => $invoices, 'compact' => false])<div class="border-t border-zinc-100 px-5 py-4">{{ $invoices->links() }}</div></section>
+            @endif
         @endif
 
         @if($page === 'customers')
-            <section class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Add Customer</h2><form method="POST" action="{{ route('invoices.customer.store') }}" class="mt-4 grid gap-3 md:grid-cols-2">@csrf
+            @if($financeMode === 'operator')
+            <section id="finance-entry-customer" data-finance-form-panel="customer" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Add Customer</h2><form method="POST" action="{{ route('invoices.customer.store') }}" class="mt-4 grid gap-3 md:grid-cols-2">@csrf<input type="hidden" name="operation_form" value="customer">
                 <label class="text-xs font-semibold text-zinc-600">Customer / party name *<input name="name" required value="{{ old('name') }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
                 <label class="text-xs font-semibold text-zinc-600">Phone<input name="phone" value="{{ old('phone') }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
                 <label class="text-xs font-semibold text-zinc-600">Email<input name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
@@ -243,13 +293,17 @@
                 <label class="text-xs font-semibold text-zinc-600 md:col-span-2">Address<textarea name="address" rows="2" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></textarea></label>
                 <div class="md:col-span-2 flex justify-end"><button class="rounded-xl bg-zinc-900 px-5 py-2.5 text-xs font-extrabold text-white">Save Customer</button></div>
             </form></section>
+            @endif
+            @if($financeMode === 'display')
             <section class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm"><div class="border-b border-zinc-100 bg-zinc-50 px-5 py-4"><h2 class="text-sm font-extrabold">Customer Register</h2><p class="mt-1 text-[10px] text-zinc-500">Contract and sales party names are shared with this customer list.</p></div><div class="overflow-x-auto"><table class="w-full min-w-[900px] text-left text-xs"><thead class="bg-white text-[10px] uppercase text-zinc-500"><tr><th class="px-4 py-3">Customer</th><th class="px-4 py-3">Phone / Email</th><th class="px-4 py-3 text-right">Invoices</th><th class="px-4 py-3 text-right">Invoiced</th><th class="px-4 py-3 text-right">Received</th><th class="px-4 py-3 text-right">Customer balance</th></tr></thead><tbody class="divide-y divide-zinc-100">@forelse($customers as $customer)@php($customerBalance = (float) $customer->opening_balance + (float) $customer->invoices_sum_total - (float) $customer->payments_sum_amount)<tr><td class="px-4 py-3 font-bold">{{ $customer->name }}<span class="block text-[10px] font-normal text-zinc-400">{{ $customer->status }}</span></td><td class="px-4 py-3 text-zinc-600">{{ $customer->phone ?: '—' }}<span class="block text-[10px] text-zinc-400">{{ $customer->email }}</span></td><td class="px-4 py-3 text-right">{{ $customer->invoices_count }}</td><td class="px-4 py-3 text-right font-mono">Rs. {{ number_format((float) $customer->invoices_sum_total, 2) }}</td><td class="px-4 py-3 text-right font-mono">Rs. {{ number_format((float) $customer->payments_sum_amount, 2) }}</td><td class="px-4 py-3 text-right font-mono {{ $customerBalance > 0 ? 'text-amber-700' : 'text-emerald-700' }}">Rs. {{ number_format($customerBalance, 2) }}</td></tr>@empty<tr><td colspan="6" class="px-5 py-10 text-center text-zinc-400">No customers yet. Add a buyer above.</td></tr>@endforelse</tbody></table></div><div class="border-t border-zinc-100 px-5 py-4">{{ $customers->links() }}</div></section>
+            @endif
         @endif
 
         @if($page === 'payments')
-            <section id="payment-entry" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Receive Customer Payment</h2><p class="mt-1 text-xs text-zinc-500">Post money to cash/bank and allocate it to the selected invoice, oldest open invoices, or keep it as customer credit.</p>
+            @if($financeMode === 'operator')
+            <section id="payment-entry" data-finance-form-panel="payment" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Receive Customer Payment</h2><p class="mt-1 text-xs text-zinc-500">Post money to cash/bank and allocate it to the selected invoice, oldest open invoices, or keep it as customer credit.</p>
                 @if($activeAccounts->isEmpty())<p class="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-800">Create a cash or bank account first in the Cash & Bank section.</p>@endif
-                <form method="POST" action="{{ route('invoices.payment.store') }}" class="mt-4 grid gap-3 md:grid-cols-3">@csrf
+                <form method="POST" action="{{ route('invoices.payment.store') }}" class="mt-4 grid gap-3 md:grid-cols-3">@csrf<input type="hidden" name="operation_form" value="payment">
                     <label class="text-xs font-semibold text-zinc-600">Receipt number<input name="receipt_no" required value="{{ old('receipt_no', 'RCPT-'.now()->format('ymdHis')) }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 font-mono text-sm"></label>
                     <label class="text-xs font-semibold text-zinc-600">Customer *<select id="paymentCustomer" name="customer_id" required class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="">Choose customer</option>@foreach($activeCustomers as $customer)<option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>@endforeach</select></label>
                     <label class="text-xs font-semibold text-zinc-600">Deposit into *<select id="paymentAccount" name="financial_account_id" required class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="">Choose account</option>@foreach($activeAccounts as $account)<option value="{{ $account->id }}" data-account-type="{{ $account->type }}">{{ ucfirst($account->type) }} · {{ $account->name }}</option>@endforeach</select></label>
@@ -264,23 +318,30 @@
                     <div class="md:col-span-3 flex justify-end"><button @disabled($activeAccounts->isEmpty() || $activeCustomers->isEmpty()) class="rounded-xl bg-zinc-900 px-5 py-2.5 text-xs font-extrabold text-white disabled:opacity-40">Save Receipt</button></div>
                 </form>
             </section>
+            @endif
+            @if($financeMode === 'display')
             <section class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm"><div class="border-b border-zinc-100 bg-zinc-50 px-5 py-4"><h2 class="text-sm font-extrabold">Payment Receipt History</h2></div><div class="overflow-x-auto"><table class="w-full min-w-[850px] text-left text-xs"><thead class="bg-white text-[10px] uppercase text-zinc-500"><tr><th class="px-4 py-3">Receipt / Date</th><th class="px-4 py-3">Customer</th><th class="px-4 py-3">Account / Method</th><th class="px-4 py-3">Applied to invoices</th><th class="px-4 py-3 text-right">Received</th></tr></thead><tbody class="divide-y divide-zinc-100">@forelse($payments as $payment)<tr><td class="px-4 py-3 font-mono font-bold">{{ $payment->receipt_no }}<span class="block text-[10px] font-normal text-zinc-400">{{ $payment->payment_date->format('d M Y') }}</span></td><td class="px-4 py-3">{{ $payment->customer->name }}</td><td class="px-4 py-3">{{ $payment->account->name }}<span class="block text-[10px] text-zinc-400">{{ str_replace('_', ' ', ucfirst($payment->method)) }}</span></td><td class="px-4 py-3">@forelse($payment->allocations as $allocation)<span class="mr-1 inline-block rounded bg-zinc-100 px-2 py-1">{{ $allocation->invoice->invoice_no }} · Rs. {{ number_format((float) $allocation->amount, 2) }}</span>@empty<span class="text-zinc-400">Customer credit</span>@endforelse</td><td class="px-4 py-3 text-right font-mono font-bold">Rs. {{ number_format((float) $payment->amount, 2) }}</td></tr>@empty<tr><td colspan="5" class="px-5 py-10 text-center text-zinc-400">No receipts recorded.</td></tr>@endforelse</tbody></table></div><div class="border-t border-zinc-100 px-5 py-4">{{ $payments->links() }}</div></section>
+            @endif
         @endif
 
         @if($page === 'accounts')
-            <div class="grid gap-5 xl:grid-cols-2">
-                <section class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Add Cash / Bank Account</h2><form method="POST" action="{{ route('invoices.account.store') }}" class="mt-4 space-y-3">@csrf
+            @if($financeMode === 'operator')
+            <div class="grid gap-5">
+                <section id="finance-entry-account" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Add Cash / Bank Account</h2><form method="POST" action="{{ route('invoices.account.store') }}" class="mt-4 space-y-3">@csrf<input type="hidden" name="operation_form" value="account">
                     <label class="block text-xs font-semibold text-zinc-600">Account name<input name="name" required placeholder="e.g. HBL Current Account" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
                     <div class="grid grid-cols-2 gap-3"><label class="text-xs font-semibold text-zinc-600">Type<select name="type" class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="bank">Bank</option><option value="cash">Cash</option></select></label><label class="text-xs font-semibold text-zinc-600">Account / last digits<input name="account_number" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label></div>
                     <label class="block text-xs font-semibold text-zinc-600">Opening balance (Rs.)<input name="opening_balance" type="number" min="0" step="0.01" value="0" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><button class="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-bold text-white">Save Account</button>
                 </form></section>
-                <section class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Record Deposit / Withdrawal</h2><p class="mt-1 text-xs text-zinc-500">Customer receipts are added automatically. Use this form for other account movements.</p><form method="POST" action="{{ route('invoices.account-transaction.store') }}" class="mt-4 space-y-3">@csrf
+                <section id="finance-entry-transaction" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"><h2 class="text-sm font-extrabold">Record Deposit / Withdrawal</h2><p class="mt-1 text-xs text-zinc-500">Customer receipts are added automatically. Use this form for other account movements.</p><form method="POST" action="{{ route('invoices.account-transaction.store') }}" class="mt-4 space-y-3">@csrf<input type="hidden" name="operation_form" value="transaction">
                     <label class="block text-xs font-semibold text-zinc-600">Account<select name="financial_account_id" required class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="">Choose account</option>@foreach($activeAccounts as $account)<option value="{{ $account->id }}">{{ ucfirst($account->type) }} · {{ $account->name }}</option>@endforeach</select></label>
                     <div class="grid grid-cols-2 gap-3"><label class="text-xs font-semibold text-zinc-600">Direction<select name="direction" class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="in">Money in</option><option value="out">Money out</option></select></label><label class="text-xs font-semibold text-zinc-600">Date<input name="transaction_date" type="date" required value="{{ today()->toDateString() }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label></div>
                     <label class="block text-xs font-semibold text-zinc-600">Amount (Rs.)<input name="amount" type="number" min="0.01" step="0.01" required class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><label class="block text-xs font-semibold text-zinc-600">Description<input name="description" required class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><label class="block text-xs font-semibold text-zinc-600">Reference<input name="reference" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label><button class="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-bold text-white">Post Transaction</button>
                 </form></section>
             </div>
+            @endif
+            @if($financeMode === 'display')
             <section class="space-y-4">@forelse($accounts as $account)@php($balance = (float) $account->opening_balance + (float) ($account->money_in ?? 0) - (float) ($account->money_out ?? 0))<article class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm"><div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 bg-zinc-50 px-5 py-4"><div><span class="rounded-full bg-zinc-200 px-2 py-1 text-[10px] font-bold uppercase">{{ $account->type }}</span><h2 class="mt-2 font-extrabold">{{ $account->name }}</h2><p class="text-[10px] text-zinc-500">{{ $account->account_number ?: 'Account number not recorded' }}</p></div><div class="text-right"><div class="text-[10px] uppercase tracking-wider text-zinc-500">Current balance</div><div class="font-mono text-xl font-black {{ $balance < 0 ? 'text-red-700' : 'text-zinc-900' }}">Rs. {{ number_format($balance, 2) }}</div></div></div><div class="grid grid-cols-3 gap-2 border-b border-zinc-100 px-5 py-3 text-xs"><div>Opening <strong class="ml-1 font-mono">{{ number_format((float) $account->opening_balance, 2) }}</strong></div><div>Money in <strong class="ml-1 font-mono">{{ number_format((float) ($account->money_in ?? 0), 2) }}</strong></div><div>Money out <strong class="ml-1 font-mono">{{ number_format((float) ($account->money_out ?? 0), 2) }}</strong></div></div><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-[10px] uppercase text-zinc-400"><tr><th class="px-5 py-2">Date</th><th class="px-5 py-2">Description</th><th class="px-5 py-2">Reference</th><th class="px-5 py-2 text-right">Direction / Amount</th></tr></thead><tbody class="divide-y divide-zinc-100">@forelse($account->transactions as $transaction)<tr><td class="px-5 py-2">{{ $transaction->transaction_date->format('d M Y') }}</td><td class="px-5 py-2">{{ $transaction->description }}</td><td class="px-5 py-2">{{ $transaction->reference ?: '—' }}</td><td class="px-5 py-2 text-right font-mono {{ $transaction->direction === 'in' ? 'text-emerald-700' : 'text-red-700' }}">{{ $transaction->direction === 'in' ? '+' : '−' }} Rs. {{ number_format((float) $transaction->amount, 2) }}</td></tr>@empty<tr><td colspan="4" class="px-5 py-5 text-center text-zinc-400">No account movements recorded yet.</td></tr>@endforelse</tbody></table></div></article>@empty<div class="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500">Add your cash or bank account to start recording receipts and account balances.</div>@endforelse</section>
+            @endif
         @endif
     </main>
 </div>

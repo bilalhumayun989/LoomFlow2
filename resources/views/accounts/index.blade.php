@@ -2,6 +2,15 @@
 
 @section('title', 'Accounts Overview')
 
+@php
+    $financeMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $activeFinanceForm = match (old('operation_form')) {
+        'new_supplier' => 'supplier',
+        'party_payment' => 'payment',
+        default => 'customer',
+    };
+@endphp
+
 @section('content')
 <div class="mx-auto flex max-w-7xl flex-col space-y-6">
     <header class="flex flex-col gap-4 border-b border-zinc-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
@@ -11,15 +20,53 @@
             <p class="mt-1 text-sm text-zinc-500">Customer balances, supplier payables, invoices and received payments in one place.</p>
         </div>
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('invoices.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-zinc-700">
+            <a href="{{ route('invoices.index', ['mode' => $financeMode]) }}" class="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-zinc-700">
                 <span aria-hidden="true">＋</span> Create invoice or receipt
             </a>
-            <a href="{{ route('ledgers.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
+            <a href="{{ route('ledgers.index', ['mode' => $financeMode]) }}" class="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
                 General ledger <span aria-hidden="true">↗</span>
             </a>
         </div>
     </header>
 
+    @if($financeMode === 'operator')
+    <nav class="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Account entry forms" role="tablist">
+        <span class="mr-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Entry form</span>
+        @foreach([['customer', 'Add Customer'], ['supplier', 'Add Supplier'], ['payment', 'Record Party Payment']] as $index => [$form, $label])
+        <button type="button" class="finance-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activeFinanceForm === $form ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-finance-form-tab="{{ $form }}" aria-selected="{{ $activeFinanceForm === $form ? 'true' : 'false' }}">{{ $label }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $index + 1 }}</kbd></button>
+        @endforeach
+    </nav>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const showAccountForm = (name, focus = false) => {
+                document.querySelectorAll('[data-finance-form-panel]').forEach((panel) => { panel.hidden = panel.dataset.financeFormPanel !== name; });
+                document.querySelectorAll('[data-finance-form-tab]').forEach((tab) => {
+                    const selected = tab.dataset.financeFormTab === name;
+                    tab.setAttribute('aria-selected', String(selected));
+                    tab.classList.toggle('bg-zinc-900', selected); tab.classList.toggle('text-white', selected);
+                    tab.classList.toggle('bg-zinc-100', !selected); tab.classList.toggle('text-zinc-700', !selected);
+                });
+                document.querySelectorAll('[data-finance-form-panel]').forEach((panel) => {
+                    const group = panel.closest('section.grid');
+                    if (group) {
+                        const visible = Boolean(group.querySelector('[data-finance-form-panel]:not([hidden])'));
+                        group.hidden = !visible; group.style.display = visible ? '' : 'none';
+                    }
+                });
+                if (focus) document.querySelector(`[data-finance-form-panel="${name}"] input:not([type="hidden"]), [data-finance-form-panel="${name}"] select`)?.focus();
+            };
+            document.querySelectorAll('[data-finance-form-tab]').forEach((tab) => tab.addEventListener('click', () => showAccountForm(tab.dataset.financeFormTab, true)));
+            document.addEventListener('keydown', (event) => {
+                if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3'].includes(event.key)) return;
+                const tab = [...document.querySelectorAll('[data-finance-form-tab]')][Number(event.key) - 1];
+                if (tab) { event.preventDefault(); showAccountForm(tab.dataset.financeFormTab, true); }
+            });
+            showAccountForm(@json($activeFinanceForm));
+        });
+    </script>
+    @endif
+
+    @if($financeMode === 'display')
     <section class="order-last grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Account summaries">
         <article class="group rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <div class="flex items-start justify-between gap-3">
@@ -50,10 +97,13 @@
             <p class="mt-3 border-t border-violet-100 pt-3 text-xs font-medium text-zinc-500">Customer payments recorded this month</p>
         </article>
     </section>
+    @endif
 
+    @if($financeMode === 'operator')
     <section class="grid grid-cols-1 gap-5 xl:grid-cols-2" aria-label="Create party accounts">
-        <form method="POST" action="{{ route('invoices.customer.store') }}" class="space-y-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+        <form data-finance-form-panel="customer" @if($activeFinanceForm !== 'customer') hidden @endif method="POST" action="{{ route('invoices.customer.store') }}" class="space-y-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
             @csrf
+            <input type="hidden" name="operation_form" value="new_customer">
             <div><h2 class="text-sm font-extrabold text-zinc-900">Add customer account</h2><p class="mt-1 text-xs text-zinc-500">Create the customer and their separate ledger account together.</p></div>
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label class="text-[11px] font-bold text-zinc-600 sm:col-span-2">Customer name<input name="name" required maxlength="120" value="{{ old('name') }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2.5 text-xs"></label>
@@ -64,8 +114,9 @@
             </div>
             <button class="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-zinc-700">Create customer account</button>
         </form>
-        <form method="POST" action="{{ route('accounts.suppliers.store') }}" class="space-y-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+        <form data-finance-form-panel="supplier" @if($activeFinanceForm !== 'supplier') hidden @endif method="POST" action="{{ route('accounts.suppliers.store') }}" class="space-y-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
             @csrf
+            <input type="hidden" name="operation_form" value="new_supplier">
             <div><h2 class="text-sm font-extrabold text-zinc-900">Add supplier account</h2><p class="mt-1 text-xs text-zinc-500">Each supplier or mill gets a separate payable ledger account.</p></div>
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label class="text-[11px] font-bold text-zinc-600 sm:col-span-2">Supplier name<input name="name" required maxlength="150" value="{{ old('name') }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2.5 text-xs"></label>
@@ -79,7 +130,7 @@
         </form>
     </section>
 
-    <section id="record-party-payment" class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <section id="record-party-payment" data-finance-form-panel="payment" @if($activeFinanceForm !== 'payment') hidden @endif class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
         <div class="mb-4">
             <h2 class="text-sm font-extrabold text-zinc-900">Record customer or supplier payment</h2>
             <p class="mt-1 text-xs text-zinc-500">Choose the party account and record money received from a customer or paid to a supplier.</p>
@@ -91,6 +142,7 @@
         @else
             <form id="accounts-party-payment-form" method="POST" action="{{ old('payment_kind', $supplierAccounts->isNotEmpty() ? 'paid' : 'received') === 'received' ? route('invoices.payment.store') : route('accounts.supplier-payment.store') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
                 @csrf
+                <input type="hidden" name="operation_form" value="party_payment">
                 <label class="text-[11px] font-bold text-zinc-600">Payment direction
                     <select id="accounts-payment-kind" name="payment_kind" required class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-xs text-zinc-900">
                         @if($supplierAccounts->isNotEmpty())<option value="paid" @selected(old('payment_kind', $supplierAccounts->isNotEmpty() ? 'paid' : 'received') === 'paid')>Pay supplier</option>@endif
@@ -198,6 +250,8 @@
             </script>
         @endif
     </section>
+    @endif
+    @if($financeMode === 'display')
     <section class="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <article class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
             <div class="flex items-center justify-between gap-3 border-b border-zinc-100 px-5 py-4">
@@ -205,7 +259,7 @@
                     <h2 class="text-sm font-extrabold text-zinc-900">Customer accounts</h2>
                     <p class="mt-1 text-xs text-zinc-500">Receivable balances from the customer ledgers.</p>
                 </div>
-                <a href="{{ route('invoices.customers') }}" class="shrink-0 text-xs font-bold text-zinc-600 hover:text-zinc-900">All customers ↗</a>
+                <a href="{{ route('invoices.customers', ['mode' => $financeMode]) }}" class="shrink-0 text-xs font-bold text-zinc-600 hover:text-zinc-900">All customers ↗</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[560px] text-left text-xs">
@@ -216,7 +270,7 @@
                         @forelse($customerAccounts as $customer)
                             <tr class="hover:bg-zinc-50/70">
                                 <td class="px-5 py-3.5">
-                                    <a href="{{ route('accounts.customers.show', $customer) }}" class="font-bold text-zinc-900 hover:underline">{{ $customer->name }}</a>
+                                    <a href="{{ route('accounts.customers.show', ['customer' => $customer, 'mode' => $financeMode]) }}" class="font-bold text-zinc-900 hover:underline">{{ $customer->name }}</a>
                                     <span class="mt-0.5 block text-[10px] text-zinc-500">{{ $customer->phone ?: 'Customer account' }}</span>
                                 </td>
                                 <td class="px-4 py-3.5 text-right font-mono text-zinc-600">{{ $customer->invoices_count }}</td>
@@ -236,7 +290,7 @@
                     <h2 class="text-sm font-extrabold text-zinc-900">Supplier accounts</h2>
                     <p class="mt-1 text-xs text-zinc-500">Payables from yarn, sizing-mill and parts ledgers.</p>
                 </div>
-                <a href="{{ route('ledgers.index', ['ledger' => 'parties']) }}" class="shrink-0 text-xs font-bold text-zinc-600 hover:text-zinc-900">Party ledgers ↗</a>
+                <a href="{{ route('ledgers.index', ['ledger' => 'parties', 'mode' => $financeMode]) }}" class="shrink-0 text-xs font-bold text-zinc-600 hover:text-zinc-900">Party ledgers ↗</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[560px] text-left text-xs">
@@ -247,7 +301,7 @@
                         @forelse($supplierAccounts as $supplier)
                             <tr class="hover:bg-zinc-50/70">
                                 <td class="px-5 py-3.5">
-                                    <a href="{{ route('accounts.suppliers.show', $supplier) }}" class="font-bold text-zinc-900 hover:underline">{{ $supplier->name }}</a>
+                                    <a href="{{ route('accounts.suppliers.show', ['supplier' => $supplier, 'mode' => $financeMode]) }}" class="font-bold text-zinc-900 hover:underline">{{ $supplier->name }}</a>
                                     <span class="mt-0.5 block text-[10px] text-zinc-500">{{ $supplier->last_activity ? \Illuminate\Support\Carbon::parse($supplier->last_activity)->format('d M Y') : 'No activity date' }}</span>
                                 </td>
                                 <td class="px-4 py-3.5 text-zinc-600">{{ ['yarn_supplier' => 'Yarn supplier', 'sizing_mill' => 'Sizing mill', 'parts_vendor' => 'Parts vendor'][$supplier->type] ?? ucfirst(str_replace('_', ' ', $supplier->type)) }}</td>
@@ -261,6 +315,7 @@
             </div>
         </article>
     </section>
+    @endif
 
 
 </div>

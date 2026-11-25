@@ -2,12 +2,23 @@
 
 @section('title', 'Fixed & Variable Expenses')
 
+@php
+    $financeMode = request()->query('mode') === 'display' ? 'display' : 'operator';
+    $activeExpenseForm = match (old('operation_form')) {
+        'variable' => 'variable',
+        'fixed_payment' => 'fixed-payment',
+        default => 'fixed',
+    };
+    $activeExpenseSetups = $fixedExpenses->where('is_active', true);
+@endphp
+
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
+<div class="{{ $financeMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
+    @if($financeMode === 'display')
     <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Header --}}
@@ -29,7 +40,7 @@
         <nav class="space-y-1.5" aria-label="Expense sections">
 
             {{-- Fixed Expense Setup --}}
-            <a href="#fixed-setup"
+            <a href="#fixed-expense-register"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100">
                     <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,13 +49,13 @@
                     </svg>
                 </span>
                 <div>
-                    <span class="block leading-tight">Fixed Expense Setup</span>
+                    <span class="block leading-tight">Fixed Expense Register</span>
                     <span class="block text-[10px] font-normal text-zinc-400">Recurring bills & schedules</span>
                 </div>
             </a>
 
             {{-- Record Variable --}}
-            <a href="#variable-entry"
+            <a href="#expense-history"
                class="flex items-center gap-3 w-full rounded-2xl px-3 py-2.5 text-xs font-bold transition-all text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100">
                     <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +64,7 @@
                     </svg>
                 </span>
                 <div>
-                    <span class="block leading-tight">Record Variable Expense</span>
+                    <span class="block leading-tight">Variable Expense History</span>
                     <span class="block text-[10px] font-normal text-zinc-400">One-off costs & repairs</span>
                 </div>
             </a>
@@ -110,7 +121,7 @@
                 </svg>
                 Record Variable Expense
             </a>
-            <a href="{{ route('invoices.accounts') }}"
+            <a href="{{ route('invoices.accounts', ['mode' => $financeMode]) }}"
                class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 transition-colors">
                 <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -120,6 +131,7 @@
             </a>
         </div>
     </aside>
+    @endif
 
     {{-- ============================================================
          MAIN CONTENT
@@ -136,6 +148,7 @@
                 <h1 class="text-2xl font-black text-zinc-900 tracking-tight">Expenses</h1>
                 <p class="text-xs text-zinc-400 mt-0.5">Set up recurring fixed bills, record variable costs, and post every payment to its cash or bank account.</p>
             </div>
+            @if($financeMode === 'display')
             <div class="flex items-center gap-3 shrink-0">
                 <a href="#fixed-setup"
                    class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300 text-xs font-bold transition-colors flex items-center gap-1.5">
@@ -148,7 +161,38 @@
                     Record Variable
                 </a>
             </div>
+            @endif
         </div>
+
+        @if($financeMode === 'operator')
+        <nav class="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="Expense entry forms" role="tablist">
+            <span class="mr-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Entry form</span>
+            @foreach([['fixed', 'Fixed Expense Setup'], ['variable', 'Variable Expense'], ['fixed-payment', 'Pay Fixed Expense']] as $index => [$form, $label])
+            <button type="button" class="expense-form-tab rounded-xl px-4 py-2 text-xs font-bold {{ $activeExpenseForm === $form ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}" data-expense-form-tab="{{ $form }}" aria-selected="{{ $activeExpenseForm === $form ? 'true' : 'false' }}">{{ $label }} <kbd class="ml-1 text-[10px]">Ctrl+{{ $index + 1 }}</kbd></button>
+            @endforeach
+        </nav>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const showExpenseForm = (name, focus = false) => {
+                    document.querySelectorAll('[data-expense-form-panel]').forEach((panel) => { panel.hidden = panel.dataset.expenseFormPanel !== name; });
+                    document.querySelectorAll('[data-expense-form-tab]').forEach((tab) => {
+                        const selected = tab.dataset.expenseFormTab === name;
+                        tab.setAttribute('aria-selected', String(selected));
+                        tab.classList.toggle('bg-zinc-900', selected); tab.classList.toggle('text-white', selected);
+                        tab.classList.toggle('bg-zinc-100', !selected); tab.classList.toggle('text-zinc-700', !selected);
+                    });
+                    if (focus) document.querySelector(`[data-expense-form-panel="${name}"] input, [data-expense-form-panel="${name}"] select, [data-expense-form-panel="${name}"] textarea`)?.focus();
+                };
+                document.querySelectorAll('[data-expense-form-tab]').forEach((tab) => tab.addEventListener('click', () => showExpenseForm(tab.dataset.expenseFormTab, true)));
+                document.addEventListener('keydown', (event) => {
+                    if (!event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || !['1', '2', '3'].includes(event.key)) return;
+                    const tab = [...document.querySelectorAll('[data-expense-form-tab]')][Number(event.key) - 1];
+                    if (tab) { event.preventDefault(); showExpenseForm(tab.dataset.expenseFormTab, true); }
+                });
+                showExpenseForm(@json($activeExpenseForm));
+            });
+        </script>
+        @endif
 
         {{-- Flash messages --}}
         @if(session('success'))
@@ -163,7 +207,7 @@
                 <div class="text-sm font-medium">{{ session('error') }}</div>
             </div>
         @endif
-        @if($errors->any())
+        @if($financeMode === 'operator' && $errors->any())
             <div class="p-4 rounded-2xl bg-zinc-100 border border-zinc-300 text-zinc-800 shadow-sm">
                 <div class="flex items-center gap-2 font-bold text-sm mb-1">
                     <svg class="w-5 h-5 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -176,6 +220,7 @@
         @endif
 
         {{-- KPI Cards --}}
+        @if($financeMode === 'display')
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="rounded-2xl border border-zinc-300 bg-zinc-50 p-4 shadow-sm">
                 <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-600">Total This Month</div>
@@ -198,15 +243,17 @@
                 <div class="text-[10px] text-zinc-400 mt-1">Recurring schedules active</div>
             </div>
         </div>
+        @endif
 
 
         {{-- ============================================================
              SECTION 1 — Two forms side by side
         ============================================================ --}}
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        @if($financeMode === 'operator')
+        <div id="expense-entry-forms" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
             {{-- Fixed Expense Setup Form --}}
-            <div id="fixed-setup" class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+            <div id="fixed-setup" data-expense-form-panel="fixed" @if($activeExpenseForm !== 'fixed') hidden @endif class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2.5 px-6 py-4 border-b border-zinc-100 bg-zinc-50">
                     <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900">
                         <svg class="h-4 w-4 text-zinc-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,6 +268,7 @@
                 </div>
                 <form method="POST" action="{{ route('expenses.fixed.store') }}" class="px-6 py-5 space-y-4">
                     @csrf
+                    <input type="hidden" name="operation_form" value="fixed">
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <label class="block text-xs font-semibold text-zinc-600 mb-1">Expense Name *</label>
@@ -271,7 +319,7 @@
             </div>
 
             {{-- Variable Expense Form --}}
-            <div id="variable-entry" class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+            <div id="variable-entry" data-expense-form-panel="variable" @if($activeExpenseForm !== 'variable') hidden @endif class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2.5 px-6 py-4 border-b border-zinc-100 bg-zinc-50">
                     <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900">
                         <svg class="h-4 w-4 text-zinc-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,11 +336,12 @@
                     <div class="mx-6 mt-4 p-3 rounded-xl border border-zinc-300 bg-zinc-50 text-xs text-zinc-600 flex items-center gap-2">
                         <svg class="w-4 h-4 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Add an active cash or bank account before recording expenses.
-                        <a class="font-bold underline ml-1 text-zinc-900" href="{{ route('invoices.accounts') }}">Open accounts →</a>
+                        <a class="font-bold underline ml-1 text-zinc-900" href="{{ route('invoices.accounts', ['mode' => $financeMode]) }}">Open accounts →</a>
                     </div>
                 @endif
                 <form method="POST" action="{{ route('expenses.variable.store') }}" class="px-6 py-5 space-y-4">
                     @csrf
+                    <input type="hidden" name="operation_form" value="variable">
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <label class="block text-xs font-semibold text-zinc-600 mb-1">Expense Name *</label>
@@ -353,12 +402,59 @@
                 </form>
             </div>
         </div>
+            <section data-expense-form-panel="fixed-payment" @if($activeExpenseForm !== 'fixed-payment') hidden @endif class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <h2 class="text-sm font-extrabold text-zinc-900">Record Fixed Expense Payment</h2>
+                <p class="mt-1 text-xs text-zinc-500">Choose an active recurring expense and post the payment from a cash or bank account.</p>
+                <form id="operatorFixedPaymentForm" method="POST" action="{{ route('expenses.fixed.record', ['fixedExpense' => $activeExpenseSetups->first()?->id ?? 'EXPENSE_ID']) }}" data-action-template="{{ route('expenses.fixed.record', ['fixedExpense' => 'EXPENSE_ID']) }}" class="mt-4 space-y-4">
+                    @csrf
+                    <input type="hidden" name="operation_form" value="fixed_payment">
+                    <label class="block text-xs font-semibold text-zinc-600">Fixed expense
+                        <select id="operatorFixedExpenseSelect" name="fixed_expense_id" required @disabled($activeExpenseSetups->isEmpty()) class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm">
+                            <option value="">Choose a fixed expense</option>
+                            @foreach($activeExpenseSetups as $fixedExpense)
+                                <option value="{{ $fixedExpense->id }}" @selected(old('fixed_expense_id') == $fixedExpense->id) data-name="{{ $fixedExpense->name }}" data-amount="{{ $fixedExpense->default_amount }}" data-payee="{{ $fixedExpense->payee }}">{{ $fixedExpense->name }} · {{ ucfirst($fixedExpense->frequency) }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <label class="text-xs font-semibold text-zinc-600">Amount paid (Rs.)<input name="amount" type="number" min="0.01" step="0.01" required value="{{ old('amount') }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
+                        <label class="text-xs font-semibold text-zinc-600">Payment date<input name="expense_date" type="date" required value="{{ old('expense_date', today()->toDateString()) }}" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
+                        <label class="text-xs font-semibold text-zinc-600">Paid from<select name="financial_account_id" required @disabled($activeAccounts->isEmpty()) class="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm"><option value="">Choose cash / bank account</option>@foreach($activeAccounts as $account)<option value="{{ $account->id }}">{{ ucfirst($account->type) }} · {{ $account->name }}</option>@endforeach</select></label>
+                        <label class="text-xs font-semibold text-zinc-600">Payee<input id="operatorFixedExpensePayee" name="payee" maxlength="150" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
+                        <label class="text-xs font-semibold text-zinc-600">Reference<input name="reference" maxlength="120" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
+                        <label class="text-xs font-semibold text-zinc-600">Notes<input name="notes" class="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"></label>
+                    </div>
+                    <div class="flex justify-end border-t border-zinc-100 pt-3"><button id="operatorFixedPaymentSubmit" type="submit" @disabled($activeExpenseSetups->isEmpty() || $activeAccounts->isEmpty() || !old('fixed_expense_id')) class="rounded-xl bg-zinc-900 px-5 py-2.5 text-xs font-extrabold text-white disabled:opacity-40">Post Fixed Payment</button></div>
+                </form>
+                @if($activeExpenseSetups->isEmpty())<p class="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-800">Create an active fixed expense setup first.</p>@endif
+            </section>
+            <script>
+                (() => {
+                    const group = document.getElementById('expense-entry-forms');
+                    if (group) group.style.gridTemplateColumns = 'minmax(0, 1fr)';
+                    const select = document.getElementById('operatorFixedExpenseSelect');
+                    const form = document.getElementById('operatorFixedPaymentForm');
+                    const submit = document.getElementById('operatorFixedPaymentSubmit');
+                    const updateFixedPayment = () => {
+                        const option = select?.selectedOptions[0];
+                        if (submit) submit.disabled = !option?.value || {{ $activeExpenseSetups->isEmpty() || $activeAccounts->isEmpty() ? 'true' : 'false' }};
+                        if (!option?.value || !form) return;
+                        form.action = form.dataset.actionTemplate.replace('EXPENSE_ID', option.value);
+                        form.querySelector('[name="amount"]').value = option.dataset.amount || '';
+                        document.getElementById('operatorFixedExpensePayee').value = option.dataset.payee || '';
+                    };
+                    select?.addEventListener('change', updateFixedPayment);
+                    updateFixedPayment();
+                })();
+            </script>
+        @endif
 
 
         {{-- ============================================================
              SECTION 2 — Fixed Expense Setups Grid
         ============================================================ --}}
-        <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+        @if($financeMode === 'display')
+        <div id="fixed-expense-register" class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
 
             <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50">
                 <div class="flex items-center gap-2.5">
@@ -503,6 +599,7 @@
                 </div>
                 {{-- Filter form --}}
                 <form method="GET" action="{{ route('expenses.index') }}" class="flex flex-wrap items-center gap-2">
+                    <input type="hidden" name="mode" value="{{ $financeMode }}">
                     <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date"
                            class="bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-1.5 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
                     <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date"
@@ -517,7 +614,7 @@
                         Filter
                     </button>
                     @if($filters)
-                        <a href="{{ route('expenses.index') }}" class="text-xs font-semibold text-zinc-500 hover:text-zinc-900">Clear</a>
+                        <a href="{{ route('expenses.index', ['mode' => $financeMode]) }}" class="text-xs font-semibold text-zinc-500 hover:text-zinc-900">Clear</a>
                     @endif
                 </form>
             </div>
@@ -575,6 +672,7 @@
 
             <div class="px-6 py-4 border-t border-zinc-100">{{ $expenses->links() }}</div>
         </div>
+        @endif
 
     </div>{{-- end main --}}
 </div>{{-- end grid --}}
