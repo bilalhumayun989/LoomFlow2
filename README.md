@@ -11,6 +11,7 @@
 
 These guides explain each module's purpose, screens, form fields, calculations, workflow, routes, and main implementation files:
 
+- [Database schema and demo-data guide](./DATABASE_SCHEMA_README.md)
 - [End-to-end operations roadmap](./ROADMAP.md)
 - [Authentication](./AUTH_MODULE_README.md)
 - [Main Dashboard](./DASHBOARD_MODULE_README.md)

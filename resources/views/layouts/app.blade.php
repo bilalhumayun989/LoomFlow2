@@ -947,6 +947,16 @@
             align-self: flex-start;
         }
 
+        body.operator-console.sizing-display-mode #appSidebar,
+        body.operator-console.parts-display-mode #appSidebar,
+        body.operator-console.fabric-display-mode #appSidebar,
+        body.operator-console.sales-display-mode #appSidebar,
+        body.operator-console.bags-display-mode #appSidebar {
+            top: 0 !important;
+            height: 100% !important;
+            max-height: 100% !important;
+        }
+
         body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode):not(.factory-reports-display-mode):not(.production-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
             display: flex;
             flex-direction: column;
