@@ -25,7 +25,9 @@ class FactoryParchiController extends Controller
 {
     public function index(): RedirectResponse
     {
-        return redirect()->route('sales.index');
+        return redirect()->route('sales.index', array_filter([
+            'mode' => request()->query('mode'),
+        ], fn ($value): bool => $value !== null));
     }
 
     public function dispatch(Request $request, FactoryStockService $stock): RedirectResponse

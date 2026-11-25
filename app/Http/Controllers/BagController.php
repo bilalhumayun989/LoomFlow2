@@ -41,13 +41,14 @@ class BagController extends Controller
             'purchases',
             BagPurchase::latest('purchase_date')->latest('id')->paginate(15),
             collect(),
-            collect()
+            collect(),
+            request()->query('mode') === 'display' ? 'display' : 'operator'
         );
     }
 
     public function split(): View
     {
-        return $this->renderPage('split', collect(), collect(), collect());
+        return $this->renderPage('split', collect(), collect(), collect(), request()->query('mode') === 'display' ? 'display' : 'operator');
     }
 
     public function ledger(): View
@@ -56,7 +57,8 @@ class BagController extends Controller
             'ledger',
             collect(),
             BagTransaction::latest('transaction_date')->latest('id')->paginate(20),
-            collect()
+            collect(),
+            request()->query('mode') === 'display' ? 'display' : 'operator'
         );
     }
 
@@ -66,7 +68,8 @@ class BagController extends Controller
             'sizing',
             collect(),
             collect(),
-            SizingSlip::latest('slip_date')->paginate(20)
+            SizingSlip::latest('slip_date')->paginate(20),
+            request()->query('mode') === 'display' ? 'display' : 'operator'
         );
     }
 

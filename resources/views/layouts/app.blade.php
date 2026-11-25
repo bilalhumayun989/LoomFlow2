@@ -540,6 +540,7 @@
         body.operator-console.ledger-report-page,
         body.operator-console.factory-orders-display-mode,
         body.operator-console.factory-checking-display-mode,
+        body.operator-console.factory-reports-display-mode,
         body.operator-console.production-display-mode {
             height: auto;
             min-height: 100%;
@@ -594,6 +595,19 @@
         }
 
         body.operator-console.factory-checking-display-mode > .operator-app > .operator-workspace > div.flex-1 > main {
+            flex: none;
+            overflow: visible;
+        }
+
+        body.operator-console.factory-reports-display-mode > .operator-app,
+        body.operator-console.factory-reports-display-mode > .operator-app > .operator-workspace,
+        body.operator-console.factory-reports-display-mode > .operator-app > .operator-workspace > div.flex-1 {
+            height: auto;
+            min-height: 100vh;
+            overflow: visible;
+        }
+
+        body.operator-console.factory-reports-display-mode > .operator-app > .operator-workspace > div.flex-1 > main {
             flex: none;
             overflow: visible;
         }
@@ -933,18 +947,18 @@
             align-self: flex-start;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode):not(.production-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode):not(.factory-reports-display-mode):not(.production-display-mode) > .operator-app > .operator-workspace > div.flex-1 {
             display: flex;
             flex-direction: column;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode):not(.production-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode):not(.factory-reports-display-mode):not(.production-display-mode) > .operator-app > .operator-workspace > div.flex-1 > main {
             flex: 1 1 0%;
             min-height: 0;
             overflow-y: auto;
         }
 
-        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode):not(.production-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
+        body.operator-console:not(.bags-display-mode):not(.sales-display-mode):not(.finance-display-mode):not(.ledger-report-page):not(.factory-orders-display-mode):not(.factory-checking-display-mode):not(.factory-reports-display-mode):not(.production-display-mode) > .operator-app > .operator-workspace > div.flex-1 > footer {
             flex: 0 0 auto;
         }
 
@@ -1192,7 +1206,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('bags.index') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} {{ request()->routeIs('factory.checking') && request()->query('mode') === 'display' ? 'factory-checking-display-mode' : '' }} {{ request()->routeIs('production.*') && request()->query('mode') === 'display' ? 'production-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('bags.*') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} {{ request()->routeIs('factory.checking') && request()->query('mode') === 'display' ? 'factory-checking-display-mode' : '' }} {{ request()->routeIs('factory.reports') && request()->query('mode') === 'display' ? 'factory-reports-display-mode' : '' }} {{ request()->routeIs('production.*') && request()->query('mode') === 'display' ? 'production-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1286,8 +1300,8 @@
                         <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
                     </select>
                 </form>
-            @elseif($currentRoute === 'bags.index')
-                <form method="GET" action="{{ route('bags.index') }}" class="operator-mode-switch">
+            @elseif(str_starts_with($currentRoute, 'bags.'))
+                <form method="GET" action="{{ request()->url() }}" class="operator-mode-switch">
                     <label for="bags-mode-switch">Bags view</label>
                     <select id="bags-mode-switch" name="mode" onchange="this.form.submit()">
                         <option value="operator" @selected(($mode ?? 'operator') === 'operator')>Operator</option>
@@ -1808,6 +1822,78 @@
                 operatorGuidePreviousFocus.focus();
             }
         }
+
+        document.addEventListener('change', (event) => {
+            const modeSelect = event.target instanceof HTMLSelectElement ? event.target : null;
+            const modeForm = modeSelect?.form;
+            if (!modeSelect?.matches('.operator-mode-switch select[name="mode"]') || !modeForm) {
+                return;
+            }
+
+            try {
+                sessionStorage.setItem('loomflow-module-mode', modeSelect.value);
+            } catch (error) {
+                // Keep the current mode switch usable when browser storage is unavailable.
+            }
+
+            modeForm.querySelectorAll('[data-mode-preserved-query]').forEach((field) => field.remove());
+            new URLSearchParams(window.location.search).forEach((value, key) => {
+                if (key === 'mode') {
+                    return;
+                }
+
+                const field = document.createElement('input');
+                field.type = 'hidden';
+                field.name = key;
+                field.value = value;
+                field.dataset.modePreservedQuery = 'true';
+                modeForm.appendChild(field);
+            });
+        }, true);
+
+        const moduleModePathPatterns = [
+            /^\/factory\/(?:orders|checking|reports|parchis)\/?$/,
+            /^\/(?:bags|sizing|parts|fabric-stock|sales|invoices|accounts|expenses|production)(?:\/.*)?$/,
+        ];
+        const supportsModuleMode = (pathname) => moduleModePathPatterns.some((pattern) => pattern.test(pathname));
+        const currentPageUrl = new URL(window.location.href);
+        const currentPageSupportsMode = supportsModuleMode(currentPageUrl.pathname);
+        const requestedMode = currentPageUrl.searchParams.get('mode');
+        let savedModuleMode = 'operator';
+
+        try {
+            savedModuleMode = sessionStorage.getItem('loomflow-module-mode') === 'display' ? 'display' : 'operator';
+            if (currentPageSupportsMode && (requestedMode === 'operator' || requestedMode === 'display')) {
+                savedModuleMode = requestedMode;
+                sessionStorage.setItem('loomflow-module-mode', savedModuleMode);
+            } else if (currentPageSupportsMode && requestedMode === null) {
+                currentPageUrl.searchParams.set('mode', savedModuleMode);
+                window.location.replace(currentPageUrl.href);
+            }
+        } catch (error) {
+            savedModuleMode = requestedMode === 'display' ? 'display' : 'operator';
+        }
+
+        document.addEventListener('click', (event) => {
+            const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+            if (!(anchor instanceof HTMLAnchorElement)) {
+                return;
+            }
+
+            const destination = new URL(anchor.href, window.location.href);
+            if (destination.origin !== window.location.origin || !supportsModuleMode(destination.pathname)) {
+                return;
+            }
+
+            try {
+                savedModuleMode = sessionStorage.getItem('loomflow-module-mode') === 'display' ? 'display' : 'operator';
+            } catch (error) {
+                // The page's current mode remains the fallback when browser storage is unavailable.
+            }
+
+            destination.searchParams.set('mode', savedModuleMode);
+            anchor.href = destination.href;
+        }, true);
 
         const operatorShortcutDestinations = {
             '1': @json(route('factory.checking')),
