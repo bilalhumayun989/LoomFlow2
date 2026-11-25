@@ -1218,7 +1218,7 @@
             } elseif (str_starts_with($currentRoute, 'factory.checking')) {
                 $pageTitle = 'Checking / Thaan Stock';
             } elseif (str_starts_with($currentRoute, 'factory.reports')) {
-                $pageTitle = 'Factory Reports & Wages';
+                $pageTitle = 'Factory Reports';
             } elseif (str_starts_with($currentRoute, 'production')) {
                 $pageTitle = '6. Production';
             } elseif (str_starts_with($currentRoute, 'sizing')) {
@@ -1274,6 +1274,14 @@
                 <form method="GET" action="{{ route('factory.checking') }}" class="operator-mode-switch">
                     <label for="factory-checking-mode-switch">Factory Checking view</label>
                     <select id="factory-checking-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @elseif($currentRoute === 'factory.reports')
+                <form method="GET" action="{{ route('factory.reports') }}" class="operator-mode-switch">
+                    <label for="factory-reports-mode-switch">Factory Reports view</label>
+                    <select id="factory-reports-mode-switch" name="mode" onchange="this.form.submit()">
                         <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
                         <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
                     </select>
@@ -1394,12 +1402,12 @@
                             <span class="sidebar-link-label truncate">6. Production</span>
                         </a>
 
-                        <!-- Factory Reports & Wages -->
-                        <a href="{{ route('factory.reports') }}" data-sidebar-label="Factory Reports &amp; Wages" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'factory.reports') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
+                        <!-- Factory Reports -->
+                        <a href="{{ route('factory.reports') }}" data-sidebar-label="Factory Reports" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'factory.reports') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
                             <svg class="w-4 h-4 shrink-0 {{ str_starts_with($currentRoute, 'factory.reports') ? 'text-[#c6f16d]' : 'text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
-                            <span class="sidebar-link-label truncate">Factory Reports &amp; Wages</span>
+                            <span class="sidebar-link-label truncate">Factory Reports</span>
                         </a>
                     </div>
                 </div>
@@ -1619,7 +1627,7 @@
                         <tr><td><kbd>Shift</kbd> + <kbd>3</kbd></td><td>Checking / Thaan Stock</td></tr>
                         <tr><td><kbd>Shift</kbd> + <kbd>4</kbd></td><td>Sales Contracts</td></tr>
                         <tr><td><kbd>Shift</kbd> + <kbd>5</kbd></td><td>Production</td></tr>
-                        <tr><td><kbd>Shift</kbd> + <kbd>6</kbd></td><td>Factory Reports &amp; Wages</td></tr>
+                        <tr><td><kbd>Shift</kbd> + <kbd>6</kbd></td><td>Factory Reports</td></tr>
                         <tr><td><kbd>Shift</kbd> + <kbd>7</kbd></td><td>Bags (Yarn)</td></tr>
                         <tr><td><kbd>Shift</kbd> + <kbd>8</kbd></td><td>Sizing &amp; Beams</td></tr>
                         <tr><td><kbd>Shift</kbd> + <kbd>9</kbd></td><td>Parts Store</td></tr>
@@ -1921,6 +1929,18 @@
                     event.preventDefault();
                     factoryCheckingModeSwitch.value = factoryCheckingModeSwitch.value === 'display' ? 'operator' : 'display';
                     factoryCheckingModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
+
+            @if(request()->routeIs('factory.reports'))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const factoryReportsModeSwitch = document.getElementById('factory-reports-mode-switch');
+                if (factoryReportsModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    factoryReportsModeSwitch.value = factoryReportsModeSwitch.value === 'display' ? 'operator' : 'display';
+                    factoryReportsModeSwitch.form?.requestSubmit();
                 }
                 return;
             }

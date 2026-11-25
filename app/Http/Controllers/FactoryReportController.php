@@ -42,7 +42,6 @@ class FactoryReportController extends Controller
 
         return view('factory.reports', [
             'rows' => $rows, 'orders' => $orders, 'looms' => config('loomflow.looms'),
-            'wages' => FactoryWorkerWage::with('order')->latest('wage_date')->limit(40)->get(),
             'stoppages' => LoomStoppage::with('order')->latest('stopped_on')->limit(40)->get(),
             'activeAssignments' => LoomAssignment::with('order.fabricStock')->whereNull('end_date')->orderBy('loom_no')->get(),
         ]);
