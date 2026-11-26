@@ -33,7 +33,17 @@ class FactoryCheckingController extends Controller
                 ->groupBy('work_order_id', 'fabric_stock_id', 'loom_no', 'production_date')
                 ->orderByDesc('production_date')->limit(40)->get(),
             'productionCapacity' => $this->productionCapacity(),
+            'nextThaanNumber' => $this->newThaanNumber(),
         ]);
+    }
+
+    private function newThaanNumber(): string
+    {
+        do {
+            $rollNumber = 'TH-'.strtoupper(bin2hex(random_bytes(4)));
+        } while (ThaanRoll::query()->where('roll_no', $rollNumber)->exists());
+
+        return $rollNumber;
     }
 
     /** @return array<string, array{produced: float, checked: float, available: float}> */
@@ -131,7 +141,7 @@ class FactoryCheckingController extends Controller
             }
             foreach ($data['rolls'] as $entry) {
                 ThaanRoll::create([
-                    'roll_no' => trim($entry['roll_no']), 'work_order_id' => $order->id,
+                    'roll_no' => $entry['roll_no'], 'work_order_id' => $order->id,
                     'fabric_stock_id' => $order->fabric_stock_id, 'loom_no' => $data['loom_no'],
                     'checked_on' => $data['checked_on'], 'production_date' => $data['production_date'],
                     'length_meters' => round((float) $entry['length_meters'], 2),

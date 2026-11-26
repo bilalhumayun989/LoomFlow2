@@ -93,7 +93,7 @@
                     <table class="w-full text-xs" id="roll-table">
                         <thead class="bg-stone-50 border-b border-stone-200 text-stone-600 text-[10px] font-bold uppercase tracking-wider">
                             <tr>
-                                <th class="p-2.5 text-left">Thaan Marking / Number</th>
+                                <th class="p-2.5 text-left">Auto Thaan Number</th>
                                 <th class="p-2.5 text-left">Measured Length (m)</th>
                                 <th class="p-2.5 text-center w-16">Remove</th>
                             </tr>
@@ -101,7 +101,7 @@
                         <tbody class="divide-y divide-stone-100">
                             <tr>
                                 <td class="p-2">
-                                    <input name="rolls[0][roll_no]" required placeholder="TH-0001" class="w-full border border-[#e2e8e0] rounded-xl p-2 text-xs focus:outline-none focus:border-[#133e2b]">
+                                    <input name="rolls[0][roll_no]" type="text" value="{{ $nextThaanNumber }}" readonly aria-label="Automatically assigned Thaan number" class="w-full rounded-xl border border-[#e2e8e0] bg-stone-50 p-2 text-xs font-bold text-stone-700">
                                 </td>
                                 <td class="p-2">
                                     <input name="rolls[0][length_meters]" required type="number" min="0.01" step=".01" placeholder="0.00" class="w-full border border-[#e2e8e0] rounded-xl p-2 text-xs focus:outline-none focus:border-[#133e2b]">
@@ -386,7 +386,9 @@
     document.getElementById('more-rolls').addEventListener('click', () => {
         if (n >= 200) return;
         let tr = document.createElement('tr');
-        tr.innerHTML = '<td class="p-2"><input required name="rolls['+n+'][roll_no]" placeholder="Thaan marking" class="w-full border border-[#e2e8e0] rounded-xl p-2 text-xs focus:outline-none focus:border-[#133e2b]"></td><td class="p-2"><input required type="number" name="rolls['+n+'][length_meters]" min="0.01" step=".01" placeholder="0.00" class="w-full border border-[#e2e8e0] rounded-xl p-2 text-xs focus:outline-none focus:border-[#133e2b]"></td><td class="text-center"><button type="button" class="text-rose-600 hover:text-rose-800 font-bold px-3 text-sm">&times;</button></td>';
+        const numberBytes = crypto.getRandomValues(new Uint8Array(4));
+        const thaanNumber = 'TH-' + Array.from(numberBytes, byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+        tr.innerHTML = '<td class="p-2"><input type="text" name="rolls['+n+'][roll_no]" value="'+thaanNumber+'" readonly aria-label="Automatically assigned Thaan number" class="w-full rounded-xl border border-[#e2e8e0] bg-stone-50 p-2 text-xs font-bold text-stone-700"></td><td class="p-2"><input required type="number" name="rolls['+n+'][length_meters]" min="0.01" step=".01" placeholder="0.00" class="w-full border border-[#e2e8e0] rounded-xl p-2 text-xs focus:outline-none focus:border-[#133e2b]"></td><td class="text-center"><button type="button" class="text-rose-600 hover:text-rose-800 font-bold px-3 text-sm">&times;</button></td>';
         tr.querySelector('button').addEventListener('click', () => { tr.remove(); recalc(); });
         table.appendChild(tr);
         n++;
