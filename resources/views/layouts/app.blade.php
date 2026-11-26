@@ -956,7 +956,8 @@
         body.operator-console.factory-orders-page #appSidebar,
         body.operator-console.factory-checking-page #appSidebar,
         body.operator-console.factory-reports-page #appSidebar,
-        body.operator-console.dashboard-page #appSidebar {
+        body.operator-console.dashboard-page #appSidebar,
+        body.operator-console.finance-module-page:not(.finance-display-mode) #appSidebar {
             top: 0 !important;
             height: 100% !important;
             max-height: 100% !important;
@@ -1059,6 +1060,10 @@
 
         body.operator-console #appSidebar .sidebar-nav .space-y-1 > :not([hidden]) ~ :not([hidden]) {
             margin-top: 4px !important;
+        }
+
+        body.operator-console:not(.finance-display-mode) #appSidebar .sidebar-nav .space-y-1 > a.sidebar-finance-link {
+            margin-top: 0 !important;
         }
 
         body.operator-console #appSidebar .sidebar-nav a {
@@ -1221,7 +1226,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('dashboard', 'home') ? 'dashboard-page' : '' }} {{ request()->routeIs('bags.*') ? 'bags-module-page' : '' }} {{ request()->routeIs('sizing.*') ? 'sizing-module-page' : '' }} {{ request()->routeIs('parts.*') ? 'parts-module-page' : '' }} {{ request()->routeIs('fabric.*') ? 'fabric-module-page' : '' }} {{ request()->routeIs('sales.*') ? 'sales-module-page' : '' }} {{ request()->routeIs('production.*') ? 'production-module-page' : '' }} {{ request()->routeIs('factory.orders') ? 'factory-orders-page' : '' }} {{ request()->routeIs('factory.checking') ? 'factory-checking-page' : '' }} {{ request()->routeIs('factory.reports') ? 'factory-reports-page' : '' }} {{ request()->routeIs('bags.*') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} {{ request()->routeIs('factory.checking') && request()->query('mode') === 'display' ? 'factory-checking-display-mode' : '' }} {{ request()->routeIs('factory.reports') && request()->query('mode') === 'display' ? 'factory-reports-display-mode' : '' }} {{ request()->routeIs('production.*') && request()->query('mode') === 'display' ? 'production-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->routeIs('dashboard', 'home') ? 'dashboard-page' : '' }} {{ request()->routeIs('bags.*') ? 'bags-module-page' : '' }} {{ request()->routeIs('sizing.*') ? 'sizing-module-page' : '' }} {{ request()->routeIs('parts.*') ? 'parts-module-page' : '' }} {{ request()->routeIs('fabric.*') ? 'fabric-module-page' : '' }} {{ request()->routeIs('sales.*') ? 'sales-module-page' : '' }} {{ request()->routeIs('production.*') ? 'production-module-page' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') ? 'finance-module-page' : '' }} {{ request()->routeIs('factory.orders') ? 'factory-orders-page' : '' }} {{ request()->routeIs('factory.checking') ? 'factory-checking-page' : '' }} {{ request()->routeIs('factory.reports') ? 'factory-reports-page' : '' }} {{ request()->routeIs('bags.*') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} {{ request()->routeIs('factory.checking') && request()->query('mode') === 'display' ? 'factory-checking-display-mode' : '' }} {{ request()->routeIs('factory.reports') && request()->query('mode') === 'display' ? 'factory-reports-display-mode' : '' }} {{ request()->routeIs('production.*') && request()->query('mode') === 'display' ? 'production-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1514,14 +1519,14 @@
                         </a>
 
                         <!-- 7. Invoices & Accounts -->
-                        <a href="{{ route('invoices.index') }}" data-sidebar-label="7. Invoices &amp; Accounts" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'invoices') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
+                        <a href="{{ route('invoices.index') }}" data-sidebar-label="7. Invoices &amp; Accounts" class="sidebar-finance-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'invoices') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
                             <svg class="w-4 h-4 shrink-0 {{ str_starts_with($currentRoute, 'invoices') ? 'text-[#c6f16d]' : 'text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                             </svg>
                             <span class="sidebar-link-label truncate">7. Invoices &amp; Accounts</span>
                         </a>
 
-                        <a href="{{ route('accounts.index') }}" data-sidebar-label="Accounts Overview" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'accounts') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
+                        <a href="{{ route('accounts.index') }}" data-sidebar-label="Accounts Overview" class="sidebar-finance-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'accounts') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
                             <svg class="w-4 h-4 shrink-0 {{ str_starts_with($currentRoute, 'accounts') ? 'text-[#c6f16d]' : 'text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h2m-9 5h12a3 3 0 003-3V7a3 3 0 00-3-3H6a3 3 0 00-3 3v10a3 3 0 003 3z"/>
                             </svg>
@@ -1529,7 +1534,7 @@
                         </a>
 
                         <!-- 8. Expenses -->
-                        <a href="{{ route('expenses.index') }}" data-sidebar-label="8. Expenses" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'expenses') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
+                        <a href="{{ route('expenses.index') }}" data-sidebar-label="8. Expenses" class="sidebar-finance-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ str_starts_with($currentRoute, 'expenses') ? 'bg-[#184c35] text-white shadow-md border-2 border-[#c6f16d] font-bold' : 'text-white hover:bg-[#15422e] hover:text-white border-2 border-transparent' }}">
                             <svg class="w-4 h-4 shrink-0 {{ str_starts_with($currentRoute, 'expenses') ? 'text-[#c6f16d]' : 'text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
                             </svg>
