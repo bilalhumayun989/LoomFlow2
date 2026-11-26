@@ -72,7 +72,7 @@ class InvoiceController extends Controller
             ->values();
         $activeCustomers = Customer::where('status', 'active')->orderBy('name')->get();
         $activeAccounts = FinancialAccount::where('is_active', true)->orderBy('name')->get();
-        $availableSales = Sale::with('contract')->whereDoesntHave('invoice')->latest('sale_date')->get();
+        $availableSales = Sale::with(['contract', 'fabricStock'])->whereDoesntHave('invoice')->latest('sale_date')->get();
         $billedContractMeters = DB::table('invoice_items')
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
             ->whereNotNull('invoices.sales_contract_id')
@@ -80,7 +80,7 @@ class InvoiceController extends Controller
             ->groupBy('invoices.sales_contract_id')
             ->selectRaw('invoices.sales_contract_id, SUM(invoice_items.quantity) as billed_meters')
             ->pluck('billed_meters', 'sales_contract_id');
-        $contractOptions = SalesContract::latest('start_date')->get();
+        $contractOptions = SalesContract::with('fabricStock')->latest('start_date')->get();
         foreach ($contractOptions as $contractOption) {
             $contractOption->invoiceable_meters = max(0, (float) $contractOption->delivered_meters - (float) $billedContractMeters->get($contractOption->id, 0));
         }
@@ -156,8 +156,8 @@ class InvoiceController extends Controller
 
         DB::transaction(function () use ($validated, $ledgerPostingService): void {
             $customer = Customer::whereKey($validated['customer_id'])->lockForUpdate()->firstOrFail();
-            $sale = isset($validated['sale_id']) ? Sale::with('contract')->whereKey($validated['sale_id'])->lockForUpdate()->firstOrFail() : null;
-            $contract = isset($validated['sales_contract_id']) ? SalesContract::whereKey($validated['sales_contract_id'])->lockForUpdate()->firstOrFail() : null;
+            $sale = isset($validated['sale_id']) ? Sale::with(['contract', 'fabricStock'])->whereKey($validated['sale_id'])->lockForUpdate()->firstOrFail() : null;
+            $contract = isset($validated['sales_contract_id']) ? SalesContract::with('fabricStock')->whereKey($validated['sales_contract_id'])->lockForUpdate()->firstOrFail() : null;
             $items = [];
             $saleId = null;
 
@@ -183,7 +183,7 @@ class InvoiceController extends Controller
                     $contract->buyer_phone = $customer->phone;
                     $contract->save();
                 }
-                $items[] = ['description' => $sale->fabric_quality.' fabric', 'quantity' => (float) $sale->meters_sold,
+                $items[] = ['description' => ($sale->fabricStock?->display_name ?? $sale->fabric_quality).' fabric', 'quantity' => (float) $sale->meters_sold,
                     'unit' => 'Meter', 'rate' => (float) $sale->rate_per_meter, 'amount' => (float) $sale->subtotal];
                 $subtotal = (float) $sale->subtotal;
                 $discount = (float) $sale->discount;

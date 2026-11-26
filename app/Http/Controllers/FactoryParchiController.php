@@ -117,7 +117,7 @@ class FactoryParchiController extends Controller
                     'total' => $bill, 'status' => 'issued', 'notes' => 'Weaving mazdoori on Pakki Parchi '.$data['parchi_no'],
                 ]);
                 $invoice->items()->create([
-                    'description' => 'Weaving '.$order->order_no.' / '.$data['parchi_no'].' ('.$order->fabricStock?->quality_name.')',
+                    'description' => 'Weaving '.$order->order_no.' / '.$data['parchi_no'].' ('.$order->fabricStock?->display_name.')',
                     'quantity' => $accepted, 'unit' => 'Meter', 'rate' => round($unitRate, 2), 'amount' => $bill,
                 ]);
                 if ($bill > 0) {
@@ -309,7 +309,7 @@ class FactoryParchiController extends Controller
                 'slip_no' => $data['slip_no'], 'sale_type' => 'open_market',
                 'fabric_stock_id' => $fabric->id, 'customer_id' => $customer->id,
                 'buyer_name' => $customer->name, 'buyer_phone' => $customer->phone,
-                'fabric_quality' => $fabric->quality_name, 'meters_sold' => $total,
+                'fabric_quality' => $fabric->display_name, 'meters_sold' => $total,
                 'rolls_sold' => $rolls->count(), 'rate_per_meter' => $data['rate_per_meter'],
                 'subtotal' => $amount, 'discount' => 0, 'net_total' => $amount,
                 'cost_per_meter' => $costPerMeter, 'cost_of_goods_sold' => $costOfGoodsSold,

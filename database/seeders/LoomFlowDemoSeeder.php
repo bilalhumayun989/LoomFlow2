@@ -107,6 +107,7 @@ class LoomFlowDemoSeeder extends Seeder
             foreach ($specs as $key => $s) {
                 $fid = $put('fabric_stocks', [
                     'quality_name' => $s['quality'],
+                    'quality_code' => 'DEMO-'.strtoupper($key),
                     'construction' => sprintf('%sx%s / %sx%s', $s['warp'], $s['weft'], $s['read'], $s['pick']),
                     'width_inches' => $s['width'],
                     'notes' => 'DEMO ONLY: grey fabric quality; weight/cost calculated by existing Parta service.',

@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Loom-wise Production & Leakage Analysis')
 
@@ -516,7 +516,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-zinc-700 font-medium">{{ $p->operator_name }}</td>
-                                <td class="px-4 py-3 text-zinc-600">{{ $p->fabric_quality }}</td>
+                                <td class="px-4 py-3 text-zinc-600">{{ $p->fabricStock?->display_name ?? $p->fabric_quality }}</td>
                                 <td class="px-4 py-3 font-mono text-center text-zinc-500 text-[11px]">
                                     {{ number_format($p->start_meter, 0) }} &rarr; {{ number_format($p->end_meter, 0) }}
                                 </td>
@@ -646,7 +646,7 @@
                         class="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
                     <option value="">Select fabric quality from Fabric Stock</option>
                     @foreach($fabricQualities as $fabricQuality)
-                        <option value="{{ $fabricQuality->id }}">{{ $fabricQuality->quality_name }}</option>
+                        <option value="{{ $fabricQuality->id }}">{{ $fabricQuality->display_name }}</option>
                     @endforeach
                 </select>
                 @if($fabricQualities->isEmpty())

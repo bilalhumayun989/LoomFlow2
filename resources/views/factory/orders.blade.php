@@ -64,14 +64,18 @@
                     Fabric Quality
                     <select name="fabric_stock_id" id="parta-fabric-stock" class="mt-1 w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs bg-white focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
                         @foreach($fabrics as $f)
-                            <option value="{{ $f->id }}">{{ $f->quality_name }}</option>
+                            <option value="{{ $f->id }}">{{ $f->display_name }}</option>
                         @endforeach
                     </select>
                 </label>
-                <label class="hidden text-xs font-bold text-stone-700" id="parta-new-quality-field">
-                    New Quality Name
-                    <input name="quality_name" id="parta-quality-name" maxlength="150" placeholder="e.g. 40x40 Cotton Grey" class="mt-1 w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs">
-                </label>
+                <div class="hidden grid grid-cols-2 gap-3 sm:col-span-2" id="parta-new-quality-field">
+                    <label class="text-xs font-bold text-stone-700">New Quality Name
+                        <input name="quality_name" id="parta-quality-name" maxlength="150" placeholder="e.g. 40x40 Cotton Grey" class="mt-1 w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs">
+                    </label>
+                    <label class="text-xs font-bold text-stone-700">Quality Code
+                        <input name="quality_code" maxlength="50" placeholder="e.g. FAB-001" class="mt-1 w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs">
+                    </label>
+                </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     @foreach(['read'=>'Read (ends/in)', 'pick'=>'Pick (picks/in)', 'width_inches'=>'Panna/Width (in)', 'warp_count'=>'Taana Count', 'weft_count'=>'Baana Count', 'warp_rate_per_lb'=>'Taana rate (Rs/lb)', 'weft_rate_per_lb'=>'Baana rate (Rs/lb)', 'conversion_rate_per_pick'=>'Mazdoori per pick (Rs)'] as $field=>$label)
@@ -121,7 +125,7 @@
                     Fabric Quality
                     <select required name="fabric_stock_id" id="order-fabric-stock" class="mt-1 w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs bg-white focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]">
                         @foreach($fabrics as $f)
-                            <option value="{{ $f->id }}">{{ $f->quality_name }}</option>
+                            <option value="{{ $f->id }}">{{ $f->display_name }}</option>
                         @endforeach
                     </select>
                 </label>
@@ -144,7 +148,7 @@
                             <option value="">Create a new contract</option>
                             @foreach($existingContracts as $c)
                                 <option value="{{ $c->id }}" data-customer-id="{{ $c->customer_id }}" data-fabric-stock-id="{{ $c->fabric_stock_id }}" data-target-meters="{{ $c->total_meters }}" data-rate-per-pick="{{ $c->conversion_rate }}">
-                                    {{ $c->contract_no }} - {{ $c->customer?->name ?? $c->buyer_name }} - {{ $c->fabricStock?->quality_name }}
+                                    {{ $c->contract_no }} - {{ $c->customer?->name ?? $c->buyer_name }} - {{ $c->fabricStock?->display_name }}
                                 </option>
                             @endforeach
                         </select>
@@ -191,7 +195,7 @@
         <div class="pb-3 border-b border-[#e2e8e0]"><h2 class="text-base font-extrabold text-[#133e2b]">Saved Quality Parta</h2><p class="text-xs text-stone-500">Current costing version for each fabric quality.</p></div>
         <div class="overflow-x-auto"><table class="min-w-full text-xs"><thead><tr class="text-left bg-stone-50 border-b border-stone-200 text-stone-600 font-bold uppercase text-[10px] tracking-wider"><th class="p-3">Fabric Quality</th><th class="p-3">Version</th><th class="p-3">Read / Pick</th><th class="p-3">Width</th><th class="p-3">Taana / Baana</th><th class="p-3">Rates per lb</th><th class="p-3">Mazdoori per pick</th><th class="p-3 text-right">Cost per metre</th></tr></thead><tbody class="divide-y divide-stone-100">
             @forelse($partas as $parta)
-                <tr><td class="p-3 font-bold text-stone-900">{{ $parta->fabricStock?->quality_name ?? '—' }}</td><td class="p-3">v{{ $parta->version }}</td><td class="p-3">{{ $parta->read }} / {{ $parta->pick }}</td><td class="p-3">{{ number_format((float) $parta->width_inches, 2) }} in</td><td class="p-3">{{ $parta->warp_count }} / {{ $parta->weft_count }}</td><td class="p-3">{{ number_format((float) $parta->warp_rate_per_lb, 2) }} / {{ number_format((float) $parta->weft_rate_per_lb, 2) }}</td><td class="p-3">Rs {{ number_format((float) $parta->conversion_rate_per_pick, 2) }}</td><td class="p-3 text-right font-bold">Rs {{ number_format((float) $parta->cost_per_meter, 2) }}</td></tr>
+                <tr><td class="p-3 font-bold text-stone-900">{{ $parta->fabricStock?->display_name ?? '—' }}</td><td class="p-3">v{{ $parta->version }}</td><td class="p-3">{{ $parta->read }} / {{ $parta->pick }}</td><td class="p-3">{{ number_format((float) $parta->width_inches, 2) }} in</td><td class="p-3">{{ $parta->warp_count }} / {{ $parta->weft_count }}</td><td class="p-3">{{ number_format((float) $parta->warp_rate_per_lb, 2) }} / {{ number_format((float) $parta->weft_rate_per_lb, 2) }}</td><td class="p-3">Rs {{ number_format((float) $parta->conversion_rate_per_pick, 2) }}</td><td class="p-3 text-right font-bold">Rs {{ number_format((float) $parta->cost_per_meter, 2) }}</td></tr>
             @empty
                 <tr><td colspan="8" class="p-6 text-center text-stone-400 italic">No Parta versions saved yet.</td></tr>
             @endforelse
@@ -228,7 +232,7 @@
                                 <span class="block text-[10px] font-semibold text-stone-400">{{ strtoupper($o->type) }}</span>
                             </td>
                             <td class="p-3 text-stone-700">{{ $o->customer?->name ?? $o->party_name ?? 'Factory' }}</td>
-                            <td class="p-3 text-stone-700">{{ $o->fabricStock?->quality_name }}</td>
+                            <td class="p-3 text-stone-700">{{ $o->fabricStock?->display_name }}</td>
                             <td class="p-3 text-stone-700">{{ $o->target_meters ? number_format($o->target_meters, 0).'m' : 'Open target' }}</td>
                             <td class="p-3 font-semibold text-stone-800">{{ number_format((float) $o->accepted_meters, 2) }}m</td>
                             <td class="p-3 text-stone-700">Rs {{ number_format((float) $o->parta?->cost_per_meter, 2) }}</td>

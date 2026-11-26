@@ -12,6 +12,7 @@ class FabricStock extends Model
 
     protected $fillable = [
         'quality_name',
+        'quality_code',
         'construction',
         'width_inches',
         'read',
@@ -59,5 +60,12 @@ class FabricStock extends Model
     public function movements(): HasMany
     {
         return $this->hasMany(FabricStockMovement::class);
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        $code = $this->quality_code ?: 'FAB-'.str_pad((string) $this->id, 5, '0', STR_PAD_LEFT);
+
+        return $code.' · '.$this->quality_name;
     }
 }

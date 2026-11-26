@@ -358,6 +358,7 @@ class DatabaseSeeder extends Seeder
         // 6. Fabric Stocks
         FabricStock::create([
             'quality_name' => 'Cotton Sheeting 68x68 / 30x30',
+            'quality_code' => 'FAB-001',
             'construction' => '30x30 / 68x68 63" Grey',
             'width_inches' => 63.0,
             'total_meters_produced' => 28400.00,
@@ -371,6 +372,7 @@ class DatabaseSeeder extends Seeder
 
         FabricStock::create([
             'quality_name' => 'Twill 2/1 108x56 / 40x40',
+            'quality_code' => 'FAB-002',
             'construction' => '40x40 / 108x56 63" Twill',
             'width_inches' => 63.0,
             'total_meters_produced' => 19500.00,
@@ -384,6 +386,7 @@ class DatabaseSeeder extends Seeder
 
         FabricStock::create([
             'quality_name' => 'Poplin 133x72 / 40x40',
+            'quality_code' => 'FAB-003',
             'construction' => '40x40 / 133x72 58" Shirting',
             'width_inches' => 58.0,
             'total_meters_produced' => 15200.00,

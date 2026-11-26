@@ -53,7 +53,7 @@
                                 </span>
                             </div>
                             <div class="mt-1 text-[11px] leading-relaxed text-stone-500">
-                                {{ $kachi->thaan_count }} Thaans &middot; {{ $kachi->order?->fabricStock?->quality_name ?? 'Grey Fabric' }}
+                                {{ $kachi->thaan_count }} Thaans &middot; {{ $kachi->order?->fabricStock?->display_name ?? 'Grey Fabric' }}
                             </div>
                         </div>
                         <div class="shrink-0 text-right">
@@ -157,7 +157,7 @@
                             foreach($activeLoomAssignments as $assignment) {
                                 $displayLooms[$assignment->loom_no] = [
                                     'loom' => str_pad($assignment->loom_no, 2, '0', STR_PAD_LEFT),
-                                    'quality' => $assignment->order?->fabricStock?->quality_name ?? 'Grey Standard',
+                                    'quality' => $assignment->order?->fabricStock?->display_name ?? 'Grey Standard',
                                     'order' => $assignment->order?->order_no ?? 'Active',
                                     'status' => 'Running'
                                 ];
@@ -309,7 +309,7 @@
                         <tr class="hover:bg-stone-50/70 transition-colors">
                             <td class="px-4 py-3.5">
                                 <span class="font-bold text-stone-900 block">{{ $contract->contract_no }}</span>
-                                <span class="text-stone-500 text-[11px]">{{ $contract->fabricStock?->quality_name ?? $contract->fabric_quality }}</span>
+                                <span class="text-stone-500 text-[11px]">{{ $contract->fabricStock?->display_name ?? $contract->fabric_quality }}</span>
                             </td>
                             <td class="px-4 py-3.5 text-right tabular-nums text-stone-700 font-semibold">
                                 {{ number_format((float) $contract->total_meters, 0) }}m

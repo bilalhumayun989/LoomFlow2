@@ -42,7 +42,7 @@
                     <select name="work_order_id" class="w-full border border-[#e2e8e0] rounded-xl p-2.5 mt-1 text-xs bg-white focus:outline-none focus:border-[#133e2b] focus:ring-1 focus:ring-[#133e2b]" id="kachi-order" required>
                         <option value="">Choose order</option>
                         @foreach($jobOrders as $o)
-                            <option value="{{ $o->id }}" @selected((string) old('work_order_id') === (string) $o->id)>{{ $o->order_no }} &middot; {{ $o->customer?->name ?? $o->party_name }} ({{ $o->fabricStock?->quality_name }})</option>
+                            <option value="{{ $o->id }}" @selected((string) old('work_order_id') === (string) $o->id)>{{ $o->order_no }} &middot; {{ $o->customer?->name ?? $o->party_name }} ({{ $o->fabricStock?->display_name }})</option>
                         @endforeach
                     </select>
                 </label>
@@ -116,7 +116,7 @@
                                 <div class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                                     <div><span class="block text-[10px] font-bold uppercase text-stone-400">Kachi / contract</span><strong class="text-stone-900">{{ $k->parchi_no }} / {{ $k->order?->contract?->contract_no ?? $k->order?->order_no }}</strong><span class="block text-[10px] text-stone-500">Order {{ $k->order?->order_no }}</span></div>
                                     <div><span class="block text-[10px] font-bold uppercase text-stone-400">Customer</span><strong class="text-stone-900">{{ $k->order?->customer?->name ?? $k->order?->party_name ?? '—' }}</strong></div>
-                                    <div><span class="block text-[10px] font-bold uppercase text-stone-400">Fabric quality</span><strong class="text-stone-900">{{ $k->order?->fabricStock?->quality_name ?? '—' }}</strong></div>
+                                    <div><span class="block text-[10px] font-bold uppercase text-stone-400">Fabric quality</span><strong class="text-stone-900">{{ $k->order?->fabricStock?->display_name ?? '—' }}</strong></div>
                                     <div><span class="block text-[10px] font-bold uppercase text-stone-400">Dispatched</span><strong class="text-[#133e2b]">{{ number_format((float) $k->dispatched_meters, 2) }}m · {{ $k->thaan_count }} Thaans</strong></div>
                                 </div>
                                 <div class="max-h-52 overflow-auto rounded-xl border border-stone-200 bg-white">

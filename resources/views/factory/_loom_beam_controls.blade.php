@@ -14,7 +14,7 @@
                     Order
                     <select name="work_order_id" required class="mt-1 w-full border border-[#e2e8e0] rounded-xl p-2.5 text-xs bg-white">
                         @foreach($activeOrders as $o)
-                            <option value="{{ $o->id }}">{{ $o->order_no }} — {{ $o->fabricStock?->quality_name }}</option>
+                            <option value="{{ $o->id }}">{{ $o->order_no }} — {{ $o->fabricStock?->display_name }}</option>
                         @endforeach
                     </select>
                 </label>
@@ -54,7 +54,7 @@
                         @forelse($assignments as $a)
                             <tr class="hover:bg-stone-50/60">
                                 <td class="p-2.5 font-bold text-stone-900">{{ $a->loom_no }}</td>
-                                <td class="p-2.5 text-stone-700">{{ $a->order?->order_no }} &middot; {{ $a->order?->fabricStock?->quality_name }}</td>
+                                <td class="p-2.5 text-stone-700">{{ $a->order?->order_no }} &middot; {{ $a->order?->fabricStock?->display_name }}</td>
                                 <td class="p-2.5 text-right text-stone-500">{{ $a->start_date }}</td>
                             </tr>
                         @empty

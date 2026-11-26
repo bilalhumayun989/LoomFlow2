@@ -24,7 +24,7 @@ class FabricStockController extends Controller
     public function index(): View
     {
         $fabricStocks = FabricStock::latest('updated_at')->limit(5)->get();
-        $activeContracts = SalesContract::where('status', 'active')->latest()->limit(5)->get();
+        $activeContracts = SalesContract::with('fabricStock')->where('status', 'active')->latest()->limit(5)->get();
         $page = 'dashboard';
 
         return $this->renderPage($page, $fabricStocks, $activeContracts);
@@ -101,10 +101,15 @@ class FabricStockController extends Controller
 
     public function storeStock(Request $request, YarnQualityWeightCalculator $weightCalculator, FactoryStockService $factoryStock): RedirectResponse
     {
+        if ($request->filled('quality_code')) {
+            $request->merge(['quality_code' => strtoupper(trim((string) $request->input('quality_code')))]);
+        }
+
         $validated = $request->validate([
             'quality_mode' => 'required|in:existing,new',
             'fabric_stock_id' => 'required_if:quality_mode,existing|nullable|exists:fabric_stocks,id',
             'quality_name' => 'required_if:quality_mode,new|nullable|string|max:150|unique:fabric_stocks,quality_name',
+            'quality_code' => 'required_if:quality_mode,new|nullable|string|max:50|alpha_dash|unique:fabric_stocks,quality_code',
             'construction' => 'nullable|string|max:150',
             'width_inches' => 'required_if:quality_mode,new|nullable|numeric|min:20|max:150',
             'read' => 'required_if:quality_mode,new|nullable|numeric|gt:0|max:100000',
@@ -161,6 +166,7 @@ class FabricStockController extends Controller
 
                 $stock = FabricStock::create([
                     'quality_name' => trim($validated['quality_name']),
+                    'quality_code' => $validated['quality_code'],
                     'construction' => $validated['construction'] ?? null,
                     'width_inches' => $width,
                     'read' => $read,
@@ -241,11 +247,11 @@ class FabricStockController extends Controller
         $factoryStock->refreshAvailability($stock);
         if (! empty($validated['sizing_beam_id'])) {
             return redirect()->route('fabric.index')
-                ->with('success', "{$stock->quality_name} was created/selected and linked to its loom.");
+                ->with('success', "{$stock->display_name} was created/selected and linked to its loom.");
         }
 
         return redirect()->route('fabric.index')
-            ->with('success', "Stock updated for {$stock->quality_name}: {$stock->current_stock_meters}m closing balance.");
+            ->with('success', "Stock updated for {$stock->display_name}: {$stock->current_stock_meters}m closing balance.");
     }
 
     public function updateLoomFabricQuality(Request $request): RedirectResponse
@@ -304,7 +310,7 @@ class FabricStockController extends Controller
 
         $order = WorkOrder::whereKey($allocation->work_order_id)->lockForUpdate()->firstOrFail();
         if ((int) $order->fabric_stock_id !== $fabricStockId) {
-            $requiredQuality = FabricStock::whereKey($order->fabric_stock_id)->value('quality_name');
+            $requiredQuality = FabricStock::whereKey($order->fabric_stock_id)->firstOrFail()->display_name;
             throw ValidationException::withMessages([
                 'fabric_stock_id' => "Loom {$loomNo} is assigned to {$order->order_no} for {$requiredQuality}; it cannot be linked to a different fabric quality.",
             ]);

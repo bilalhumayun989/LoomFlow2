@@ -251,7 +251,7 @@
                     <select name="fabric_stock_id" required class="mt-1 w-full rounded-xl border-zinc-300 text-sm">
                         <option value="">Choose available quality</option>
                         @foreach($openMarketFabrics as $fabric)
-                            <option value="{{ $fabric->id }}" @selected((string) old('fabric_stock_id') === (string) $fabric->id)>{{ $fabric->quality_name }} - Available {{ number_format((float) $fabric->available_open_meters, 2) }}m - {{ $fabric->total_rolls_in_stock }} rolls</option>
+                            <option value="{{ $fabric->id }}" @selected((string) old('fabric_stock_id') === (string) $fabric->id)>{{ $fabric->display_name }} - Available {{ number_format((float) $fabric->available_open_meters, 2) }}m - {{ $fabric->total_rolls_in_stock }} rolls</option>
                         @endforeach
                     </select>
                 </label>
@@ -406,7 +406,7 @@
                                         <div class="text-[10px] text-zinc-400 font-mono mt-0.5">{{ $s->contract->contract_no }}</div>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-zinc-600">{{ $s->fabric_quality }}</td>
+                                <td class="px-4 py-3 text-zinc-600">{{ $s->fabricStock?->display_name ?? $s->fabric_quality }}</td>
                                 <td class="px-4 py-3 text-right font-mono font-bold text-zinc-900 text-sm">{{ number_format($s->meters_sold, 0) }}m</td>
                                 <td class="px-4 py-3 text-center font-mono text-zinc-600">{{ $s->rolls_sold }}</td>
                                 <td class="px-4 py-3 text-right font-mono text-zinc-500">Rs. {{ number_format($s->rate_per_meter, 2) }}</td>
@@ -530,7 +530,7 @@
                                     data-weft-rate="{{ $parta?->weft_rate_per_lb ?? '' }}"
                                     data-conversion-rate="{{ $parta?->conversion_rate_per_pick ?? '' }}"
                                     @selected(old('fabric_stock_id') == $fabric->id)
-                                    @disabled(! $parta)>{{ $fabric->quality_name }}{{ $parta ? '' : ' (Parta required)' }}</option>
+                                    @disabled(! $parta)>{{ $fabric->display_name }}{{ $parta ? '' : ' (Parta required)' }}</option>
                         @endforeach
                     </select>
                 </label>
@@ -868,7 +868,7 @@
                                     {{ $cnt->contract_no }}
                                 </span>
                                 <div class="font-extrabold text-zinc-900 leading-tight">{{ $cnt->buyer_name }}</div>
-                                <div class="text-[11px] text-zinc-500 mt-1">{{ $cnt->fabric_quality }} <span class="mx-1 text-zinc-300">/</span> {{ $cnt->contract_type }}</div>
+                                <div class="text-[11px] text-zinc-500 mt-1">{{ $cnt->fabricStock?->display_name ?? $cnt->fabric_quality }} <span class="mx-1 text-zinc-300">/</span> {{ $cnt->contract_type }}</div>
                             </div>
                             <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
                                          {{ $cnt->status === 'active'

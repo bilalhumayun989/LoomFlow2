@@ -101,7 +101,7 @@
                             @forelse($rows as $row)
                                 <tr class="hover:bg-stone-50/70 transition-colors">
                                     <td class="p-3 font-bold text-stone-900">{{ $row['order']->order_no }}<small class="block text-stone-400 font-medium text-[10px]">{{ $row['order']->type }} &middot; {{ $row['order']->party_name ?? 'Factory' }}</small></td>
-                                    <td class="p-3 text-stone-700">{{ $row['order']->fabricStock?->quality_name }}</td>
+                                    <td class="p-3 text-stone-700">{{ $row['order']->fabricStock?->display_name }}</td>
                                     <td class="p-3 text-right text-stone-700 tabular-nums">{{ number_format($row['meterOutput'], 2) }}</td>
                                     <td class="p-3 text-right text-stone-700 tabular-nums">{{ number_format($row['checked'], 2) }}</td>
                                     <td class="p-3 text-right font-semibold tabular-nums {{ abs($row['meterVariance']) > 0.01 ? 'text-amber-700' : 'text-stone-700' }}" title="Loom output minus checked metres">{{ $row['meterVariance'] > 0 ? '+' : '' }}{{ number_format($row['meterVariance'], 2) }}</td>

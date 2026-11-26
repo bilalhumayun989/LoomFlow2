@@ -51,11 +51,15 @@ class FactoryOrderController extends Controller
         if ($request->filled('quality_name')) {
             $request->merge(['quality_name' => trim((string) $request->input('quality_name'))]);
         }
+        if ($request->filled('quality_code')) {
+            $request->merge(['quality_code' => strtoupper(trim((string) $request->input('quality_code')))]);
+        }
 
         $data = $request->validate([
             'quality_mode' => 'required|in:existing,new',
             'fabric_stock_id' => 'required_if:quality_mode,existing|nullable|exists:fabric_stocks,id',
             'quality_name' => 'required_if:quality_mode,new|nullable|string|max:150|unique:fabric_stocks,quality_name',
+            'quality_code' => 'required_if:quality_mode,new|nullable|string|max:50|alpha_dash|unique:fabric_stocks,quality_code',
             'read' => 'required|numeric|gt:0', 'pick' => 'required|numeric|gt:0',
             'width_inches' => 'required|numeric|gt:0',
             'warp_count' => 'required|numeric|gt:0', 'weft_count' => 'required|numeric|gt:0',
@@ -66,6 +70,7 @@ class FactoryOrderController extends Controller
             $fabric = $data['quality_mode'] === 'new'
                 ? FabricStock::create([
                     'quality_name' => trim($data['quality_name']),
+                    'quality_code' => $data['quality_code'],
                     'width_inches' => $data['width_inches'],
                     'read' => $data['read'],
                     'pick' => $data['pick'],
@@ -146,7 +151,7 @@ class FactoryOrderController extends Controller
                     $contract = SalesContract::create([
                         'contract_no' => $data['contract_no'], 'customer_id' => $customer->id,
                         'buyer_name' => $party, 'buyer_phone' => $customer->phone,
-                        'fabric_stock_id' => $fabric->id, 'fabric_quality' => $fabric->quality_name,
+                        'fabric_stock_id' => $fabric->id, 'fabric_quality' => $fabric->display_name,
                         'contract_type' => 'Conversion', 'read' => $parta->read, 'pick' => $parta->pick,
                         'warp_count' => $parta->warp_count, 'weft_count' => $parta->weft_count,
                         'width' => $parta->width_inches,

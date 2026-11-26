@@ -978,7 +978,7 @@
                     <option value="">Choose order</option>
                     @foreach($activeOrders as $order)
                         <option value="{{ $order->id }}" data-fabric-stock-id="{{ $order->fabric_stock_id }}">
-                            {{ $order->order_no }} · {{ $order->fabricStock?->quality_name }}{{ $order->party_name ? ' · '.$order->party_name : '' }}
+                            {{ $order->order_no }} · {{ $order->fabricStock?->display_name }}{{ $order->party_name ? ' · '.$order->party_name : '' }}
                         </option>
                     @endforeach
                 </select>

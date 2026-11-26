@@ -21,7 +21,7 @@ class ProductionController extends Controller
 {
     public function index(): View
     {
-        $productions = Production::with('beam')->latest('production_date')->latest('id')->limit(5)->get();
+        $productions = Production::with(['beam', 'fabricStock'])->latest('production_date')->latest('id')->limit(5)->get();
 
         return $this->renderPage('dashboard', $productions);
     }
@@ -38,7 +38,7 @@ class ProductionController extends Controller
 
     public function history(Request $request): View
     {
-        $query = Production::with('beam')->latest('production_date')->latest('id');
+        $query = Production::with(['beam', 'fabricStock'])->latest('production_date')->latest('id');
 
         if ($request->filled('loom_no')) {
             $query->where('loom_no', $request->loom_no);
@@ -227,7 +227,7 @@ class ProductionController extends Controller
             $theoreticalMeters = ($validated['rpm'] * 60 * 12) / ($validated['picks_per_inch'] * 39.37);
             $efficiency = $theoreticalMeters > 0 ? min(99.9, round(($netMetersProduced / $theoreticalMeters) * 100, 2)) : 85.0;
 
-            $validated['fabric_quality'] = $fabric->quality_name;
+            $validated['fabric_quality'] = $fabric->display_name;
             $validated['net_meters_produced'] = $netMetersProduced;
             $validated['expected_fabric_meters'] = $expectedFabricMeters;
             $validated['leakage_waste_meters'] = $leakageMeters;
@@ -360,7 +360,7 @@ class ProductionController extends Controller
                     'operator_name' => 'Production register',
                     'sizing_beam_id' => $beam?->id,
                     'fabric_stock_id' => $fabric->id,
-                    'fabric_quality' => $fabric->quality_name,
+                    'fabric_quality' => $fabric->display_name,
                     'gazana_per_roll' => $roll['gazana_per_roll'],
                     'roll_quantity' => $roll['quantity'],
                     'total_gazana' => $roll['total_gazana'],

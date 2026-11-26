@@ -47,7 +47,7 @@
                         <select name="work_order_id" id="own-work-order" required class="w-full mt-1 border border-[#e2e8e0] rounded-xl p-2.5 text-xs bg-white">
                             <option value="">Choose own order</option>
                             @foreach($orders->where('type', 'own') as $order)
-                                <option value="{{ $order->id }}" data-quality-id="{{ $order->fabric_stock_id }}">{{ $order->order_no }} · {{ $order->fabricStock?->quality_name }}</option>
+                                <option value="{{ $order->id }}" data-quality-id="{{ $order->fabric_stock_id }}">{{ $order->order_no }} · {{ $order->fabricStock?->display_name }}</option>
                             @endforeach
                         </select>
                     </label>
@@ -65,7 +65,7 @@
                         <select name="fabric_stock_id" id="checking-quality" required class="w-full mt-1 border border-[#e2e8e0] rounded-xl p-2.5 text-xs bg-white">
                             <option value="">Select an order first</option>
                             @foreach($fabrics as $fabric)
-                                <option value="{{ $fabric->id }}">{{ $fabric->quality_name }}</option>
+                                <option value="{{ $fabric->id }}">{{ $fabric->display_name }}</option>
                             @endforeach
                         </select>
                     </label>
@@ -153,7 +153,7 @@
                             <tr class="hover:bg-stone-50/60">
                                 <td class="p-2.5 font-bold text-stone-900">{{ $a->loom_no }}</td>
                                 <td class="p-2.5 text-stone-700">{{ $a->order?->order_no }}</td>
-                                <td class="p-2.5 text-stone-600">{{ $a->order?->fabricStock?->quality_name }}</td>
+                                <td class="p-2.5 text-stone-600">{{ $a->order?->fabricStock?->display_name }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="3" class="p-4 text-center text-stone-400 italic">Allocate a loom first in Sizing &gt; Beams Tracking.</td></tr>
@@ -205,7 +205,7 @@
                                     {{ $r->order?->order_no ?? 'Order unavailable' }}
                                 @endif
                             </td>
-                            <td class="p-3 text-stone-700">{{ $r->fabricStock?->quality_name ?? $r->order?->fabricStock?->quality_name }}</td>
+                            <td class="p-3 text-stone-700">{{ $r->fabricStock?->display_name ?? $r->order?->fabricStock?->display_name }}</td>
                             <td class="p-3 text-stone-700">{{ $r->loom_no }}</td>
                             <td class="text-right p-3 font-black text-[#133e2b] tabular-nums">{{ number_format((float)$r->length_meters,2) }}m</td>
                             <td class="text-center p-3">
@@ -259,7 +259,7 @@
                             <td class="p-3 text-stone-600">{{ $m->production_date->toDateString() }}</td>
                             <td class="p-3 font-bold text-stone-900">{{ $m->loom_no }}</td>
                             <td class="p-3 text-stone-700">{{ $m->workOrder?->type === 'job' ? 'Job Work' : 'Own Factory' }} · {{ $m->workOrder?->order_no }}<span class="block text-[10px] text-stone-400">{{ $m->workOrder?->contract?->contract_no ?? $m->workOrder?->customer?->name ?? 'Factory order' }}</span></td>
-                            <td class="p-3 text-stone-700">{{ $m->workOrder?->fabricStock?->quality_name }}</td>
+                            <td class="p-3 text-stone-700">{{ $m->workOrder?->fabricStock?->display_name }}</td>
                             <td class="p-3 text-right font-bold tabular-nums">{{ number_format((float) $m->loom_meters, 2) }}</td>
                             <td class="p-3 text-right tabular-nums">{{ number_format((float) $capacity['checked'], 2) }}</td>
                             <td class="p-3 text-right font-black text-[#133e2b] tabular-nums">{{ number_format((float) $capacity['available'], 2) }}</td>

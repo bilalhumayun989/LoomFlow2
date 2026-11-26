@@ -25,8 +25,8 @@ class SalesController extends Controller
 {
     public function index(Request $request): View
     {
-        $sales = Sale::with('contract')->latest('sale_date')->latest('id')->limit(5)->get();
-        $contracts = SalesContract::latest('start_date')->latest('id')->limit(5)->get();
+        $sales = Sale::with(['contract', 'fabricStock'])->latest('sale_date')->latest('id')->limit(5)->get();
+        $contracts = SalesContract::with('fabricStock')->latest('start_date')->latest('id')->limit(5)->get();
         $page = 'dashboard';
 
         return $this->renderPage($page, $sales, $contracts, $request->query('mode') !== 'display');
@@ -36,7 +36,7 @@ class SalesController extends Controller
     {
         return $this->renderPage(
             'slips',
-            Sale::with('contract')->latest('sale_date')->latest('id')->paginate(15),
+            Sale::with(['contract', 'fabricStock'])->latest('sale_date')->latest('id')->paginate(15),
             collect(),
             $request->query('mode') !== 'display'
         );
@@ -47,7 +47,7 @@ class SalesController extends Controller
         return $this->renderPage(
             'contracts',
             collect(),
-            SalesContract::latest('start_date')->latest('id')->paginate(15),
+            SalesContract::with('fabricStock')->latest('start_date')->latest('id')->paginate(15),
             $request->query('mode') !== 'display'
         );
     }
@@ -228,7 +228,7 @@ class SalesController extends Controller
             }
 
             $validated['customer_id'] = $customer->id;
-            $validated['fabric_quality'] = $fabric->quality_name;
+            $validated['fabric_quality'] = $fabric->display_name;
             $validated['subtotal'] = $validated['meters_sold'] * $validated['rate_per_meter'];
             $validated['discount'] = $validated['discount'] ?? 0;
             $validated['net_total'] = max(0, $validated['subtotal'] - $validated['discount']);
@@ -362,7 +362,7 @@ class SalesController extends Controller
         $validated['buyer_name'] = $customer->name;
         $validated['buyer_phone'] = $customer->phone;
         $fabric = FabricStock::findOrFail($validated['fabric_stock_id']);
-        $validated['fabric_quality'] = $fabric->quality_name;
+        $validated['fabric_quality'] = $fabric->display_name;
         $validated['tax_enabled'] = (bool) ($validated['tax_enabled'] ?? false);
         $calculatedValues = SalesContract::calculateContractValues($validated);
         $validated = array_merge($validated, $calculatedValues);
