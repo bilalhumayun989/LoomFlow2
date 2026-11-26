@@ -260,10 +260,15 @@
         }
 
         body.operator-console #appSidebar {
+            z-index: 34 !important;
             background: #edf1f3 !important;
             color: #24333b !important;
             border-color: var(--operator-edge) !important;
             box-shadow: none !important;
+        }
+
+        body.operator-console #sidebarBackdrop {
+            z-index: 30 !important;
         }
 
         body.operator-console .sidebar-brand-header,
