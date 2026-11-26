@@ -193,7 +193,7 @@
                             $sizingSlipNo = 'SZ-' . $transaction->id . '-' . date('ymd', strtotime($transaction->transaction_date));
                         @endphp
                         <option value="{{ $transaction->id }}" data-slip="{{ $sizingSlipNo }}" data-party="{{ $sizingParty }}" data-quality="{{ $transaction->quality }}" data-quantity="{{ $transaction->quantity_bags }}" data-date="{{ $transaction->transaction_date->format('Y-m-d') }}">
-                            {{ $transaction->reference_no }} · {{ $transaction->quality }} · {{ number_format((float) $transaction->quantity_bags, 2) }} bags · {{ $sizingParty }}
+                            {{ $transaction->reference_no }} · {{ $transaction->yarnQuality?->display_name ?? $transaction->quality }} · {{ number_format((float) $transaction->quantity_bags, 2) }} bags · {{ $sizingParty }}
                         </option>
                     @endforeach
                 </select>
@@ -226,7 +226,7 @@
                                     class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
                                 <option value="">Select yarn quality</option>
                                 @foreach($yarnQualities as $yarnQuality)
-                                <option value="{{ $yarnQuality->name }}" data-warp-weight="{{ $yarnQuality->warp_weight_per_meter_lb }}" data-weft-weight="{{ $yarnQuality->weft_weight_per_meter_lb }}" data-total-weight="{{ $yarnQuality->total_weight_per_meter_lb }}" data-unit-cost="{{ $yarnQuality->unit_cost_meter }}">{{ $yarnQuality->name }}</option>
+                                <option value="{{ $yarnQuality->name }}" data-warp-weight="{{ $yarnQuality->warp_weight_per_meter_lb }}" data-weft-weight="{{ $yarnQuality->weft_weight_per_meter_lb }}" data-total-weight="{{ $yarnQuality->total_weight_per_meter_lb }}" data-unit-cost="{{ $yarnQuality->unit_cost_meter }}">{{ $yarnQuality->display_name }}</option>
                                 @endforeach
                             </select>
                             <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
@@ -501,7 +501,7 @@
                         @endphp
                         <tr class="align-top hover:bg-zinc-50">
                             <td class="px-4 py-4"><span class="font-mono font-bold text-zinc-900">{{ $s->slip_no }}</span><span class="mt-1 block text-[10px] text-zinc-400">{{ $s->slip_date->format('d M, Y') }}</span><span class="block text-[10px] text-zinc-500">{{ $s->sizing_party }}</span></td>
-                            <td class="px-4 py-4"><span class="font-semibold text-zinc-700">{{ $s->yarn_quality }}</span><span class="mt-1 block text-[10px] text-zinc-400">{{ number_format($s->total_ends ?? 0) }} ends · {{ number_format($s->width_multiplier, 2) }} panna</span></td>
+                            <td class="px-4 py-4"><span class="font-semibold text-zinc-700">{{ $s->yarnQuality?->display_name ?? $s->yarn_quality }}</span><span class="mt-1 block text-[10px] text-zinc-400">{{ number_format($s->total_ends ?? 0) }} ends · {{ number_format($s->width_multiplier, 2) }} panna</span></td>
                             <td class="px-4 py-4 text-right font-mono font-bold text-zinc-900">{{ number_format((float) $s->bags_allocated, 2) }}</td>
                             <td class="px-4 py-4 text-right font-mono text-zinc-700">{{ number_format((float) $s->bags_used, 2) }} / {{ number_format((float) $s->bags_returned_to_factory, 2) }} / {{ number_format((float) $s->bags_held_with_sizing, 2) }}</td>
                             <td class="px-4 py-4">
@@ -558,7 +558,7 @@
                         <tr>
                             <td class="px-4 py-3"><span class="font-mono font-bold text-zinc-900">{{ $transaction->reference_no ?: 'Bag entry #'.$transaction->id }}</span><span class="mt-0.5 block text-[10px] text-zinc-400">{{ $transaction->transaction_date->format('d M, Y') }}</span></td>
                             <td class="px-4 py-3 font-semibold text-zinc-700">{{ $sizingParty }}@if($transaction->owner_type === 'customer')<span class="mt-1 block text-[9px] font-extrabold uppercase tracking-wide text-amber-800">Customer-owned bags</span>@endif</td>
-                            <td class="px-4 py-3 text-zinc-600">{{ $transaction->quality }}</td>
+                            <td class="px-4 py-3 text-zinc-600">{{ $transaction->yarnQuality?->display_name ?? $transaction->quality }}</td>
                             <td class="px-4 py-3 text-right font-mono font-bold text-zinc-900">{{ number_format((float) $transaction->quantity_bags, 2) }}</td>
                             <td class="px-4 py-3 text-right font-mono text-zinc-600">{{ number_format($receivedWeightKg, 3) }} kg<span class="block text-[10px] text-zinc-400">{{ $transaction->net_weight_kg !== null ? 'measured on receipt' : number_format($transaction->quantity_bags * 100).' lb estimated' }}</span></td>
                             <td class="px-4 py-3 text-right"><button type="button" onclick="openSizingSlipFromBag(this)" data-id="{{ $transaction->id }}" data-reference="{{ $transaction->reference_no }}" data-slip="{{ $sizingSlipNo }}" data-party="{{ $sizingParty }}" data-quality="{{ $transaction->quality }}" data-quantity="{{ $transaction->quantity_bags }}" data-date="{{ $transaction->transaction_date->format('Y-m-d') }}" class="rounded-lg bg-zinc-900 px-3 py-2 text-[11px] font-bold text-white hover:bg-zinc-700">Enter sizing slip</button></td>
@@ -617,7 +617,7 @@
                             <td class="px-4 py-3 font-mono font-black text-zinc-900 text-sm">{{ $bm->beam_no }}</td>
                             <td class="px-4 py-3 font-semibold text-zinc-800">{{ $bm->beam_name ?: '—' }}</td>
                             <td class="px-4 py-3 font-mono text-zinc-500">{{ $bm->sizingSlip ? $bm->sizingSlip->slip_no : 'Manual' }}</td>
-                            <td class="px-4 py-3 font-semibold text-zinc-700">{{ $bm->yarn_quality }}</td>
+                            <td class="px-4 py-3 font-semibold text-zinc-700">{{ $bm->yarnQuality?->display_name ?? $bm->yarn_quality }}</td>
                             <td class="px-4 py-3 text-right font-mono text-zinc-500">{{ number_format($bm->total_length_meters, 0) }}m</td>
                             @php
                                 $actualWovenMeters = (float) ($bm->productions_sum_net_meters_produced ?? 0);
@@ -729,7 +729,7 @@
 
                         <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                             <div class="rounded-xl bg-zinc-50 p-3"><span class="block text-[10px] font-bold uppercase text-zinc-400">Beams from slip</span><strong class="mt-1 block font-mono text-lg text-zinc-900">{{ $slipDetails->total_beams }}</strong></div>
-                            <div class="rounded-xl bg-zinc-50 p-3"><span class="block text-[10px] font-bold uppercase text-zinc-400">Yarn quality</span><strong class="mt-1 block text-sm text-zinc-900">{{ $slipDetails->yarn_quality }}</strong></div>
+                            <div class="rounded-xl bg-zinc-50 p-3"><span class="block text-[10px] font-bold uppercase text-zinc-400">Yarn quality</span><strong class="mt-1 block text-sm text-zinc-900">{{ $slipDetails->yarnQuality?->display_name ?? $slipDetails->yarn_quality }}</strong></div>
                             <div class="rounded-xl bg-zinc-50 p-3"><span class="block text-[10px] font-bold uppercase text-zinc-400">Expected cloth total</span><strong class="mt-1 block font-mono text-lg text-zinc-900">{{ number_format($expectedSlipMeters, 2) }}m</strong></div>
                             <div class="rounded-xl bg-zinc-50 p-3"><span class="block text-[10px] font-bold uppercase text-zinc-400">Expected cloth / beam</span><strong class="mt-1 block font-mono text-lg text-zinc-900">{{ number_format($expectedPerBeamMeters, 2) }}m</strong></div>
                         </div>
@@ -878,7 +878,7 @@
                             <td class="px-4 py-3 font-mono font-bold text-zinc-900">{{ $s->slip_no }}<span class="mt-1 block text-[9px] font-sans uppercase text-zinc-400">{{ str_replace('_', ' ', $s->slip_type ?? 'raw_perch') }}</span></td>
                             <td class="px-4 py-3 text-zinc-500 font-mono">{{ $s->slip_date->format('d M, Y') }}</td>
                             <td class="px-4 py-3 font-semibold text-zinc-700">{{ $s->sizing_party }}</td>
-                            <td class="px-4 py-3 text-zinc-600 font-mono">{{ $s->yarn_quality }}</td>
+                            <td class="px-4 py-3 text-zinc-600 font-mono">{{ $s->yarnQuality?->display_name ?? $s->yarn_quality }}</td>
                             <td class="px-4 py-3 text-center font-bold text-zinc-900 font-mono">{{ number_format((float) $s->bags_allocated, 2) }}</td>
                             <td class="px-4 py-3 text-center font-black text-zinc-900 bg-zinc-50 border-x border-zinc-200 font-mono">{{ number_format((float) $s->bags_used, 2) }}</td>
                             <td class="px-4 py-3 text-center font-bold text-zinc-600 bg-zinc-50 border-r border-zinc-200 font-mono">{{ number_format((float) $s->bags_returned_to_factory, 2) }}</td>

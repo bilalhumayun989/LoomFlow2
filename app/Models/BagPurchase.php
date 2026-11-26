@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BagPurchase extends Model
 {
@@ -34,4 +35,9 @@ class BagPurchase extends Model
         'bags_to_sizing' => 'decimal:2',
         'bags_to_factory' => 'decimal:2',
     ];
+
+    public function yarnQuality(): BelongsTo
+    {
+        return $this->belongsTo(YarnQuality::class, 'quality', 'name');
+    }
 }

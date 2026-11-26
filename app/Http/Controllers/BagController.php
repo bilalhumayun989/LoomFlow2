@@ -26,9 +26,9 @@ class BagController extends Controller
 {
     public function index(): View
     {
-        $purchases = BagPurchase::latest('purchase_date')->latest('id')->limit(5)->get();
-        $transactions = BagTransaction::latest('transaction_date')->latest('id')->limit(5)->get();
-        $sizingSlips = SizingSlip::latest('slip_date')->latest('id')->limit(5)->get();
+        $purchases = BagPurchase::with('yarnQuality')->latest('purchase_date')->latest('id')->limit(5)->get();
+        $transactions = BagTransaction::with('yarnQuality')->latest('transaction_date')->latest('id')->limit(5)->get();
+        $sizingSlips = SizingSlip::with('yarnQuality')->latest('slip_date')->latest('id')->limit(5)->get();
         $page = 'dashboard';
         $mode = request()->query('mode') === 'display' ? 'display' : 'operator';
 
@@ -39,7 +39,7 @@ class BagController extends Controller
     {
         return $this->renderPage(
             'purchases',
-            BagPurchase::latest('purchase_date')->latest('id')->paginate(15),
+            BagPurchase::with('yarnQuality')->latest('purchase_date')->latest('id')->paginate(15),
             collect(),
             collect(),
             request()->query('mode') === 'display' ? 'display' : 'operator'
@@ -56,7 +56,7 @@ class BagController extends Controller
         return $this->renderPage(
             'ledger',
             collect(),
-            BagTransaction::latest('transaction_date')->latest('id')->paginate(20),
+            BagTransaction::with('yarnQuality')->latest('transaction_date')->latest('id')->paginate(20),
             collect(),
             request()->query('mode') === 'display' ? 'display' : 'operator'
         );
@@ -68,7 +68,7 @@ class BagController extends Controller
             'sizing',
             collect(),
             collect(),
-            SizingSlip::latest('slip_date')->paginate(20),
+            SizingSlip::with('yarnQuality')->latest('slip_date')->paginate(20),
             request()->query('mode') === 'display' ? 'display' : 'operator'
         );
     }
@@ -111,6 +111,7 @@ class BagController extends Controller
 
             return [
                 'name' => $quality,
+                'display_name' => $yarnQuality->display_name,
                 'factory_stock' => max(0, $directToFactory - $issuedToSizing + $returnedToFactory),
                 'sizing_stock' => max(0, $directToSizing + $issuedToSizing - $usedInSizing - $sizingReturns),
                 'total' => max(0, $directToFactory - $issuedToSizing + $returnedToFactory)

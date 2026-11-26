@@ -59,14 +59,14 @@ class ProductionController extends Controller
 
         // Active Beams mounted or ready
         $activeBeams = SizingBeam::withSum('productions', 'net_meters_produced')
-            ->with('sizingSlip')
+            ->with(['yarnQuality', 'sizingSlip.yarnQuality'])
             ->where('status', 'mounted_on_loom')
             ->get();
-        $mountedBeams = SizingBeam::with('sizingSlip', 'fabricStock')
+        $mountedBeams = SizingBeam::with(['yarnQuality', 'sizingSlip.yarnQuality', 'fabricStock'])
             ->where('status', 'mounted_on_loom')
             ->get()
             ->keyBy('assigned_loom_no');
-        $beamLeakageRows = SizingBeam::with('sizingSlip')
+        $beamLeakageRows = SizingBeam::with(['yarnQuality', 'sizingSlip.yarnQuality'])
             ->with('productions:id,sizing_beam_id,loom_no')
             ->withSum('productions', 'net_meters_produced')
             ->withSum('productions', 'beam_meters_consumed')
@@ -76,6 +76,7 @@ class ProductionController extends Controller
             ? DB::table('sizing_slips')
                 ->leftJoin('sizing_beams', 'sizing_beams.sizing_slip_id', '=', 'sizing_slips.id')
                 ->leftJoin('productions', 'productions.sizing_beam_id', '=', 'sizing_beams.id')
+                ->leftJoin('yarn_qualities', 'yarn_qualities.name', '=', 'sizing_slips.yarn_quality')
                 ->select([
                     'sizing_slips.id',
                     'sizing_slips.slip_no',
@@ -83,6 +84,7 @@ class ProductionController extends Controller
                     'sizing_slips.total_beams',
                 ])
                 ->selectRaw('COUNT(DISTINCT CASE WHEN productions.id IS NOT NULL THEN sizing_beams.id END) as used_beam_count')
+                ->selectRaw('MAX(yarn_qualities.code) as yarn_quality_code')
                 ->selectRaw('COUNT(DISTINCT productions.loom_no) as loom_count')
                 ->selectRaw('MAX(sizing_slips.total_length_meters * sizing_slips.width_multiplier) as expected_total_meters')
                 ->selectRaw('COALESCE(SUM(productions.expected_fabric_meters), 0) as expected_consumed_meters')

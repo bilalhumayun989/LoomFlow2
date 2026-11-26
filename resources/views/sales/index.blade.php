@@ -941,7 +941,7 @@
                                             <label class="text-[10px] font-bold text-zinc-600">Yarn quality
                                                 <select name="quality" required class="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs text-zinc-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
                                                     <option value="">Select quality</option>
-                                                    @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}">{{ $yarnQuality->name }}</option>@endforeach
+                                                    @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}">{{ $yarnQuality->display_name }}</option>@endforeach
                                                 </select>
                                             </label>
                                             <label class="text-[10px] font-bold text-zinc-600">Bags received

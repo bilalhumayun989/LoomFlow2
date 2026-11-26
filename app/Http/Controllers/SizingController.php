@@ -27,12 +27,14 @@ class SizingController extends Controller
 
     public function index(): View
     {
-        $slips = SizingSlip::with(['beams' => fn ($query) => $query
+        $slips = SizingSlip::with(['yarnQuality', 'beams' => fn ($query) => $query
+            ->with('yarnQuality')
             ->withSum('productions', 'net_meters_produced')
             ->withSum('productions', 'expected_fabric_meters')
             ->withCount('productions')])
             ->latest('id')->limit(5)->get();
-        $beams = SizingBeam::with(['sizingSlip.beams' => fn ($query) => $query
+        $beams = SizingBeam::with(['yarnQuality', 'sizingSlip.yarnQuality', 'sizingSlip.beams' => fn ($query) => $query
+            ->with('yarnQuality')
             ->withSum('productions', 'net_meters_produced')
             ->withSum('productions', 'expected_fabric_meters')
             ->withCount('productions')])
@@ -50,7 +52,8 @@ class SizingController extends Controller
         return $this->renderPage(
             'beams',
             collect(),
-            SizingBeam::with(['sizingSlip.beams' => fn ($query) => $query
+            SizingBeam::with(['yarnQuality', 'sizingSlip.yarnQuality', 'sizingSlip.beams' => fn ($query) => $query
+                ->with('yarnQuality')
                 ->withSum('productions', 'net_meters_produced')
                 ->withSum('productions', 'expected_fabric_meters')
                 ->withCount('productions')])
@@ -65,7 +68,8 @@ class SizingController extends Controller
     {
         return $this->renderPage(
             'slips',
-            SizingSlip::with(['beams' => fn ($query) => $query
+            SizingSlip::with(['yarnQuality', 'beams' => fn ($query) => $query
+                ->with('yarnQuality')
                 ->withSum('productions', 'net_meters_produced')
                 ->withSum('productions', 'expected_fabric_meters')
                 ->withCount('productions')])
@@ -78,7 +82,8 @@ class SizingController extends Controller
     {
         return $this->renderPage(
             'balance',
-            SizingSlip::with(['beams' => fn ($query) => $query
+            SizingSlip::with(['yarnQuality', 'beams' => fn ($query) => $query
+                ->with('yarnQuality')
                 ->withSum('productions', 'net_meters_produced')
                 ->withSum('productions', 'expected_fabric_meters')
                 ->withSum('productions', 'leakage_waste_meters')
@@ -111,7 +116,7 @@ class SizingController extends Controller
         $exhaustedBeamsCount = SizingBeam::where('status', 'exhausted')->count();
         $totalBeamMetersProduced = SizingBeam::sum('total_length_meters');
         $remainingBeamMetersOnLooms = SizingBeam::where('status', 'mounted_on_loom')->sum('remaining_length_meters');
-        $pendingSizingTransactions = BagTransaction::whereIn('transaction_type', ['purchase_sizing', 'issue_to_sizing', 'customer_sizing_receipt'])
+        $pendingSizingTransactions = BagTransaction::with('yarnQuality')->whereIn('transaction_type', ['purchase_sizing', 'issue_to_sizing', 'customer_sizing_receipt'])
             ->whereDoesntHave('sizingSlip')
             ->latest('transaction_date')
             ->latest('id')
@@ -122,9 +127,9 @@ class SizingController extends Controller
         $looms = config('loomflow.looms');
         $activeOrders = WorkOrder::with('fabricStock')->where('status', 'active')->latest('id')->get();
         $assignments = LoomAssignment::with('order.fabricStock')->whereNull('end_date')->orderBy('loom_no')->get();
-        $transferBeams = SizingBeam::with(['workOrder.contract', 'workOrder.parta'])
+        $transferBeams = SizingBeam::with(['yarnQuality', 'workOrder.contract', 'workOrder.parta'])
             ->whereNotIn('status', ['exhausted', 'returned_to_customer'])->orderBy('beam_no')->get();
-        $recentBeams = BeamEvent::with('beam')->latest('id')->limit(15)->get();
+        $recentBeams = BeamEvent::with('beam.yarnQuality')->latest('id')->limit(15)->get();
 
         return view('sizing.index', compact(
             'page',

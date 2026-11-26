@@ -38,6 +38,11 @@ class SizingBeam extends Model
         return $this->belongsTo(SizingSlip::class);
     }
 
+    public function yarnQuality(): BelongsTo
+    {
+        return $this->belongsTo(YarnQuality::class, 'yarn_quality', 'name');
+    }
+
     public function fabricStock(): BelongsTo
     {
         return $this->belongsTo(FabricStock::class);

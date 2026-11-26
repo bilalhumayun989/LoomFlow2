@@ -214,7 +214,7 @@
                     <div class="flex gap-2">
                         <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
                             <option value="">Select yarn quality</option>
-                            @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->name }}</option>@endforeach
+                            @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->display_name }}</option>@endforeach
                         </select>
                         <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
                     </div>
@@ -322,7 +322,7 @@
                 <div class="flex gap-2">
                     <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
                         <option value="">Select yarn quality</option>
-                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->name }}</option>@endforeach
+                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->display_name }}</option>@endforeach
                     </select>
                 <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
                 </div>
@@ -399,7 +399,7 @@
                 <div class="flex gap-2">
                     <select name="quality" required data-yarn-quality-select class="min-w-0 flex-1 bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500">
                         <option value="">Select yarn quality</option>
-                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->name }}</option>@endforeach
+                        @foreach($yarnQualities as $yarnQuality)<option value="{{ $yarnQuality->name }}" @selected(old('quality') === $yarnQuality->name)>{{ $yarnQuality->display_name }}</option>@endforeach
                     </select>
                     <a href="#yarn-quality-entry" class="shrink-0 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100">+ Add quality below</a>
                 </div>
@@ -608,7 +608,7 @@
                 <thead><tr class="border-b border-zinc-100 text-left text-[10px] uppercase tracking-wide text-zinc-400"><th class="py-2 pr-3">Yarn quality</th><th class="px-3 py-2 text-right">Factory stock</th><th class="px-3 py-2 text-right">With sizing</th><th class="py-2 pl-3 text-right">Total remaining</th></tr></thead>
                 <tbody>
                     @forelse($qualityBalances as $balance)
-                        <tr class="border-b border-zinc-50 last:border-0"><td class="py-2.5 pr-3 font-semibold text-zinc-800">{{ $balance['name'] }}</td><td class="px-3 py-2.5 text-right font-mono">{{ number_format($balance['factory_stock'], 2) }}</td><td class="px-3 py-2.5 text-right font-mono">{{ number_format($balance['sizing_stock'], 2) }}</td><td class="py-2.5 pl-3 text-right font-mono font-bold">{{ number_format($balance['total'], 2) }}</td></tr>
+                        <tr class="border-b border-zinc-50 last:border-0"><td class="py-2.5 pr-3 font-semibold text-zinc-800">{{ $balance['display_name'] }}</td><td class="px-3 py-2.5 text-right font-mono">{{ number_format($balance['factory_stock'], 2) }}</td><td class="px-3 py-2.5 text-right font-mono">{{ number_format($balance['sizing_stock'], 2) }}</td><td class="py-2.5 pl-3 text-right font-mono font-bold">{{ number_format($balance['total'], 2) }}</td></tr>
                     @empty
                         <tr><td colspan="4" class="py-4 text-center text-zinc-400">Create a yarn quality to start tracking stock.</td></tr>
                     @endforelse
@@ -669,7 +669,7 @@
                             <td class="px-4 py-3 font-mono font-bold text-zinc-900">{{ $p->challan_no }}</td>
                             <td class="px-4 py-3 text-zinc-500">{{ $p->purchase_date->format('d M, Y') }}</td>
                             <td class="px-4 py-3 font-semibold text-zinc-800">{{ $p->supplier_name }}</td>
-                            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 font-mono text-[11px]">{{ $p->quality }}</span><span class="block mt-1 text-[10px] text-zinc-500">{{ number_format((int) $p->cones_per_bag) }} cones / bag</span></td>
+                            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 font-mono text-[11px]">{{ $p->yarnQuality?->display_name ?? $p->quality }}</span><span class="block mt-1 text-[10px] text-zinc-500">{{ number_format((int) $p->cones_per_bag) }} cones / bag</span></td>
                             <td class="px-4 py-3 text-right font-black text-zinc-900">{{ number_format((float) $p->total_bags, 2) }}</td>
                             <td class="px-4 py-3 text-center font-bold font-mono text-zinc-800 bg-zinc-50 border-x border-zinc-200">
                                 {{ number_format((float) $p->bags_to_sizing, 2) }}
@@ -756,7 +756,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 font-mono font-semibold text-zinc-900">{{ $tx->reference_no ?? '-' }}</td>
-                            <td class="px-4 py-3 font-medium text-zinc-700">{{ $tx->quality }}</td>
+                            <td class="px-4 py-3 font-medium text-zinc-700">{{ $tx->yarnQuality?->display_name ?? $tx->quality }}</td>
                             <td class="px-4 py-3 text-right font-mono font-bold text-zinc-900">
                                 {{ number_format((float) $tx->quantity_bags, 2) }} Bags
                                 @if($tx->cones_per_bag)<span class="block text-[10px] font-medium text-zinc-500">{{ number_format((int) $tx->cones_per_bag) }} cones / bag</span>@endif
@@ -835,7 +835,7 @@
                         <tr class="hover:bg-zinc-50 transition-colors">
                             <td class="px-4 py-3 font-mono font-bold text-zinc-900">{{ $slip->slip_no }}</td>
                             <td class="px-4 py-3 font-semibold text-zinc-800">{{ $slip->sizing_party }}</td>
-                            <td class="px-4 py-3 text-zinc-600">{{ $slip->yarn_quality }}</td>
+                            <td class="px-4 py-3 text-zinc-600">{{ $slip->yarnQuality?->display_name ?? $slip->yarn_quality }}</td>
                             <td class="px-4 py-3 text-center font-bold text-zinc-900 font-mono">{{ number_format((float) $slip->bags_allocated, 2) }}</td>
                             <td class="px-4 py-3 text-center font-black text-zinc-900 bg-zinc-50 border-x border-zinc-200 font-mono">{{ number_format((float) $slip->bags_used, 2) }}</td>
                             <td class="px-4 py-3 text-center font-bold text-zinc-700 bg-zinc-50 border-r border-zinc-200 font-mono">{{ number_format((float) $slip->bags_returned_to_factory, 2) }}</td>

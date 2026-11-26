@@ -15,6 +15,7 @@ use App\Models\SalesContract;
 use App\Models\SizingBeam;
 use App\Models\SizingSlip;
 use App\Models\User;
+use App\Models\YarnQuality;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -54,6 +55,13 @@ class DatabaseSeeder extends Seeder
                     'password' => Hash::make('password'),
                 ]
             );
+        }
+
+        foreach ([
+            '30/1 PC Combed' => 'YRN-BASE-001',
+            '40/1 100% Cotton Carded' => 'YRN-BASE-002',
+        ] as $name => $code) {
+            YarnQuality::firstOrCreate(['name' => $name], ['code' => $code]);
         }
 
         // 2. Bags Purchases (with split between sizing & factory stock)

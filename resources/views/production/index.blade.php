@@ -250,7 +250,7 @@
                         <thead class="bg-white text-[10px] font-semibold uppercase tracking-wider text-zinc-500"><tr class="border-b border-zinc-200"><th class="px-4 py-3">Sizing Slip</th><th class="px-4 py-3">Yarn Quality</th><th class="px-4 py-3 text-right">Beams Used / Total</th><th class="px-4 py-3 text-right">Looms</th><th class="px-4 py-3 text-right">Expected Total</th><th class="px-4 py-3 text-right">Actual Woven</th><th class="px-4 py-3 text-right">Recorded Leakage</th></tr></thead>
                             <tbody class="divide-y divide-zinc-100">
                                 @forelse($sizingSlipProductionRows as $slipProduction)
-                                    <tr class="hover:bg-zinc-50"><td class="px-4 py-3 font-mono font-bold text-zinc-900">{{ $slipProduction->slip_no }}</td><td class="px-4 py-3 text-zinc-600">{{ $slipProduction->yarn_quality }}</td><td class="px-4 py-3 text-right font-mono">{{ $slipProduction->used_beam_count }} / {{ $slipProduction->total_beams }}</td><td class="px-4 py-3 text-right font-mono">{{ $slipProduction->loom_count }}</td><td class="px-4 py-3 text-right font-mono">{{ number_format($slipProduction->expected_total_meters, 2) }}m<span class="block text-[10px] text-zinc-400">all beams × width factor</span></td><td class="px-4 py-3 text-right font-mono font-bold">{{ number_format($slipProduction->actual_woven_meters, 2) }}m</td><td class="px-4 py-3 text-right font-mono font-bold text-amber-700">{{ number_format($slipProduction->recorded_leakage_meters, 2) }}m</td></tr>
+                                    <tr class="hover:bg-zinc-50"><td class="px-4 py-3 font-mono font-bold text-zinc-900">{{ $slipProduction->slip_no }}</td><td class="px-4 py-3 text-zinc-600">{{ $slipProduction->yarn_quality_code ? $slipProduction->yarn_quality_code.' · ' : '' }}{{ $slipProduction->yarn_quality }}</td><td class="px-4 py-3 text-right font-mono">{{ $slipProduction->used_beam_count }} / {{ $slipProduction->total_beams }}</td><td class="px-4 py-3 text-right font-mono">{{ $slipProduction->loom_count }}</td><td class="px-4 py-3 text-right font-mono">{{ number_format($slipProduction->expected_total_meters, 2) }}m<span class="block text-[10px] text-zinc-400">all beams × width factor</span></td><td class="px-4 py-3 text-right font-mono font-bold">{{ number_format($slipProduction->actual_woven_meters, 2) }}m</td><td class="px-4 py-3 text-right font-mono font-bold text-amber-700">{{ number_format($slipProduction->recorded_leakage_meters, 2) }}m</td></tr>
                                 @empty
                                     <tr><td colspan="7" class="px-4 py-10 text-center text-zinc-400">No sizing slips have production records yet.</td></tr>
                                 @endforelse
@@ -633,7 +633,7 @@
                                     data-ends="{{ $bm->sizingSlip?->total_ends ?? '' }}"
                                     data-weight-pounds="{{ $bm->sizingSlip?->sizing_weight_pounds ?? '' }}"
                                     data-loom="{{ $bm->assigned_loom_no }}">
-                                {{ $bm->beam_no }} ({{ $bm->yarn_quality }}) — {{ number_format($bm->remaining_length_meters) }}m left [{{ $bm->assigned_loom_no ?? 'Ready' }}]
+                                {{ $bm->beam_no }} ({{ $bm->yarnQuality?->display_name ?? $bm->yarn_quality }}) — {{ number_format($bm->remaining_length_meters) }}m left [{{ $bm->assigned_loom_no ?? 'Ready' }}]
                             </option>
                         @endforeach
                     </select>

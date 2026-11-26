@@ -18,7 +18,7 @@
                 <select name="quality" id="splitQuality" required class="mt-1 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
                     <option value="">Select quality</option>
                     @foreach($qualityBalances as $balance)
-                        <option value="{{ $balance['name'] }}" data-stock="{{ $balance['factory_stock'] }}">{{ $balance['name'] }} · {{ number_format((float) $balance['factory_stock'], 2) }} bags in factory</option>
+                        <option value="{{ $balance['name'] }}" data-stock="{{ $balance['factory_stock'] }}">{{ $balance['display_name'] }} · {{ number_format((float) $balance['factory_stock'], 2) }} bags in factory</option>
                     @endforeach
                 </select>
                 <span id="splitStockMessage" class="mt-1 block text-xs text-zinc-500">Select a quality to see available stock.</span>

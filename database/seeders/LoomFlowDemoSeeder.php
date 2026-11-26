@@ -67,8 +67,8 @@ class LoomFlowDemoSeeder extends Seeder
 
         DB::transaction(function () use ($date, $put, $parta, $stock, $post): void {
             // 1. Masters: fictional sample parties, yarn counts and fabric qualities.
-            foreach (['DEMO 58.5/1 Cotton', 'DEMO 30/1 Cotton', 'DEMO 20/1 Cotton', 'DEMO 40/1 Cotton'] as $count) {
-                $put('yarn_qualities', ['name' => $count]);
+            foreach (['DEMO 58.5/1 Cotton', 'DEMO 30/1 Cotton', 'DEMO 20/1 Cotton', 'DEMO 40/1 Cotton'] as $index => $count) {
+                $put('yarn_qualities', ['name' => $count, 'code' => 'DEMO-YRN-'.str_pad((string) ($index + 1), 3, '0', STR_PAD_LEFT)]);
             }
             $people = [
                 'rehman' => 'DEMO - Rehman Textile Traders',

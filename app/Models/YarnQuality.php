@@ -8,6 +8,7 @@ class YarnQuality extends Model
 {
     protected $fillable = [
         'name',
+        'code',
         'construction',
         'read',
         'pick',
@@ -31,4 +32,11 @@ class YarnQuality extends Model
         'weft_weight_per_meter_lb' => 'decimal:4',
         'total_weight_per_meter_lb' => 'decimal:4',
     ];
+
+    public function getDisplayNameAttribute(): string
+    {
+        $code = $this->code ?: 'YRN-'.str_pad((string) $this->id, 5, '0', STR_PAD_LEFT);
+
+        return $code.' · '.$this->name;
+    }
 }
