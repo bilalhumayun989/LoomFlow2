@@ -3,20 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\BagPurchase;
-use App\Models\KachiParchi;
-use App\Models\WorkOrder;
-use App\Models\LoomAssignment;
-use App\Models\ThaanRoll;
 use App\Models\BagTransaction;
 use App\Models\Expense;
 use App\Models\FabricStock;
-use App\Models\FabricStockMovement;
+use App\Models\Invoice;
+use App\Models\KachiParchi;
+use App\Models\Ledger;
+use App\Models\LoomAssignment;
+use App\Models\LoomStoppage;
 use App\Models\Part;
 use App\Models\Production;
 use App\Models\Sale;
 use App\Models\SalesContract;
 use App\Models\SizingBeam;
 use App\Models\SizingSlip;
+use App\Models\ThaanRoll;
+use App\Models\WorkOrder;
+use App\Models\YarnMovement;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -39,6 +43,9 @@ class DashboardController extends Controller
         $activeBeamsCount = SizingBeam::where('status', 'mounted_on_loom')->count();
         $readyBeamsCount = SizingBeam::where('status', 'ready_in_store')->count();
         $totalBeamMetersRemaining = SizingBeam::where('status', 'mounted_on_loom')->sum('remaining_length_meters');
+        $sizingSlipCount = SizingSlip::count();
+        $totalBeamCount = SizingBeam::count();
+        $todayStoppedLoomCount = LoomStoppage::query()->whereDate('stopped_on', today())->distinct()->count('loom_no');
 
         // 3. Parts summary
         $totalPartsStock = Part::sum('stock_quantity');
@@ -59,6 +66,33 @@ class DashboardController extends Controller
         $totalProductionMeters = Production::sum('net_meters_produced');
         $avgEfficiency = Production::avg('efficiency_percentage') ?? 0;
         $totalLeakageMeters = Production::sum('leakage_waste_meters');
+        $monthProductionMeters = Production::query()
+            ->whereBetween('production_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->sum('net_meters_produced');
+        $monthCheckedMeters = ThaanRoll::query()
+            ->whereBetween('checked_on', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->sum('length_meters');
+        $monthAcceptedMeters = WorkOrder::query()->where('type', 'job')->sum('accepted_meters');
+
+        $activeJobWorkOrders = WorkOrder::query()
+            ->with('fabricStock')
+            ->where('type', 'job')
+            ->where('status', 'active')
+            ->orderBy('party_name')
+            ->get();
+        $activeJobWorkOrderTargetMeters = (float) $activeJobWorkOrders->sum('target_meters');
+        $activeJobWorkOrderAcceptedMeters = (float) $activeJobWorkOrders->sum('accepted_meters');
+
+        $yarnStockByQuality = YarnMovement::query()
+            ->selectRaw("yarn_count, owner_type, SUM(CASE WHEN movement_type IN ('receipt', 'return', 'adjustment_in') THEN weight_kg WHEN movement_type IN ('issue', 'adjustment_out') THEN -weight_kg ELSE 0 END) as net_movement_kg")
+            ->groupBy('yarn_count', 'owner_type')
+            ->orderBy('yarn_count')
+            ->orderBy('owner_type')
+            ->get();
+        $recentInvoices = Invoice::query()->with('customer')->latest('invoice_date')->latest('id')->limit(5)->get();
+        $recentExpenses = Expense::query()->latest('expense_date')->latest('id')->limit(5)->get();
+        $recentDispatches = KachiParchi::query()->with('order')->latest('dispatch_date')->latest('id')->limit(5)->get();
+        $recentCheckedRolls = ThaanRoll::query()->with(['fabricStock', 'order'])->latest('checked_on')->latest('id')->limit(5)->get();
 
         $runningLooms = SizingBeam::with('fabricStock')
             ->where('status', 'mounted_on_loom')->orderBy('assigned_loom_no')->get();
@@ -77,8 +111,50 @@ class DashboardController extends Controller
         $todayCheckedMeters = (float) ThaanRoll::whereDate('checked_on', today())->sum('length_meters');
         $totalAcceptedMeters = (float) WorkOrder::where('type', 'job')->sum('accepted_meters');
 
-        // Pending Pakki dispatches awaiting customer acceptance
-        $pendingPakkis = KachiParchi::with('order.fabricStock')->whereDoesntHave('pakki')->latest('id')->take(4)->get();
+        $customerLedgerBalances = Ledger::query()
+            ->where('party_type', 'fabric_buyer')
+            ->selectRaw('customer_id, party_name, SUM(debit - credit) as balance')
+            ->groupBy('customer_id', 'party_name')
+            ->get()
+            ->groupBy(fn (object $balance): string => $balance->customer_id
+                ? 'customer:'.$balance->customer_id
+                : 'name:'.mb_strtolower(trim($balance->party_name)))
+            ->map(fn (Collection $balances): float => (float) $balances->sum('balance'));
+        $receivables = $customerLedgerBalances->sum(fn (float $balance): float => max(0, $balance));
+
+        $payables = Ledger::query()
+            ->whereIn('party_type', ['yarn_supplier', 'sizing_mill', 'parts_vendor'])
+            ->selectRaw('party_name, party_type, SUM(credit - debit) as balance')
+            ->groupBy('party_name', 'party_type')
+            ->get()
+            ->sum(fn (object $balance): float => max(0, (float) $balance->balance));
+
+        $openInvoices = Invoice::query()
+            ->withSum('allocations as received_total', 'amount')
+            ->where('status', 'issued')
+            ->get()
+            ->map(function (Invoice $invoice): Invoice {
+                $invoice->setAttribute('outstanding_amount', max(0, round((float) $invoice->total - (float) ($invoice->received_total ?? 0), 2)));
+
+                return $invoice;
+            })
+            ->filter(fn (Invoice $invoice): bool => $invoice->outstanding_amount > 0)
+            ->values();
+        $openInvoiceCount = $openInvoices->count();
+        $openInvoiceBalance = (float) $openInvoices->sum('outstanding_amount');
+        $overdueInvoiceBalance = (float) $openInvoices
+            ->filter(fn (Invoice $invoice): bool => $invoice->due_date?->lt(today()) ?? false)
+            ->sum('outstanding_amount');
+
+        $fabricInventoryValue = (float) (FabricStock::query()
+            ->selectRaw('SUM(current_stock_meters * unit_cost_meter) as total')
+            ->value('total') ?? 0);
+        $totalLoomCount = count(config('loomflow.looms', []));
+        $reportedTodayLoomsCount = Production::query()
+            ->whereDate('production_date', today())
+            ->distinct()
+            ->count('loom_no');
+
         $pendingPakkiCount = KachiParchi::whereDoesntHave('pakki')->count();
         $pendingPakkiMeters = (float) KachiParchi::whereDoesntHave('pakki')->sum('dispatched_meters');
 
@@ -88,12 +164,23 @@ class DashboardController extends Controller
         $recentSales = Sale::latest()->take(3)->get();
 
         return view('dashboard.hub', compact(
+            'receivables',
+            'payables',
+            'openInvoiceBalance',
+            'openInvoiceCount',
+            'overdueInvoiceBalance',
+            'fabricInventoryValue',
+            'totalLoomCount',
+            'reportedTodayLoomsCount',
             'totalPurchasedBags',
             'factoryBagStock',
             'sizingBagsInHand',
             'activeBeamsCount',
             'readyBeamsCount',
             'totalBeamMetersRemaining',
+            'sizingSlipCount',
+            'totalBeamCount',
+            'todayStoppedLoomCount',
             'totalPartsStock',
             'lowStockPartsCount',
             'totalFabricStockMeters',
@@ -104,6 +191,9 @@ class DashboardController extends Controller
             'monthExpenseTotal',
             'todayProductionMeters',
             'totalProductionMeters',
+            'monthProductionMeters',
+            'monthCheckedMeters',
+            'monthAcceptedMeters',
             'avgEfficiency',
             'totalLeakageMeters',
             'runningLooms',
@@ -111,15 +201,22 @@ class DashboardController extends Controller
             'todayCheckedMeters',
             'totalAcceptedMeters',
             'activeContractRows',
+            'activeJobWorkOrders',
+            'activeJobWorkOrderTargetMeters',
+            'activeJobWorkOrderAcceptedMeters',
             'contractDispatchedMeters',
             'contractProductionMeters',
             'jobWorkBalanceMeters',
-            'pendingPakkis',
             'pendingPakkiCount',
             'pendingPakkiMeters',
             'recentPurchases',
             'recentProductions',
-            'recentSales'
+            'recentSales',
+            'yarnStockByQuality',
+            'recentInvoices',
+            'recentExpenses',
+            'recentDispatches',
+            'recentCheckedRolls'
         ));
     }
 }

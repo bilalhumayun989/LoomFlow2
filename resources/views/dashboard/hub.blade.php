@@ -1,131 +1,118 @@
 @extends('layouts.app')
 
-@section('title', 'Operations Home')
+@section('title', 'LoomFlow Dashboard')
 
 @section('content')
-<div class="space-y-6 max-w-7xl mx-auto">
-    
-    <!-- CUSTOMER ACCEPTANCE PRIORITY -->
-    <section class="overflow-hidden rounded-3xl border border-[#e2e8e0] bg-white shadow-sm">
-        <div class="grid grid-cols-1 lg:grid-cols-12">
-            
-            <!-- Left Info & CTA -->
-            <div class="p-6 sm:p-8 lg:col-span-7 flex flex-col items-start justify-center">
-                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#18231d] leading-tight">
-                    @if($pendingPakkiCount > 0)
-                        {{ $pendingPakkiCount }} Pakki {{ $pendingPakkiCount == 1 ? 'Parchi needs' : 'Parchis need' }} recording.
-                    @else
-                        Factory dispatches and Pakki records are up to date.
-                    @endif
-                </h2>
-
-                <div class="mt-5 flex flex-wrap items-center" style="column-gap: 1rem; row-gap: 0.75rem;">
-                    <a href="{{ route('sales.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#133e2b] hover:bg-[#1b4835] text-white font-bold text-xs shadow-sm transition-colors">
-                        <span>Open Sales &amp; Parchis</span>
-                        <span class="text-sm" aria-hidden="true">&nearr;</span>
-                    </a>
-                    <a href="{{ route('factory.checking') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-semibold text-xs transition-colors">
-                        <span>Check Thaans</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Right: Dispatched items awaiting acceptance -->
-            <div class="border-t border-[#e2e8e0] bg-[#f8faf8] p-5 sm:p-6 lg:col-span-5 lg:border-l lg:border-t-0">
-                <div class="mb-3 flex items-center justify-between gap-3">
-                    <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-stone-600">
-                        Recent Dispatches Awaiting Acceptance
-                    </h3>
-                    @if($pendingPakkiCount > 0)
-                        <span class="shrink-0 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-stone-600 ring-1 ring-stone-200">
-                            {{ $pendingPakkiCount }} pending
-                        </span>
-                    @endif
-                </div>
-                
-                @forelse($pendingPakkis as $kachi)
-                    <div class="mb-2 last:mb-0 rounded-2xl border border-stone-200 bg-white p-3.5 flex items-center justify-between gap-3 text-xs shadow-sm">
-                        <div class="min-w-0">
-                            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                <span class="font-extrabold text-[#18231d]">{{ $kachi->parchi_no }}</span>
-                                <span class="text-[10px] font-medium text-stone-500">
-                                    {{ $kachi->order?->customer_name ?? $kachi->order?->order_no ?? 'Customer Dispatch' }}
-                                </span>
-                            </div>
-                            <div class="mt-1 text-[11px] leading-relaxed text-stone-500">
-                                {{ $kachi->thaan_count }} Thaans &middot; {{ $kachi->order?->fabricStock?->display_name ?? 'Grey Fabric' }}
-                            </div>
-                        </div>
-                        <div class="shrink-0 text-right">
-                            <span class="font-extrabold text-[#18231d] text-sm tabular-nums">
-                                {{ number_format((float) $kachi->dispatched_meters, 0) }} m
-                            </span>
-                        </div>
-                    </div>
-                @empty
-                    <div class="rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-5 text-center text-xs text-stone-500">
-                        No pending dispatches awaiting Pakki recording.
-                    </div>
-                @endforelse
-
-                @if($pendingPakkiCount > 4)
-                    <div class="pt-3 text-right">
-                        <a href="{{ route('sales.index') }}" class="text-[11px] text-[#385747] font-bold hover:text-[#133e2b] hover:underline">
-                            + {{ $pendingPakkiCount - 4 }} more pending dispatches &nearr;
-                        </a>
-                    </div>
+<div class="mx-auto max-w-[1600px] space-y-5 px-4 py-5 sm:px-6 lg:px-8">
+    <header class="flex flex-wrap items-end justify-between gap-4"><div><p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">Factory overview · {{ now()->format('d M Y, H:i') }}</p><h1 class="mt-1 text-3xl font-black tracking-tight text-slate-900">LoomFlow Dashboard</h1><p class="mt-1 text-sm text-slate-600">One live view for factory operations, production, stock, sales and accounts.</p></div></header>
+    <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Factory status cards">
+        <a href="{{ route('production.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Looms reported today</p>
+            <p class="mt-2 text-2xl font-black">{{ $reportedTodayLoomsCount }} <span class="text-sm text-slate-500">/ {{ $totalLoomCount }}</span></p>
+            <p class="text-xs text-slate-500">{{ number_format($todayProductionMeters, 0) }} m produced</p>
+        </a>
+        <a href="{{ route('production.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Looms running</p>
+            <p class="mt-2 text-2xl font-black">{{ $activeLoomAssignments->count() }} <span class="text-sm text-slate-500">/ {{ $totalLoomCount }}</span></p>
+            <p class="text-xs text-slate-500">{{ max(0, $totalLoomCount - $activeLoomAssignments->count()) }} currently stopped</p>
+        </a>
+        <a href="{{ route('factory.orders') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Running looms / beams</p>
+            <p class="mt-2 text-2xl font-black">{{ $activeLoomAssignments->count() }} / {{ $activeBeamsCount }}</p>
+            <p class="text-xs text-slate-500">{{ number_format($totalBeamMetersRemaining, 0) }} m remaining on mounted beams</p>
+        </a>
+        <a href="{{ route('sizing.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Sizing &amp; beams</p>
+            <p class="mt-2 text-2xl font-black">{{ $readyBeamsCount }} ready</p>
+            <p class="text-xs text-slate-500">{{ $sizingSlipCount }} slips · {{ $totalBeamCount }} total beams</p>
+        </a>
+        <a href="{{ route('factory.checking') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Checked fabric</p>
+            <p class="mt-2 text-2xl font-black">{{ number_format($jobWorkBalanceMeters > 0 ? $jobWorkBalanceMeters : $todayCheckedMeters, 0) }} m</p>
+            <p class="text-xs text-slate-500">Actual measured stock</p>
+        </a>
+        <a href="{{ route('bags.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Yarn bags</p>
+            <p class="mt-2 text-2xl font-black">{{ number_format($factoryBagStock, 2) }} factory</p>
+            <p class="text-xs text-slate-500">{{ number_format($sizingBagsInHand, 2) }} with sizing</p>
+        </a>
+        <a href="{{ route('fabric.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Fabric stock</p>
+            <p class="mt-2 text-2xl font-black">{{ number_format($totalFabricStockMeters, 0) }} m</p>
+            <p class="text-xs text-slate-500">{{ number_format($openFabricMeters, 0) }} open · {{ number_format($committedFabricMeters, 0) }} committed</p>
+        </a>
+        <a href="{{ route('parts.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Parts store</p>
+            <p class="mt-2 text-2xl font-black">{{ number_format($totalPartsStock) }} units</p>
+            <p class="text-xs text-amber-700">{{ $lowStockPartsCount }} at/below minimum</p>
+        </a>
+        <a href="{{ route('factory.parchis') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700">
+            <p class="text-xs font-bold uppercase text-amber-800">Pakki Parchis to record</p>
+            <p class="mt-2 text-2xl font-black text-amber-950">{{ $pendingPakkiCount }}</p>
+            <p class="text-xs text-amber-800">
+                @if($pendingPakkiCount > 0)
+                    {{ $pendingPakkiCount }} Pakki {{ $pendingPakkiCount === 1 ? 'Parchi needs' : 'Parchis need' }} recording · {{ number_format($pendingPakkiMeters, 0) }} m
+                @else
+                    No pending Parchis
                 @endif
-            </div>
-
-        </div>
+            </p>
+        </a>
+        <a href="{{ route('sales.contracts') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Active contracts</p>
+            <p class="mt-2 text-2xl font-black">{{ $activeContractsCount }} active</p>
+            <p class="text-xs text-slate-500">Production, delivery and acceptance progress</p>
+        </a>
+        <a href="{{ route('accounts.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Receivables / Payables</p>
+            <p class="mt-2 text-lg font-black">Rs. {{ number_format($receivables, 0) }} receivable</p>
+            <p class="text-xs text-slate-500">Rs. {{ number_format($payables, 0) }} payable</p>
+        </a>
+        <a href="{{ route('invoices.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Open / overdue invoices</p>
+            <p class="mt-2 text-lg font-black">Rs. {{ number_format($openInvoiceBalance, 0) }}</p>
+            <p class="text-xs text-slate-500">{{ $openInvoiceCount }} open · Rs. {{ number_format($overdueInvoiceBalance, 0) }} overdue</p>
+        </a>
+        <a href="{{ route('expenses.index') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Monthly activity</p>
+            <p class="mt-2 text-lg font-black">{{ number_format($monthProductionMeters, 0) }} m produced</p>
+            <p class="text-xs text-slate-500">Rs. {{ number_format($monthExpenseTotal, 0) }} expenses · {{ number_format($avgEfficiency, 1) }}% efficiency</p>
+        </a>
+        <a href="{{ route('factory.reports') }}" class="group flex min-h-32 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+            <p class="text-xs font-bold uppercase text-slate-500">Loom stoppages today</p>
+            <p class="mt-2 text-2xl font-black">{{ $todayStoppedLoomCount }}</p>
+            <p class="text-xs text-slate-500">Review factory reports</p>
+        </a>
     </section>
-
-    <!-- 3 KEY STAT KPI CARDS ROW -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        
-        <!-- Stat 1: Looms Running -->
-        <div class="card p-6 flex flex-col justify-between shadow-2xs hover:border-stone-300 transition-all">
-            <span class="text-xs font-semibold text-stone-500">Looms running</span>
-            <div class="mt-3 flex items-baseline gap-1.5">
-                <span class="text-3xl font-black text-[#133e2b] tabular-nums">
-                    {{ $activeLoomAssignments->count() }}
-                </span>
-                <span class="text-base font-semibold text-stone-400">/ 24</span>
-            </div>
-            <span class="text-xs text-stone-500 mt-2 font-medium">
-                {{ max(0, 24 - $activeLoomAssignments->count()) }} currently stopped
-            </span>
-        </div>
-
-        <!-- Stat 2: Checked Fabric -->
-        <div class="card p-6 flex flex-col justify-between shadow-2xs hover:border-stone-300 transition-all">
-            <span class="text-xs font-semibold text-stone-500">Checked fabric</span>
-            <div class="mt-3 flex items-baseline gap-1.5">
-                <span class="text-3xl font-black text-[#133e2b] tabular-nums">
-                    {{ number_format($jobWorkBalanceMeters > 0 ? $jobWorkBalanceMeters : $todayCheckedMeters, 0) }}
-                </span>
-                <span class="text-base font-semibold text-stone-500">m</span>
-            </div>
-            <span class="text-xs text-stone-500 mt-2 font-medium">
-                Actual measured stock
-            </span>
-        </div>
-
-        <!-- Stat 3: Awaiting Pakki -->
-        <div class="card p-6 flex flex-col justify-between shadow-2xs hover:border-stone-300 transition-all">
-            <span class="text-xs font-semibold text-stone-500">Awaiting Pakki</span>
-            <div class="mt-3 flex items-baseline gap-1.5">
-                <span class="text-3xl font-black text-[#133e2b] tabular-nums">
-                    {{ number_format($pendingPakkiMeters, 0) }}
-                </span>
-                <span class="text-base font-semibold text-stone-500">m</span>
-            </div>
-            <span class="text-xs text-stone-500 mt-2 font-medium">
-                {{ $pendingPakkiCount }} pending dispatches
-            </span>
-        </div>
-
-    </div>
+    <section class="grid items-start gap-4 xl:grid-cols-2">
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Active Contracts &amp; Delivery Status</h2><p class="text-xs text-slate-500">Production, dispatch, acceptance and remaining meters</p></div><a href="{{ route('sales.contracts') }}" class="shrink-0 text-xs font-bold text-emerald-800">View all →</a></header><div class="max-h-80 overflow-auto"><table class="w-full min-w-[620px] text-left text-xs"><thead class="sticky top-0 bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th class="p-2">Contract / quality</th><th class="p-2 text-right">Target</th><th class="p-2 text-right">Produced</th><th class="p-2 text-right">Dispatched</th><th class="p-2 text-right">Accepted</th><th class="p-2 text-right">Remaining</th></tr></thead><tbody class="divide-y">
+            @forelse($activeContractRows as $contract)
+                <tr><td class="p-2"><strong>{{ $contract->contract_no }}</strong><span class="block text-slate-500">{{ $contract->fabricStock?->display_name ?? $contract->fabric_quality }}</span></td><td class="p-2 text-right">{{ number_format((float) $contract->total_meters, 0) }} m</td><td class="p-2 text-right">{{ $contract->fabric_stock_id ? number_format((float) ($contractProductionMeters[$contract->id] ?? 0), 0).' m' : '—' }}</td><td class="p-2 text-right">{{ number_format((float) ($contractDispatchedMeters[$contract->id] ?? 0), 0) }} m</td><td class="p-2 text-right">{{ number_format((float) $contract->accepted_meters, 0) }} m</td><td class="p-2 text-right font-bold">{{ number_format(max(0, (float) $contract->total_meters - (float) $contract->accepted_meters), 0) }} m</td></tr>
+            @empty<tr><td colspan="6" class="p-8 text-center text-slate-500">No active contracts.</td></tr>@endforelse
+        </tbody></table></div></article>
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Latest Invoices</h2><p class="text-xs text-slate-500">Recent bills, customers and due dates</p></div><a href="{{ route('invoices.index') }}" class="shrink-0 text-xs font-bold text-emerald-800">View all →</a></header><div class="max-h-80 divide-y overflow-y-auto">
+            @forelse($recentInvoices as $invoice)<div class="flex justify-between gap-3 px-4 py-3"><div><strong class="block text-sm">{{ $invoice->invoice_no }} · {{ $invoice->customer?->name ?? 'Customer' }}</strong><span class="text-xs text-slate-500">{{ $invoice->invoice_date?->format('d M Y') }} · {{ ucfirst($invoice->status) }}</span></div><strong class="shrink-0 text-sm">Rs. {{ number_format((float) $invoice->total, 0) }}<span class="block text-right text-xs font-normal text-slate-500">Due {{ $invoice->due_date?->format('d M Y') ?? 'Not set' }}</span></strong></div>@empty<p class="p-8 text-center text-sm text-slate-500">No invoices recorded.</p>@endforelse
+        </div></article>
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Latest Production</h2><p class="text-xs text-slate-500">Loom output and shift records</p></div><a href="{{ route('production.index') }}" class="shrink-0 text-xs font-bold text-emerald-800">View production →</a></header><div class="max-h-80 divide-y overflow-y-auto">
+            @forelse($recentProductions as $production)<div class="flex justify-between gap-3 px-4 py-3"><div><strong class="text-sm">{{ $production->loom_no }} · {{ $production->shift ?? 'Shift' }}</strong><span class="block text-xs text-slate-500">{{ $production->production_date?->format('d M Y') }} · {{ $production->operator_name ?? 'Operator not set' }}</span></div><strong class="shrink-0 text-sm">{{ number_format((float) $production->net_meters_produced, 0) }} m</strong></div>@empty<p class="p-8 text-center text-sm text-slate-500">No production records.</p>@endforelse
+        </div></article>
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Recent Checking / Thaans</h2><p class="text-xs text-slate-500">Quality, ownership and checked length</p></div><a href="{{ route('factory.checking') }}" class="shrink-0 text-xs font-bold text-emerald-800">View checking →</a></header><div class="max-h-80 divide-y overflow-y-auto">
+            @forelse($recentCheckedRolls as $roll)<div class="flex justify-between gap-3 px-4 py-3"><div class="min-w-0"><strong class="block truncate text-sm">{{ $roll->roll_no }} · {{ $roll->fabricStock?->display_name ?? 'Fabric' }}</strong><span class="text-xs text-slate-500">{{ ucfirst(str_replace('_', ' ', $roll->owner_type ?? 'factory')) }} · {{ $roll->grade ?? 'Unclassified' }} · {{ filled($roll->checked_on) ? \Illuminate\Support\Carbon::parse($roll->checked_on)->format('d M Y') : '—' }}</span></div><strong class="shrink-0 text-sm">{{ number_format((float) $roll->length_meters, 0) }} m</strong></div>@empty<p class="p-8 text-center text-sm text-slate-500">No checked thaans.</p>@endforelse
+        </div></article>
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Latest Yarn Purchases</h2><p class="text-xs text-slate-500">Challan, quality, bags and supplier</p></div><a href="{{ route('bags.purchases') }}" class="shrink-0 text-xs font-bold text-emerald-800">View purchases →</a></header><div class="max-h-80 divide-y overflow-y-auto">
+            @forelse($recentPurchases as $purchase)<div class="flex justify-between gap-3 px-4 py-3"><div class="min-w-0"><strong class="block truncate text-sm">{{ $purchase->challan_no }} · {{ $purchase->quality }}</strong><span class="text-xs text-slate-500">{{ $purchase->supplier_name }} · {{ $purchase->purchase_date?->format('d M Y') }}</span></div><strong class="shrink-0 text-sm">{{ number_format((float) $purchase->total_bags, 2) }} bags</strong></div>@empty<p class="p-8 text-center text-sm text-slate-500">No yarn purchases recorded.</p>@endforelse
+        </div></article>
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Latest Sales</h2><p class="text-xs text-slate-500">Recent sale records and net amount</p></div><a href="{{ route('sales.index') }}" class="shrink-0 text-xs font-bold text-emerald-800">View sales →</a></header><div class="max-h-80 divide-y overflow-y-auto">
+            @forelse($recentSales as $sale)<div class="flex justify-between gap-3 px-4 py-3"><div class="min-w-0"><strong class="block truncate text-sm">{{ $sale->invoice_no ?? $sale->sale_no ?? 'Sale' }} · {{ $sale->customer_name ?? 'Customer' }}</strong><span class="text-xs text-slate-500">{{ $sale->sale_date?->format('d M Y') }}</span></div><strong class="shrink-0 text-sm">Rs. {{ number_format((float) $sale->net_total, 0) }}</strong></div>@empty<p class="p-8 text-center text-sm text-slate-500">No sales recorded.</p>@endforelse
+        </div></article>
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Latest Dispatches</h2><p class="text-xs text-slate-500">Customer and dispatched meters</p></div><a href="{{ route('factory.parchis') }}" class="shrink-0 text-xs font-bold text-emerald-800">View parchis →</a></header><div class="max-h-80 divide-y overflow-y-auto">
+            @forelse($recentDispatches as $dispatch)<div class="flex justify-between gap-3 px-4 py-3"><div><strong class="block text-sm">{{ $dispatch->parchi_no }} · {{ $dispatch->order?->customer_name ?? $dispatch->order?->party_name ?? 'Customer' }}</strong><span class="text-xs text-slate-500">{{ filled($dispatch->dispatch_date) ? \Illuminate\Support\Carbon::parse($dispatch->dispatch_date)->format('d M Y') : '—' }}</span></div><strong class="shrink-0 text-sm">{{ number_format((float) $dispatch->dispatched_meters, 0) }} m</strong></div>@empty<p class="p-8 text-center text-sm text-slate-500">No dispatches recorded.</p>@endforelse
+        </div></article>
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><header class="flex justify-between gap-3 border-b px-4 py-3"><div><h2 class="font-extrabold">Latest Expenses</h2><p class="text-xs text-slate-500">Recent posted expense records</p></div><a href="{{ route('expenses.index') }}" class="shrink-0 text-xs font-bold text-emerald-800">View expenses →</a></header><div class="max-h-80 divide-y overflow-y-auto">
+            @forelse($recentExpenses as $expense)<div class="flex justify-between gap-3 px-4 py-3"><div class="min-w-0"><strong class="block truncate text-sm">{{ $expense->title }}</strong><span class="text-xs text-slate-500">{{ $expense->expense_date?->format('d M Y') }} · {{ $expense->payee ?? $expense->expense_type }}</span></div><strong class="shrink-0 text-sm">Rs. {{ number_format((float) $expense->amount, 0) }}</strong></div>@empty<p class="p-8 text-center text-sm text-slate-500">No expenses recorded.</p>@endforelse
+        </div></article>
+    </section>
+</div>
+<div class="mt-8 space-y-6 max-w-7xl mx-auto">
 
     <!-- LOWER DUAL GRID (LOOMS AT A GLANCE + DO THIS NEXT) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -267,7 +254,7 @@
             </div>
 
             <div class="pt-4 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
-                <span>Single Operator Mode</span>
+                <span>Daily operations</span>
                 <span class="font-bold text-[#133e2b]">LoomFlow 100% Weaving ERP</span>
             </div>
         </div>

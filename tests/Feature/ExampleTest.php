@@ -88,4 +88,27 @@ class ExampleTest extends TestCase
         $response->assertStatus(200);
         $response->assertSeeText('Party Ledgers & Statements');
     }
+
+    public function test_dashboard_shows_the_same_combined_view_for_display_mode(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        foreach (['/dashboard', '/dashboard?mode=display'] as $url) {
+            $response = $this->get($url);
+
+            $response->assertOk();
+            $response->assertSeeText('LoomFlow Dashboard');
+            $response->assertSeeText('Looms reported today');
+            $response->assertSeeText('Looms running');
+            $response->assertSeeText('Checked fabric');
+            $response->assertSeeText('Pakki Parchis to record');
+            $response->assertSeeText('Do this next');
+            $response->assertDontSeeText('Recent Dispatches Awaiting Acceptance');
+            $response->assertDontSeeText('Open Sales & Parchis');
+            $response->assertSee('href="'.route('production.index').'"', false);
+            $response->assertSee('href="'.route('factory.checking').'"', false);
+            $response->assertSee('href="'.route('factory.parchis').'"', false);
+            $response->assertDontSee('dashboard-mode-switch');
+        }
+    }
 }
