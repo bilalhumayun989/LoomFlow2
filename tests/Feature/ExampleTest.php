@@ -40,7 +40,7 @@ class ExampleTest extends TestCase
         $this->actingAs($user);
 
         // Dashboard Hub
-        $response = $this->get('/dashboard');
+        $response = $this->get('/dashboard?mode=display');
         $response->assertStatus(200);
         $response->assertSeeText('Bags');
         $response->assertSeeText('Sizing');
@@ -89,26 +89,30 @@ class ExampleTest extends TestCase
         $response->assertSeeText('Party Ledgers & Statements');
     }
 
-    public function test_dashboard_shows_the_same_combined_view_for_display_mode(): void
+    public function test_dashboard_switches_between_owner_display_and_operator_workspaces(): void
     {
         $this->actingAs(User::factory()->create());
 
-        foreach (['/', '/dashboard', '/dashboard?mode=display'] as $url) {
-            $response = $this->get($url);
+        foreach (['/', '/dashboard?mode=operator'] as $url) {
+            $operatorResponse = $this->get($url);
 
-            $response->assertOk();
-            $response->assertSeeText('LoomFlow Dashboard');
-            $response->assertSeeText('Looms Running');
-            $response->assertSeeText('Beam Meters Left');
-            $response->assertSeeText('Fabric Stock');
-            $response->assertSeeText('Pakki Parchis Pending');
-            $response->assertSeeText('Do this next');
-            $response->assertDontSeeText('Recent Dispatches Awaiting Acceptance');
-            $response->assertDontSeeText('Open Sales & Parchis');
-            $response->assertSee('href="'.route('production.index').'"', false);
-            $response->assertSee('href="'.route('factory.checking').'"', false);
-            $response->assertSee('href="'.route('factory.parchis').'"', false);
-            $response->assertDontSee('dashboard-mode-switch');
+            $operatorResponse->assertOk();
+            $operatorResponse->assertSeeText('Daily Transactions');
+            $operatorResponse->assertSeeText('Pending Work');
+            $operatorResponse->assertSeeText('Recent Records · Quick Print');
+            $operatorResponse->assertSeeText('More Tasks');
+            $operatorResponse->assertSeeText('Common Lookups');
+            $operatorResponse->assertSee('id="dashboard-mode-switch"', false);
+            $operatorResponse->assertSee('Alt+7');
+            $operatorResponse->assertDontSeeText('All Factory Modules');
         }
+
+        $displayResponse = $this->get('/dashboard?mode=display');
+
+        $displayResponse->assertOk();
+        $displayResponse->assertSeeText('LoomFlow Dashboard');
+        $displayResponse->assertSeeText('All Factory Modules');
+        $displayResponse->assertDontSeeText('Daily Transactions');
+        $displayResponse->assertSee('id="dashboard-mode-switch"', false);
     }
 }

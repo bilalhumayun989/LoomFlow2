@@ -1319,7 +1319,15 @@
             <a href="{{ route('sales.index') }}" @if(str_starts_with($currentRoute, 'sales')) aria-current="page" @endif>Sales</a>
             <a href="{{ route('invoices.index') }}" @if(str_starts_with($currentRoute, 'invoices') || str_starts_with($currentRoute, 'accounts') || str_starts_with($currentRoute, 'ledgers') || str_starts_with($currentRoute, 'expenses')) aria-current="page" @endif>Accounts</a>
             <a href="{{ route('factory.reports') }}" @if(str_starts_with($currentRoute, 'factory.reports')) aria-current="page" @endif>Reports</a>
-            @if(str_starts_with($currentRoute, 'production'))
+            @if(in_array($currentRoute, ['dashboard', 'home']))
+                <form method="GET" action="{{ route('dashboard') }}" class="operator-mode-switch">
+                    <label for="dashboard-mode-switch">Dashboard view</label>
+                    <select id="dashboard-mode-switch" name="mode" onchange="this.form.submit()">
+                        <option value="operator" @selected(request()->query('mode', 'operator') === 'operator')>Operator</option>
+                        <option value="display" @selected(request()->query('mode', 'operator') === 'display')>LoomFlow Display</option>
+                    </select>
+                </form>
+            @elseif(str_starts_with($currentRoute, 'production'))
                 <form method="GET" action="{{ request()->url() }}" class="operator-mode-switch">
                     <label for="production-mode-switch">Production view</label>
                     <select id="production-mode-switch" name="mode" onchange="this.form.submit()">
@@ -1909,6 +1917,7 @@
         }, true);
 
         const moduleModePathPatterns = [
+            /^\/(?:dashboard)?\/?$/,
             /^\/factory\/(?:orders|checking|reports|parchis)\/?$/,
             /^\/(?:bags|sizing|parts|fabric-stock|sales|invoices|accounts|expenses|production)(?:\/.*)?$/,
         ];
@@ -1953,12 +1962,22 @@
         }, true);
 
         const operatorShortcutDestinations = {
-            '1': @json(route('factory.checking')),
-            '2': @json(route('production.index')),
-            '3': @json(route('factory.parchis')),
-            '4': @json(route('factory.parchis')),
-            '5': @json(route('bags.index')),
-            '6': @json(route('invoices.payments')),
+            @if(in_array($currentRoute, ['dashboard', 'home']) && request()->query('mode', 'operator') === 'operator')
+                '1': @json(route('factory.checking')),
+                '2': @json(route('factory.parchis')),
+                '3': @json(route('factory.parchis')),
+                '4': @json(route('bags.index')),
+                '5': @json(route('sizing.index')),
+                '6': @json(route('invoices.payments')),
+                '7': @json(route('invoices.index')),
+            @else
+                '1': @json(route('factory.checking')),
+                '2': @json(route('production.index')),
+                '3': @json(route('factory.parchis')),
+                '4': @json(route('factory.parchis')),
+                '5': @json(route('bags.index')),
+                '6': @json(route('invoices.payments')),
+            @endif
         };
 
         document.addEventListener('keydown', (event) => {

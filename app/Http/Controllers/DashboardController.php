@@ -20,13 +20,16 @@ use App\Models\SizingSlip;
 use App\Models\ThaanRoll;
 use App\Models\WorkOrder;
 use App\Models\YarnMovement;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $dashboardMode = $request->query('mode') === 'display' ? 'display' : 'operator';
+
         // 1. Bag Stock summary
         $totalPurchasedBags = BagPurchase::sum('total_bags');
 
@@ -157,13 +160,24 @@ class DashboardController extends Controller
 
         $pendingPakkiCount = KachiParchi::whereDoesntHave('pakki')->count();
         $pendingPakkiMeters = (float) KachiParchi::whereDoesntHave('pakki')->sum('dispatched_meters');
+        $pendingPakkis = $dashboardMode === 'operator'
+            ? KachiParchi::query()
+                ->with('order.fabricStock')
+                ->whereDoesntHave('pakki')
+                ->latest('dispatch_date')
+                ->latest('id')
+                ->limit(5)
+                ->get()
+            : collect();
 
         // Recent items for live feed
         $recentPurchases = BagPurchase::latest()->take(3)->get();
         $recentProductions = Production::latest()->take(3)->get();
         $recentSales = Sale::latest()->take(3)->get();
 
-        return view('dashboard.hub', compact(
+        $dashboardData = compact(
+            'dashboardMode',
+            'pendingPakkis',
             'receivables',
             'payables',
             'openInvoiceBalance',
@@ -217,6 +231,11 @@ class DashboardController extends Controller
             'recentExpenses',
             'recentDispatches',
             'recentCheckedRolls'
-        ));
+        );
+
+        return view(
+            $dashboardMode === 'display' ? 'dashboard.hub' : 'dashboard.operator',
+            $dashboardData
+        );
     }
 }
