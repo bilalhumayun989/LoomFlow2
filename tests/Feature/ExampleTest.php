@@ -93,15 +93,15 @@ class ExampleTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        foreach (['/dashboard', '/dashboard?mode=display'] as $url) {
+        foreach (['/', '/dashboard', '/dashboard?mode=display'] as $url) {
             $response = $this->get($url);
 
             $response->assertOk();
             $response->assertSeeText('LoomFlow Dashboard');
-            $response->assertSeeText('Looms reported today');
-            $response->assertSeeText('Looms running');
-            $response->assertSeeText('Checked fabric');
-            $response->assertSeeText('Pakki Parchis to record');
+            $response->assertSeeText('Looms Running');
+            $response->assertSeeText('Beam Meters Left');
+            $response->assertSeeText('Fabric Stock');
+            $response->assertSeeText('Pakki Parchis Pending');
             $response->assertSeeText('Do this next');
             $response->assertDontSeeText('Recent Dispatches Awaiting Acceptance');
             $response->assertDontSeeText('Open Sales & Parchis');
