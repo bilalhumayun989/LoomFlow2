@@ -111,7 +111,7 @@ class ExampleTest extends TestCase
 
         $displayResponse->assertOk();
         $displayResponse->assertSeeText('LoomFlow Dashboard');
-        $displayResponse->assertSeeText('All Factory Modules');
+        $displayResponse->assertDontSeeText('All Factory Modules');
         $displayResponse->assertDontSeeText('Daily Transactions');
         $displayResponse->assertSee('id="dashboard-mode-switch"', false);
     }
