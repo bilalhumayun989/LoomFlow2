@@ -150,4 +150,28 @@ class ExampleTest extends TestCase
         $sizingResponse->assertSee('sectionLink = moduleSectionLinks[Number(event.key) - 1];', false);
         $sizingResponse->assertSee("destination.searchParams.set('mode', 'display');", false);
     }
+
+    public function test_bags_display_subpages_do_not_render_yarn_quality_entry_form(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        foreach ([
+            ['route' => 'bags.ledger', 'heading' => 'Daily Stock Issuance'],
+            ['route' => 'bags.sizing-usage', 'heading' => 'Sizing Bag Consumption'],
+        ] as $page) {
+            $response = $this->get(route($page['route'], ['mode' => 'display']));
+
+            $response->assertOk();
+            $response->assertSeeText($page['heading']);
+            $response->assertDontSeeText('Yarn Quality List');
+            $response->assertDontSee('id="yarn-quality-form"', false);
+            $response->assertDontSee('name="code"', false);
+        }
+
+        $operatorResponse = $this->get(route('bags.sizing-usage', ['mode' => 'operator']));
+
+        $operatorResponse->assertOk();
+        $operatorResponse->assertSeeText('Yarn Quality List');
+        $operatorResponse->assertSee('id="yarn-quality-form"', false);
+    }
 }
