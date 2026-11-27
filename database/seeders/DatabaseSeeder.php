@@ -2270,8 +2270,8 @@ LOOMFLOW_TRADITIONAL_FIXTURE_JSON;
 
     public function run(): void
     {
-        if (app()->environment('production')) {
-            throw new RuntimeException('Refusing to seed production. This fixture is for development and staging only.');
+        if (app()->environment('production') && ! (bool) ($this->command?->option('force') ?? false)) {
+            throw new RuntimeException('Production seeding requires --force. Verify the target database and take a backup first.');
         }
 
         $initialAdmin = [
