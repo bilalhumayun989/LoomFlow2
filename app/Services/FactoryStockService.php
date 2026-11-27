@@ -47,7 +47,7 @@ class FactoryStockService
         $committed = (float) SalesContract::where('fabric_stock_id', $fabric->id)
             ->where('status', 'active')->where('contract_type', 'Grey Sale')->sum('remaining_meters');
         $customerStock = (float) ThaanRoll::where('fabric_stock_id', $fabric->id)
-            ->where('owner_type', 'customer')->whereIn('status', ['ready', 'returned_ready'])->sum('length_meters');
+            ->where('owner_type', 'customer')->whereIn('status', ['ready', 'returned_ready', 'returned_hold'])->sum('length_meters');
         $fabric->committed_contract_meters = min((float) $fabric->current_stock_meters, $committed);
         $fabric->available_open_meters = max(0, (float) $fabric->current_stock_meters - $customerStock - (float) $fabric->committed_contract_meters);
         $fabric->save();

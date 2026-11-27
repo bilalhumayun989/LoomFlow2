@@ -151,7 +151,7 @@ class FactoryParchiController extends Controller
         return back()->with('success', 'Pakki recorded. Weaving bill uses accepted metres only, not dispatched metres.');
     }
 
-    public function returnThaan(Request $request): RedirectResponse
+    public function returnThaan(Request $request, FactoryStockService $stock): RedirectResponse
     {
         $data = $request->validate([
             'kachi_parchi_id' => 'required|exists:kachi_parchis,id',
@@ -159,8 +159,8 @@ class FactoryParchiController extends Controller
             'roll_ids.*' => 'required|integer|distinct|exists:thaan_rolls,id',
             'returned_on' => 'required|date',
         ]);
-        DB::transaction(function () use ($data): void {
-            $kachi = KachiParchi::with(['pakki', 'items'])->whereKey($data['kachi_parchi_id'])->lockForUpdate()->firstOrFail();
+        DB::transaction(function () use ($data, $stock): void {
+            $kachi = KachiParchi::with(['pakki', 'items', 'order.fabricStock'])->whereKey($data['kachi_parchi_id'])->lockForUpdate()->firstOrFail();
             if (! $kachi->pakki) {
                 throw ValidationException::withMessages(['kachi_parchi_id' => 'Record the Pakki Parchi before entering rejected returns.']);
             }
@@ -176,6 +176,7 @@ class FactoryParchiController extends Controller
             foreach ($rolls as $roll) {
                 ThaanReturn::create(['kachi_parchi_id' => $kachi->id, 'thaan_roll_id' => $roll->id, 'returned_on' => $data['returned_on']]);
                 $roll->update(['status' => 'returned_hold']);
+                $stock->move($kachi->order->fabricStock, (float) $roll->length_meters, 1, $data['returned_on'], 'Rejected return '.$roll->roll_no, 'return');
             }
             $returned = round($already + (float) $rolls->sum('length_meters'), 2);
             if (abs($returned - (float) $kachi->pakki->rejected_meters) < 0.011) {
@@ -232,10 +233,10 @@ class FactoryParchiController extends Controller
                     $roll->work_order_id = $newOrder->id;
                 }
                 $roll->save();
-                $movementType = $action === 'resend_a' || $action === 'carry_forward' ? 'return' : 'receipt';
-                $stock->move($oldOrder->fabricStock, (float) $roll->length_meters, 1, $data['action_date'], 'Disposition '.$action.' '.$roll->roll_no, $movementType);
+                $stock->refreshAvailability($oldOrder->fabricStock);
             } else {
                 $roll->update(['status' => 'disposed']);
+                $stock->move($oldOrder->fabricStock, -(float) $roll->length_meters, -1, $data['action_date'], 'Disposition '.$action.' '.$roll->roll_no);
             }
             $disposition = ThaanDisposition::create([
                 'thaan_roll_id' => $roll->id, 'from_work_order_id' => $oldOrder->id,

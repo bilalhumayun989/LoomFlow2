@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\BeamEvent;
+use App\Models\Customer;
 use App\Models\FabricStock;
 use App\Models\FabricStockMovement;
 use App\Models\Invoice;
@@ -30,15 +31,19 @@ class FactoryWorkflowTest extends TestCase
 
     private FabricStock $quality;
 
+    private Customer $customer;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->operator = User::factory()->create();
+        $this->customer = Customer::create(['name' => 'ABC Textile', 'status' => 'active', 'opening_balance' => 0]);
         $this->quality = FabricStock::create([
             'quality_name' => 'Test Grey 90x66', 'construction' => '90x66',
             'width_inches' => 63.5,
         ]);
         $this->actingAs($this->operator)->post(route('factory.parta'), [
+            'quality_mode' => 'existing',
             'fabric_stock_id' => $this->quality->id,
             'read' => 90, 'pick' => 66, 'width_inches' => 63.5,
             'warp_count' => 58.5, 'weft_count' => 58.5,
@@ -51,6 +56,7 @@ class FactoryWorkflowTest extends TestCase
     {
         $input = [
             'order_no' => $orderNo, 'type' => $type,
+            'quality_mode' => 'existing',
             'fabric_stock_id' => $this->quality->id,
             'start_date' => '2026-11-01',
             'warp_supply' => $type === 'job' ? 'customer' : 'factory',
@@ -58,7 +64,7 @@ class FactoryWorkflowTest extends TestCase
             'rate_per_pick' => 0.50,
         ];
         if ($type === 'job') {
-            $input += ['target_meters' => 1000, 'party_name' => 'ABC Textile', 'contract_no' => 'CON-'.$orderNo];
+            $input += ['target_meters' => 1000, 'customer_id' => $this->customer->id, 'contract_no' => 'CON-'.$orderNo];
         }
         $this->actingAs($this->operator)->post(route('factory.order.store'), $input)->assertSessionHasNoErrors();
 
@@ -70,8 +76,23 @@ class FactoryWorkflowTest extends TestCase
         $this->actingAs($this->operator)->post(route('factory.loom.assign'), [
             'work_order_id' => $order->id, 'loom_no' => 'Loom-01', 'start_date' => '2026-11-01',
         ])->assertSessionHasNoErrors();
+        Production::create([
+            'production_date' => '2026-11-02',
+            'shift' => 'Day',
+            'loom_no' => 'Loom-01',
+            'operator_name' => 'Test Operator',
+            'fabric_stock_id' => $this->quality->id,
+            'fabric_quality' => $this->quality->display_name,
+            'work_order_id' => $order->id,
+            'start_meter' => 0,
+            'end_meter' => 150,
+            'net_meters_produced' => 150,
+            'beam_meters_consumed' => 150,
+        ]);
         $this->actingAs($this->operator)->post(route('factory.checking.store'), [
-            'checked_on' => '2026-11-02', 'loom_no' => 'Loom-01',
+            'checked_on' => '2026-11-02', 'production_date' => '2026-11-02',
+            'work_type' => $order->type, 'work_order_id' => $order->id,
+            'fabric_stock_id' => $this->quality->id, 'loom_no' => 'Loom-01',
             'rolls' => [
                 ['roll_no' => $order->order_no.'-TH-01', 'length_meters' => 60],
                 ['roll_no' => $order->order_no.'-TH-02', 'length_meters' => 90],
@@ -99,7 +120,7 @@ class FactoryWorkflowTest extends TestCase
         $this->assertEquals(150, (float) $this->quality->fresh()->current_stock_meters);
         $this->assertEquals(2, (int) $this->quality->fresh()->total_rolls_in_stock);
         $this->assertDatabaseHas('thaan_rolls', ['id' => $rollIds[0], 'grade' => 'A', 'owner_type' => 'factory', 'loom_no' => 'Loom-01']);
-        $this->assertEquals(0, Production::count());
+        $this->assertEquals(1, Production::count());
     }
 
     public function test_kachi_pakki_billing_and_rejected_return_are_linked_without_double_stock(): void
@@ -130,7 +151,8 @@ class FactoryWorkflowTest extends TestCase
             'kachi_parchi_id' => $kachi->id, 'roll_ids' => [$rollIds[1]], 'returned_on' => '2026-11-03',
         ])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('thaan_rolls', ['id' => $rollIds[1], 'status' => 'returned_hold', 'length_meters' => 90]);
-        $this->assertEquals(0, (float) $this->quality->fresh()->current_stock_meters);
+        $this->assertEquals(90, (float) $this->quality->fresh()->current_stock_meters);
+        $this->assertEquals(0, (float) $this->quality->fresh()->available_open_meters);
 
         $this->actingAs($this->operator)->post(route('factory.disposition.store'), [
             'thaan_roll_id' => $rollIds[1], 'action' => 'resend_a', 'action_date' => '2026-11-03',
@@ -154,12 +176,46 @@ class FactoryWorkflowTest extends TestCase
 
     public function test_fabric_cannot_be_checked_without_loom_assignment(): void
     {
-        $this->openOrder();
+        $order = $this->openOrder();
         $this->actingAs($this->operator)->post(route('factory.checking.store'), [
-            'checked_on' => '2026-11-02', 'loom_no' => 'Loom-01',
+            'checked_on' => '2026-11-02', 'production_date' => '2026-11-02',
+            'work_type' => 'job', 'work_order_id' => $order->id,
+            'fabric_stock_id' => $this->quality->id, 'loom_no' => 'Loom-01',
             'rolls' => [['roll_no' => 'UNASSIGNED-ROLL', 'length_meters' => 100]],
         ])->assertSessionHasErrors('loom_no');
         $this->assertEquals(0, (float) $this->quality->fresh()->current_stock_meters);
+    }
+
+    public function test_returning_a_held_thaan_to_the_customer_removes_it_from_factory_stock(): void
+    {
+        $order = $this->openOrder('job', 'RETURN-CUSTOMER');
+        $roll = ThaanRoll::create([
+            'roll_no' => 'RETURN-CUSTOMER-TH-01',
+            'work_order_id' => $order->id,
+            'fabric_stock_id' => $this->quality->id,
+            'loom_no' => 'Loom-01',
+            'checked_on' => '2026-11-02',
+            'length_meters' => 90,
+            'grade' => 'A',
+            'status' => 'returned_hold',
+            'owner_type' => 'customer',
+        ]);
+        $this->quality->update(['current_stock_meters' => 90, 'total_rolls_in_stock' => 1]);
+
+        $this->actingAs($this->operator)->post(route('factory.disposition.store'), [
+            'thaan_roll_id' => $roll->id,
+            'action' => 'return_customer',
+            'action_date' => '2026-11-03',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('thaan_rolls', ['id' => $roll->id, 'status' => 'disposed']);
+        $this->assertEquals(0, (float) $this->quality->fresh()->current_stock_meters);
+        $this->assertEquals(0, (int) $this->quality->fresh()->total_rolls_in_stock);
+        $movement = FabricStockMovement::where('fabric_stock_id', $this->quality->id)
+            ->whereDate('movement_date', '2026-11-03')
+            ->firstOrFail();
+        $this->assertSame(90.0, (float) $movement->dispatch_meters);
+        $this->assertSame(0.0, (float) $movement->closing_stock_meters);
     }
 
     public function test_beam_settlement_posts_customer_credit_and_balanced_expense(): void
