@@ -103,6 +103,8 @@ class ExampleTest extends TestCase
             $operatorResponse->assertSeeText('More Tasks');
             $operatorResponse->assertSeeText('Common Lookups');
             $operatorResponse->assertSee('id="dashboard-mode-switch"', false);
+            $operatorResponse->assertSee("const dashboardModeSwitch = document.getElementById('dashboard-mode-switch');", false);
+            $operatorResponse->assertSee("dashboardModeSwitch.value = dashboardModeSwitch.value === 'display' ? 'operator' : 'display';", false);
             $operatorResponse->assertSee('Alt+7');
             $operatorResponse->assertDontSeeText('All Factory Modules');
         }

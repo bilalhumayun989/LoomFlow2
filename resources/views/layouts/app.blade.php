@@ -2000,6 +2000,18 @@
                 return;
             }
 
+            @if(in_array($currentRoute, ['dashboard', 'home']))
+            if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+                const dashboardModeSwitch = document.getElementById('dashboard-mode-switch');
+                if (dashboardModeSwitch instanceof HTMLSelectElement) {
+                    event.preventDefault();
+                    dashboardModeSwitch.value = dashboardModeSwitch.value === 'display' ? 'operator' : 'display';
+                    dashboardModeSwitch.form?.requestSubmit();
+                }
+                return;
+            }
+            @endif
+
             @if(request()->routeIs('sizing.*'))
             if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
                 const sizingModeSwitch = document.getElementById('sizing-mode-switch');
