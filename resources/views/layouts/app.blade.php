@@ -497,6 +497,14 @@
             overflow: visible;
         }
 
+        body.operator-console.module-display-mode .module-display-sidebar {
+            display: none !important;
+        }
+
+        body.operator-console.module-display-mode .module-display-layout {
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+
         body.operator-console.sizing-display-mode main form,
         body.operator-console.sizing-display-mode main button,
         body.operator-console.sizing-display-mode main a[href="#sizing-slip-entry"] {
@@ -1231,7 +1239,7 @@
         }
     </style>
 </head>
-<body class="operator-console {{ request()->routeIs('dashboard', 'home') ? 'dashboard-page' : '' }} {{ request()->routeIs('bags.*') ? 'bags-module-page' : '' }} {{ request()->routeIs('sizing.*') ? 'sizing-module-page' : '' }} {{ request()->routeIs('parts.*') ? 'parts-module-page' : '' }} {{ request()->routeIs('fabric.*') ? 'fabric-module-page' : '' }} {{ request()->routeIs('sales.*') ? 'sales-module-page' : '' }} {{ request()->routeIs('production.*') ? 'production-module-page' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') ? 'finance-module-page' : '' }} {{ request()->routeIs('factory.orders') ? 'factory-orders-page' : '' }} {{ request()->routeIs('factory.checking') ? 'factory-checking-page' : '' }} {{ request()->routeIs('factory.reports') ? 'factory-reports-page' : '' }} {{ request()->routeIs('bags.*') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} {{ request()->routeIs('factory.checking') && request()->query('mode') === 'display' ? 'factory-checking-display-mode' : '' }} {{ request()->routeIs('factory.reports') && request()->query('mode') === 'display' ? 'factory-reports-display-mode' : '' }} {{ request()->routeIs('production.*') && request()->query('mode') === 'display' ? 'production-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
+<body class="operator-console {{ request()->query('mode') === 'display' ? 'module-display-mode' : '' }} {{ request()->routeIs('dashboard', 'home') ? 'dashboard-page' : '' }} {{ request()->routeIs('bags.*') ? 'bags-module-page' : '' }} {{ request()->routeIs('sizing.*') ? 'sizing-module-page' : '' }} {{ request()->routeIs('parts.*') ? 'parts-module-page' : '' }} {{ request()->routeIs('fabric.*') ? 'fabric-module-page' : '' }} {{ request()->routeIs('sales.*') ? 'sales-module-page' : '' }} {{ request()->routeIs('production.*') ? 'production-module-page' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') ? 'finance-module-page' : '' }} {{ request()->routeIs('factory.orders') ? 'factory-orders-page' : '' }} {{ request()->routeIs('factory.checking') ? 'factory-checking-page' : '' }} {{ request()->routeIs('factory.reports') ? 'factory-reports-page' : '' }} {{ request()->routeIs('bags.*') && request()->query('mode') === 'display' ? 'bags-display-mode' : '' }} {{ request()->routeIs('sizing.*') && request()->query('mode') === 'display' ? 'sizing-display-mode' : '' }} {{ request()->routeIs('parts.*') && request()->query('mode') === 'display' ? 'parts-display-mode' : '' }} {{ request()->routeIs('fabric.*') && request()->query('mode') === 'display' ? 'fabric-display-mode' : '' }} {{ request()->routeIs('sales.*') && request()->query('mode') === 'display' ? 'sales-display-mode' : '' }} {{ request()->routeIs('invoices.*', 'accounts.*', 'expenses.*') && request()->query('mode') === 'display' ? 'finance-display-mode' : '' }} {{ request()->routeIs('ledgers.*') ? 'ledger-report-page' : '' }} {{ request()->routeIs('factory.orders') && request()->query('mode') === 'display' ? 'factory-orders-display-mode' : '' }} {{ request()->routeIs('factory.checking') && request()->query('mode') === 'display' ? 'factory-checking-display-mode' : '' }} {{ request()->routeIs('factory.reports') && request()->query('mode') === 'display' ? 'factory-reports-display-mode' : '' }} {{ request()->routeIs('production.*') && request()->query('mode') === 'display' ? 'production-display-mode' : '' }} h-full antialiased bg-[#f4f6f4] text-[#131e18]">
     <div class="operator-app">
         <div class="operator-titlebar">
             <span class="operator-titlebar-mark" aria-hidden="true">L</span>
@@ -1980,6 +1988,42 @@
             @endif
         };
 
+        const moduleSectionNavigation = document.querySelector('.module-display-sidebar nav[aria-label$="sections"]');
+        const moduleSectionLinks = moduleSectionNavigation
+            ? Array.from(moduleSectionNavigation.querySelectorAll('a[href]'))
+            : [];
+
+        if (document.body.classList.contains('module-display-mode') && moduleSectionLinks.length > 0) {
+            const sectionToolbar = document.createElement('nav');
+            sectionToolbar.setAttribute('aria-label', 'Module section navigation');
+            sectionToolbar.dataset.moduleSectionShortcuts = 'true';
+            sectionToolbar.className = 'mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm';
+
+            const sectionLabel = document.createElement('span');
+            sectionLabel.className = 'mr-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500';
+            sectionLabel.textContent = 'Sections';
+            sectionToolbar.append(sectionLabel);
+
+            moduleSectionLinks.forEach((link, index) => {
+                const shortcutLink = document.createElement('a');
+                shortcutLink.href = link.href;
+                shortcutLink.className = 'inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100';
+
+                const shortcutKey = document.createElement('kbd');
+                shortcutKey.className = 'rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold text-zinc-500';
+                shortcutKey.textContent = `Ctrl+${index + 1}`;
+
+                const shortcutName = document.createElement('span');
+                shortcutName.textContent = link.querySelector('span.block.leading-tight')?.textContent.trim()
+                    || link.textContent.trim().replace(/\s+/g, ' ');
+
+                shortcutLink.append(shortcutKey, shortcutName);
+                sectionToolbar.append(shortcutLink);
+            });
+
+            document.querySelector('main')?.prepend(sectionToolbar);
+        }
+
         document.addEventListener('keydown', (event) => {
             const guide = document.getElementById('operatorKeyboardGuide');
             const guideIsOpen = guide?.classList.contains('is-open');
@@ -1998,6 +2042,26 @@
                     guide.querySelector('.operator-guide-close')?.focus();
                 }
                 return;
+            }
+
+            if (
+                document.body.classList.contains('module-display-mode')
+                && event.ctrlKey
+                && !event.shiftKey
+                && !event.altKey
+                && !event.metaKey
+                && !isEditingField
+                && /^[1-9]$/.test(event.key)
+            ) {
+                const sectionLink = moduleSectionLinks[Number(event.key) - 1];
+                if (sectionLink instanceof HTMLAnchorElement) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    const destination = new URL(sectionLink.href, window.location.href);
+                    destination.searchParams.set('mode', 'display');
+                    window.location.assign(destination.href);
+                    return;
+                }
             }
 
             @if(in_array($currentRoute, ['dashboard', 'home']))

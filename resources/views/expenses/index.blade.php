@@ -13,13 +13,13 @@
 @endphp
 
 @section('content')
-<div class="{{ $financeMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
+<div class="{{ $financeMode === 'display' ? 'module-display-layout grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
     @if($financeMode === 'display')
-    <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+    <aside class="module-display-sidebar rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Header --}}
         <div class="mb-4 flex items-center gap-3 rounded-2xl bg-zinc-900 px-4 py-3 shadow-md">

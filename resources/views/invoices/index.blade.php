@@ -17,9 +17,9 @@
 @endphp
 
 @section('content')
-<div class="{{ $financeMode === 'display' ? 'grid grid-cols-1 items-start gap-6 lg:grid-cols-[250px_minmax(0,1fr)]' : 'mx-auto max-w-7xl' }}">
+<div class="{{ $financeMode === 'display' ? 'module-display-layout grid grid-cols-1 items-start gap-6 lg:grid-cols-[250px_minmax(0,1fr)]' : 'mx-auto max-w-7xl' }}">
     @if($financeMode === 'display')
-    <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+    <aside class="module-display-sidebar rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
         <a href="{{ route('invoices.index', ['mode' => $financeMode]) }}"

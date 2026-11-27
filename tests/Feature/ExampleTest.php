@@ -117,4 +117,37 @@ class ExampleTest extends TestCase
         $displayResponse->assertDontSeeText('Daily Transactions');
         $displayResponse->assertSee('id="dashboard-mode-switch"', false);
     }
+
+    public function test_module_display_hides_sidebars_and_supports_ctrl_number_navigation(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $moduleRoutes = [
+            'sizing.index',
+            'bags.index',
+            'parts.index',
+            'fabric.index',
+            'production.index',
+            'sales.index',
+            'invoices.index',
+            'expenses.index',
+        ];
+
+        foreach ($moduleRoutes as $routeName) {
+            $response = $this->get(route($routeName, ['mode' => 'display']));
+
+            $response->assertOk();
+            $response->assertSee('module-display-mode', false);
+            $response->assertSee('module-display-sidebar', false);
+            $response->assertSee('id="appSidebar"', false);
+        }
+
+        $sizingResponse = $this->get(route('sizing.index', ['mode' => 'display']));
+
+        $sizingResponse->assertSee('body.operator-console.module-display-mode .module-display-sidebar', false);
+        $sizingResponse->assertSee("sectionToolbar.setAttribute('aria-label', 'Module section navigation')", false);
+        $sizingResponse->assertSee('const moduleSectionNavigation = document.querySelector', false);
+        $sizingResponse->assertSee('sectionLink = moduleSectionLinks[Number(event.key) - 1];', false);
+        $sizingResponse->assertSee("destination.searchParams.set('mode', 'display');", false);
+    }
 }

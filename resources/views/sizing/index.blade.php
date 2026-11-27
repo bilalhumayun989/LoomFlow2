@@ -8,7 +8,7 @@
 
 @section('workspace_sidebar')
 @if($sizingMode === 'display')
-<aside class="sizing-module-sidebar hidden w-[250px] shrink-0 self-start rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24 lg:my-6 lg:ml-6 lg:mr-4 lg:block">
+<aside class="module-display-sidebar sizing-module-sidebar hidden w-[250px] shrink-0 self-start rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24 lg:my-6 lg:ml-6 lg:mr-4 lg:block">
 
         {{-- Dashboard main link --}}
         <a href="{{ route('sizing.index', ['mode' => $sizingMode]) }}"

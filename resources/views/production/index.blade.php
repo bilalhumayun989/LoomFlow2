@@ -13,13 +13,13 @@
 @endphp
 
 @section('content')
-<div class="{{ $productionMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'mx-auto max-w-7xl' }}">
+<div class="{{ $productionMode === 'display' ? 'module-display-layout grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'mx-auto max-w-7xl' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
     @if($productionMode === 'display')
-    <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+    <aside class="module-display-sidebar rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
         <a href="{{ route('production.index', ['mode' => $productionMode]) }}"

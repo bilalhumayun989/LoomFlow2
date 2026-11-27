@@ -17,13 +17,13 @@
 @endphp
 
 @section('content')
-<div class="{{ $salesMode === 'display' ? 'grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
+<div class="{{ $salesMode === 'display' ? 'module-display-layout grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6' }}">
 
     {{-- ============================================================
          SIDEBAR
     ============================================================ --}}
     @if($salesMode === 'display')
-    <aside class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+    <aside class="module-display-sidebar rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
 
         {{-- Dashboard main link --}}
         <a href="{{ route('sales.index', ['mode' => $salesMode]) }}"
